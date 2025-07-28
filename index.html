@@ -9,6 +9,192 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QC21D7W205"></script>
     <script>
+        // ПЕРЕВОДЫ
+        const translations = {
+            ru: {
+                title: "Irregular Verbs",
+                subtitle: "Мастер неправильных глаголов",
+                welcome: "🚀 Добро пожаловать в тренажёр неправильных глаголов!",
+                userGreeting: (name) => `Привет, <strong>${name}</strong>! 👋<br>Изучаем английские неправильные глаголы`,
+                statCurrent: "Текущий",
+                statCorrect: "Верно", 
+                statTotal: "Всего",
+                progress: "Прогресс",
+                labelInfinitive: "Infinitive",
+                labelPast: "Past Simple",
+                labelParticiple: "Past Participle",
+                placeholderPast: "Введите форму...",
+                placeholderParticiple: "Введите форму...",
+                checkBtn: "Проверить",
+                nextBtn: "Следующий",
+                checkBtnChecked: "Проверено ✓",
+                correctAnswer: "🎉 Превосходно! Правильный ответ!",
+                incorrectAnswer: "❌ Посмотрите правильные ответы ниже",
+                cycleCompleted: "🎉 Поздравляем! Вы прошли все глаголы. Начинаем новый круг!",
+                speechNotSupported: "Ваш браузер не поддерживает синтез речи",
+                nextVerb: "Следующий глагол",
+                skipVerb: "Пропустить глагол",
+                nextVerbArrow: "Следующий глагол →",
+                popupTitle: "🎯 Добро пожаловать!",
+                popupMessage: "Изучайте неправильные глаголы английского языка. Введите формы Past Simple и Past Participle для каждого глагола.",
+                popupStart: "Начать обучение!"
+            },
+            am: {
+                title: "Անկանոն բայեր",
+                subtitle: "Անկանոն բայերի  քո  մարսզիչը",
+                welcome: "🚀 Բարի գալուստ անկանոն բայերի մարզիչ!",
+                userGreeting: (name) => `Բարև, <strong>${name}</strong>! 👋<br>Սովորում ենք անգլերեն անկանոն բայերը`,
+                statCurrent: "Ընթացիք",
+                statCorrect: "Ճիշտ",
+                statTotal: "Ընդամենը",
+                progress: "Առաջընթաց",
+                labelInfinitive: "Infinitive",
+                labelPast: "Past Simple", 
+                labelParticiple: "Past Participle",
+                placeholderPast: "Մուտքագրիր ձևը...",
+                placeholderParticiple: "Մուտքագրիր ձևը...",
+                checkBtn: "Ստուգել",
+                nextBtn: "Հաջորդը",
+                checkBtnChecked: "Ստուգված է✓",
+                correctAnswer: "🎉 Հիանալի! Ճիշտ պատասխան!",
+                incorrectAnswer: "❌ Նայեք ճիշտ պատասխանները ներքևում",
+                cycleCompleted: "🎉 Շնորհավորում ենք! Դուք անցել եք բոլոր բայերը: Սկսում ենք նոր շրջան:",
+                speechNotSupported: "Ձեր բրաուզերը չի աջակցում խոսքի սինթեզին",
+                nextVerb: "Հաջորդ բայը",
+                skipVerb: "Բաց թողնել բայը",
+                nextVerbArrow: "Հաջորդ բայը →",
+                popupTitle: "🎯 Բարի գալուստ!",
+                popupMessage: "Սովորեք անգլերեն անկանոն բայերը: Մուտքագրեք Past Simple և Past Participle ձևերը յուրաքանչյուր բայի համար:",
+                popupStart: "Սկսել ուսուցումը!"
+            },
+            en: {
+                title: "Irregular Verbs",
+                subtitle: "Master of Irregular Verbs",
+                welcome: "🚀 Welcome to the Irregular Verbs Trainer!",
+                userGreeting: (name) => `Hello, <strong>${name}</strong>! 👋<br>Learning English irregular verbs`,
+                statCurrent: "Current",
+                statCorrect: "Correct",
+                statTotal: "Total", 
+                progress: "Progress",
+                labelInfinitive: "Infinitive",
+                labelPast: "Past Simple",
+                labelParticiple: "Past Participle",
+                placeholderPast: "Enter form...",
+                placeholderParticiple: "Enter form...",
+                checkBtn: "Check",
+                nextBtn: "Next",
+                checkBtnChecked: "Checked ✓",
+                correctAnswer: "🎉 Excellent! Correct answer!",
+                incorrectAnswer: "❌ Look at the correct answers below",
+                cycleCompleted: "🎉 Congratulations! You completed all verbs. Starting a new round!",
+                speechNotSupported: "Your browser doesn't support speech synthesis",
+                nextVerb: "Next verb",
+                skipVerb: "Skip verb", 
+                nextVerbArrow: "Next verb →",
+                popupTitle: "🎯 Welcome!",
+                popupMessage: "Learn English irregular verbs. Enter Past Simple and Past Participle forms for each verb.",
+                popupStart: "Start learning!"
+            }
+        };
+
+        // ПЕРЕВОДЫ ЗНАЧЕНИЙ ГЛАГОЛОВ
+        const verbTranslations = {
+            ru: {
+                "be": "быть", "beat": "бить", "become": "становиться", "begin": "начинать(ся)",
+                "bite": "кусать(ся)", "blow": "дуть", "break": "ломать(ся)", "bring": "приносить",
+                "build": "строить", "buy": "покупать", "catch": "ловить", "choose": "выбирать",
+                "come": "приходить", "cost": "стоить", "cut": "резать", "do": "делать",
+                "draw": "рисовать", "drink": "пить", "drive": "водить машину", "eat": "есть",
+                "fall": "падать", "feel": "чувствовать(себя)", "fight": "драться", "find": "находить",
+                "fly": "летать", "forget": "забывать", "get": "получать", "give": "давать",
+                "go": "идти/ездить", "grow": "расти", "hang": "вешать", "have": "иметь",
+                "hear": "слышать", "hide": "прятать(ся)", "hit": "ударять", "hold": "держать",
+                "hurt": "причинять боль", "keep": "хранить/держать", "know": "знать",
+                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять"
+            },
+            am: {
+                "be": "լինել", "beat": "հարվածել", "become": "դառնալ", "begin": "սկսել",
+                "bite": "կծել", "blow": "փչել", "break": "կոտրել", "bring": "բերել",
+                "build": "կառուցել", "buy": "գնել", "catch": "բռնել", "choose": "ընտրել",
+                "come": "գալ", "cost": "արժել", "cut": "կտրել", "do": "անել",
+                "draw": "նկարել", "drink": "խմել", "drive": "վարել", "eat": "ուտել",
+                "fall": "ընկնել", "feel": "զգալ", "fight": "կռվել", "find": "գտնել",
+                "fly": "թռչել", "forget": "մոռանալ", "get": "ստանալ", "give": "տալ",
+                "go": "գնալ", "grow": "աճել", "hang": "կախել", "have": "ունենալ",
+                "hear": "լսել", "hide": "թաքցնել", "hit": "հարվածել", "hold": "պահել",
+                "hurt": "վնասել", "keep": "պահել", "know": "իմանալ",
+                "leave": "հեռանալ", "lend": "փոխ տալ", "let": "թույլ տալ"
+            },
+            en: {
+                "be": "to be", "beat": "to beat", "become": "to become", "begin": "to begin",
+                "bite": "to bite", "blow": "to blow", "break": "to break", "bring": "to bring",
+                "build": "to build", "buy": "to buy", "catch": "to catch", "choose": "to choose",
+                "come": "to come", "cost": "to cost", "cut": "to cut", "do": "to do",
+                "draw": "to draw", "drink": "to drink", "drive": "to drive", "eat": "to eat",
+                "fall": "to fall", "feel": "to feel", "fight": "to fight", "find": "to find",
+                "fly": "to fly", "forget": "to forget", "get": "to get", "give": "to give",
+                "go": "to go", "grow": "to grow", "hang": "to hang", "have": "to have",
+                "hear": "to hear", "hide": "to hide", "hit": "to hit", "hold": "to hold",
+                "hurt": "to hurt", "keep": "to keep", "know": "to know",
+                "leave": "to leave", "lend": "to lend", "let": "to let"
+            }
+        };
+
+        let currentLanguage = 'ru';
+
+        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Обновляем активную кнопку
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`lang-${lang}`).classList.add('active');
+            
+            // Обновляем все тексты
+            updateTexts();
+            
+            // Обновляем текущий глагол
+            if (currentVerb.infinitive) {
+                updateVerbTranslation();
+            }
+            
+            // Отправляем в Analytics смену языка
+            trackEvent('language_changed', {
+                new_language: lang,
+                verb: currentVerb.infinitive || 'none'
+            });
+        }
+
+        // ФУНКЦИЯ ОБНОВЛЕНИЯ ТЕКСТОВ
+        function updateTexts() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('app-title').textContent = t.title;
+            document.getElementById('app-subtitle').textContent = t.subtitle;
+            document.getElementById('stat-current').textContent = t.statCurrent;
+            document.getElementById('stat-correct').textContent = t.statCorrect;
+            document.getElementById('stat-total').textContent = t.statTotal;
+            document.getElementById('progress-label').textContent = t.progress;
+            document.getElementById('label-infinitive').textContent = t.labelInfinitive;
+            document.getElementById('label-past').textContent = t.labelPast;
+            document.getElementById('label-participle').textContent = t.labelParticiple;
+            document.getElementById('pastInput').placeholder = t.placeholderPast;
+            document.getElementById('participleInput').placeholder = t.placeholderParticiple;
+            document.getElementById('nextBtn').textContent = t.nextBtn;
+            
+            // Обновляем кнопку проверки если не проверено
+            if (!answered) {
+                document.getElementById('checkBtn').textContent = t.checkBtn;
+            } else {
+                document.getElementById('checkBtn').textContent = t.checkBtnChecked;
+            }
+        }
+
+        // ФУНКЦИЯ ОБНОВЛЕНИЯ ПЕРЕВОДА ГЛАГОЛА
+        function updateVerbTranslation() {
+            const translation = verbTranslations[currentLanguage][currentVerb.infinitive] || currentVerb.translation;
+            document.getElementById('verbTranslation').textContent = translation;
+        }
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -64,6 +250,77 @@
         .header {
             text-align: center;
             margin-bottom: 40px;
+            position: relative;
+        }
+
+        .language-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
+            margin-bottom: 30px; /* Отступ от заголовка */
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+            margin-top: 0;
+        }
+
+        .lang-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--tg-theme-text-color, #ffffff);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .lang-btn.active {
+            background: var(--tg-theme-button-color, rgba(102, 126, 234, 0.8));
+            color: var(--tg-theme-button-text-color, #ffffff);
+            transform: scale(1.05);
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Адаптация для мобильных устройств */
+        @media (max-width: 768px) {            
+            .language-switcher {
+                gap: 4px;
+                margin-bottom: 25px;
+            }
+            
+            .lang-btn {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .title {
+                font-size: clamp(1.8rem, 8vw, 2.5rem);
+            }
         }
 
         .title {
@@ -538,8 +795,13 @@
     
     <div class="app-container">
         <div class="header">
-            <h1 class="title">Irregular Verbs</h1>
-            <p class="subtitle">Мастер неправильных глаголов</p>
+            <div class="language-switcher">
+                <button class="lang-btn active" onclick="switchLanguage('ru')" id="lang-ru">🇷🇺 РУС</button>
+                <button class="lang-btn" onclick="switchLanguage('am')" id="lang-am">🇦🇲 ՀԱՅ</button>
+                <button class="lang-btn" onclick="switchLanguage('en')" id="lang-en">🇬🇧 ENG</button>
+            </div>
+            <h1 class="title" id="app-title">Irregular Verbs</h1>
+            <p class="subtitle" id="app-subtitle">Мастер неправильных глаголов</p>
         </div>
 
         <div class="telegram-info" id="telegramInfo">
@@ -550,21 +812,21 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-value" id="currentNumber">1</span>
-                    <span class="stat-label">Текущий</span>
+                    <span class="stat-label" id="stat-current">Текущий</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="correctCount">0</span>
-                    <span class="stat-label">Верно</span>
+                    <span class="stat-label" id="stat-correct">Верно</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="totalCount">0</span>
-                    <span class="stat-label">Всего</span>
+                    <span class="stat-label" id="stat-total">Всего</span>
                 </div>
             </div>
 
             <div class="progress-container">
                 <div class="progress-label">
-                    <span>Прогресс</span>
+                    <span id="progress-label">Прогресс</span>
                     <span id="progressText">0%</span>
                 </div>
                 <div class="progress-bar">
@@ -579,18 +841,18 @@
 
             <div class="forms-grid">
                 <div class="form-card infinitive-card">
-                    <div class="form-label">Infinitive</div>
+                    <div class="form-label" id="label-infinitive">Infinitive</div>
                     <div class="form-value" id="infinitiveForm"></div>
                     <button class="audio-btn" onclick="speakText(currentVerb.infinitive)" title="Произношение">🔊</button>
                 </div>
                 <div class="form-card input-card">
-                    <div class="form-label">Past Simple</div>
+                    <div class="form-label" id="label-past">Past Simple</div>
                     <input type="text" class="form-input" id="pastInput" placeholder="Введите форму...">
                     <button class="audio-btn" onclick="speakText(currentVerb.past)" title="Произношение">🔊</button>
                     <div class="correct-answer" id="pastCorrect"></div>
                 </div>
                 <div class="form-card input-card">
-                    <div class="form-label">Past Participle</div>
+                    <div class="form-label" id="label-participle">Past Participle</div>
                     <input type="text" class="form-input" id="participleInput" placeholder="Введите форму...">
                     <button class="audio-btn" onclick="speakText(currentVerb.participle)" title="Произношение">🔊</button>
                     <div class="correct-answer" id="participleCorrect"></div>
@@ -599,7 +861,7 @@
 
             <div class="controls">
                 <button class="btn btn-primary" onclick="checkAnswer()" id="checkBtn">Проверить</button>
-                <button class="btn btn-secondary" onclick="nextVerb()">Следующий</button>
+                <button class="btn btn-secondary" onclick="nextVerb()" id="nextBtn">Следующий</button>
             </div>
 
             <div class="feedback" id="feedback"></div>
@@ -636,22 +898,23 @@
         window.addEventListener('load', () => {
             const user = tg.initDataUnsafe.user;
             const userInfoDiv = document.getElementById('userInfo');
+            const t = translations[currentLanguage];
             
             if (user) {
-                userInfoDiv.innerHTML = `
-                    Привет, <strong>${user.first_name || 'Пользователь'}</strong>! 👋<br>
-                    Изучаем английские неправильные глаголы
-                `;
+                userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
                 
                 // Отправляем в Analytics информацию о пользователе
                 trackEvent('user_start', {
                     user_id: user.id,
                     user_name: user.first_name,
-                    language: user.language_code || 'unknown'
+                    language: user.language_code || 'unknown',
+                    interface_lang: currentLanguage
                 });
             } else {
-                userInfoDiv.innerHTML = '🚀 Добро пожаловать в тренажёр неправильных глаголов!';
-                trackEvent('anonymous_start');
+                userInfoDiv.innerHTML = t.welcome;
+                trackEvent('anonymous_start', {
+                    interface_lang: currentLanguage
+                });
             }
             
             // Отправляем статистику боту при старте
@@ -761,28 +1024,31 @@
                 verbs.splice(0, verbs.length, ...shuffleArray(verbs));
                 
                 // Показываем уведомление о завершении круга
-                showTelegramAlert('🎉 Поздравляем! Вы прошли все глаголы. Начинаем новый круг!');
+                const t = translations[currentLanguage];
+                showTelegramAlert(t.cycleCompleted);
                 
                 // Отправляем в Analytics завершение круга
                 trackEvent('cycle_completed', {
                     total_verbs: verbs.length,
                     correct_answers: correctAnswers,
                     total_answers: totalAnswers,
-                    accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+                    accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
+                    interface_lang: currentLanguage
                 });
             }
             
             currentVerb = verbs[currentIndex];
             
             document.getElementById('currentVerb').textContent = currentVerb.infinitive;
-            document.getElementById('verbTranslation').textContent = currentVerb.translation;
             document.getElementById('infinitiveForm').textContent = currentVerb.infinitive;
+            updateVerbTranslation();
             
             // Отправляем в Analytics новый глагол
             trackEvent('verb_loaded', {
                 verb: currentVerb.infinitive,
                 verb_index: currentIndex + 1,
-                translation: currentVerb.translation
+                translation: verbTranslations[currentLanguage][currentVerb.infinitive],
+                interface_lang: currentLanguage
             });
             
             // Очищаем поля ввода
@@ -803,10 +1069,14 @@
             
             document.getElementById('feedback').className = 'feedback';
             document.getElementById('mainCard').className = 'main-card';
-            document.getElementById('checkBtn').textContent = 'Проверить';
             
             answered = false;
             updateUI();
+            updateTexts(); // Обновляем тексты после сброса
+            
+            // Показать главную кнопку Telegram
+            tg.MainButton.show();
+        }
             
             // Показать главную кнопку Telegram
             tg.MainButton.show();
@@ -839,11 +1109,12 @@
             
             const feedback = document.getElementById('feedback');
             const mainCard = document.getElementById('mainCard');
+            const t = translations[currentLanguage];
             
             const isFullyCorrect = pastCorrect && participleCorrect;
             
             if (isFullyCorrect) {
-                feedback.textContent = '🎉 Превосходно! Правильный ответ!';
+                feedback.textContent = t.correctAnswer;
                 feedback.className = 'feedback correct show';
                 mainCard.className = 'main-card correct';
                 correctAnswers++;
@@ -853,7 +1124,7 @@
                     tg.HapticFeedback.impactOccurred('medium');
                 }
             } else {
-                feedback.textContent = `❌ Посмотрите правильные ответы ниже`;
+                feedback.textContent = t.incorrectAnswer;
                 feedback.className = 'feedback incorrect show';
                 mainCard.className = 'main-card incorrect';
                 
@@ -865,7 +1136,7 @@
             
             totalAnswers++;
             answered = true;
-            document.getElementById('checkBtn').textContent = 'Проверено ✓';
+            document.getElementById('checkBtn').textContent = t.checkBtnChecked;
             
             // Отправляем в Analytics результат ответа
             trackEvent('answer_submitted', {
@@ -875,7 +1146,8 @@
                 fully_correct: isFullyCorrect,
                 user_past: pastInput,
                 user_participle: participleInput,
-                current_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+                current_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
+                interface_lang: currentLanguage
             });
             
             // Отправляем результат боту
@@ -917,11 +1189,13 @@
             document.getElementById('progressFill').style.width = progress + '%';
             document.getElementById('progressText').textContent = Math.round(progress) + '%';
             
+            const t = translations[currentLanguage];
+            
             // Обновляем текст главной кнопки в зависимости от состояния
             if (answered) {
-                tg.MainButton.setText("Следующий глагол →");
+                tg.MainButton.setText(t.nextVerbArrow);
             } else {
-                tg.MainButton.setText("Пропустить глагол");
+                tg.MainButton.setText(t.skipVerb);
             }
         }
 
@@ -937,7 +1211,8 @@
                 // Отправляем в Analytics использование аудио
                 trackEvent('audio_played', {
                     text: text,
-                    verb: currentVerb.infinitive
+                    verb: currentVerb.infinitive,
+                    interface_lang: currentLanguage
                 });
                 
                 // Вибрация при озвучивании
@@ -945,7 +1220,8 @@
                     tg.HapticFeedback.impactOccurred('light');
                 }
             } else {
-                showTelegramAlert('Ваш браузер не поддерживает синтез речи');
+                const t = translations[currentLanguage];
+                showTelegramAlert(t.speechNotSupported);
             }
         }
 
@@ -1016,11 +1292,12 @@
         // Показать приветственное сообщение через 1 секунду
         setTimeout(() => {
             if (tg.showPopup) {
+                const t = translations[currentLanguage];
                 tg.showPopup({
-                    title: "🎯 Добро пожаловать!",
-                    message: "Изучайте неправильные глаголы английского языка. Введите формы Past Simple и Past Participle для каждого глагола.",
+                    title: t.popupTitle,
+                    message: t.popupMessage,
                     buttons: [
-                        {id: "start", type: "default", text: "Начать обучение!"}
+                        {id: "start", type: "default", text: t.popupStart}
                     ]
                 }, (buttonId) => {
                     if (buttonId === "start") {
