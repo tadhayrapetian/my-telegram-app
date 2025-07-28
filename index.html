@@ -41,18 +41,18 @@
             },
             am: {
                 title: "Անկանոն բայեր",
-                subtitle: "Անկանոն բայերի մարզիչ
+                subtitle: "Անկանոն բայերի վարպետ",
                 welcome: "🚀 Բարի գալուստ անկանոն բայերի մարզիչ!",
                 userGreeting: (name) => `Բարև, <strong>${name}</strong>! 👋<br>Սովորում ենք անգլերեն անկանոն բայերը`,
-                statCurrent: "Ընթացիկ",
+                statCurrent: "Ներկա",
                 statCorrect: "Ճիշտ",
                 statTotal: "Ընդամենը",
                 progress: "Առաջընթաց",
                 labelInfinitive: "Infinitive",
                 labelPast: "Past Simple", 
                 labelParticiple: "Past Participle",
-                placeholderPast: "Մուտքագրիր ձևը...",
-                placeholderParticiple: "Մուտքագրիր ձևը...",
+                placeholderPast: "Մուտքագրեք ձևը...",
+                placeholderParticiple: "Մուտքագրեք ձևը...",
                 checkBtn: "Ստուգել",
                 nextBtn: "Հաջորդը",
                 checkBtnChecked: "Ստուգված ✓",
@@ -60,9 +60,9 @@
                 incorrectAnswer: "❌ Նայեք ճիշտ պատասխանները ներքևում",
                 cycleCompleted: "🎉 Շնորհավորում ենք! Դուք անցել եք բոլոր բայերը: Սկսում ենք նոր շրջան:",
                 speechNotSupported: "Ձեր բրաուզերը չի աջակցում խոսքի սինթեզին",
-                nextVerb: "Հաջորդը,
-                skipVerb: "Բաց թողնել",
-                nextVerbArrow: "Հաջորդը →",
+                nextVerb: "Հաջորդ բայը",
+                skipVerb: "Բաց թողնել բայը",
+                nextVerbArrow: "Հաջորդ բայը →",
                 popupTitle: "🎯 Բարի գալուստ!",
                 popupMessage: "Սովորեք անգլերեն անկանոն բայերը: Մուտքագրեք Past Simple և Past Participle ձևերը յուրաքանչյուր բայի համար:",
                 popupStart: "Սկսել ուսուցումը!"
@@ -110,7 +110,17 @@
                 "go": "идти/ездить", "grow": "расти", "hang": "вешать", "have": "иметь",
                 "hear": "слышать", "hide": "прятать(ся)", "hit": "ударять", "hold": "держать",
                 "hurt": "причинять боль", "keep": "хранить/держать", "know": "знать",
-                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять"
+                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять",
+                "lie": "лежать", "light": "зажигать", "lose": "терять", "make": "делать",
+                "mean": "значить", "meet": "встречать(ся)", "pay": "платить", "put": "класть",
+                "read": "читать", "ride": "ездить(верхом)", "ring": "звонить", "rise": "подниматься",
+                "run": "бегать", "say": "говорить/сказать", "see": "видеть", "sell": "продавать",
+                "send": "посылать", "shine": "светить", "shoot": "стрелять", "show": "показывать",
+                "shut": "закрывать(ся)", "sing": "петь", "sit": "сидеть", "sleep": "спать",
+                "speak": "говорить", "spend": "тратить", "stand": "стоять", "steal": "воровать",
+                "swim": "плавать", "take": "брать", "teach": "обучать", "tear": "разрывать",
+                "tell": "говорить", "think": "думать", "throw": "кидать", "understand": "понимать",
+                "wake": "просыпаться/будить", "wear": "носить одежду", "win": "побеждать", "write": "писать"
             },
             am: {
                 "be": "լինել", "beat": "հարվածել", "become": "դառնալ", "begin": "սկսել",
@@ -123,20 +133,17 @@
                 "go": "գնալ", "grow": "աճել", "hang": "կախել", "have": "ունենալ",
                 "hear": "լսել", "hide": "թաքցնել", "hit": "հարվածել", "hold": "պահել",
                 "hurt": "վնասել", "keep": "պահել", "know": "իմանալ",
-                "leave": "հեռանալ", "lend": "փոխ տալ", "let": "թույլ տալ"
-            },
-            en: {
-                "be": "быть", "beat": "бить", "become": "становиться", "begin": "начинать(ся)",
-                "bite": "кусать(ся)", "blow": "дуть", "break": "ломать(ся)", "bring": "приносить",
-                "build": "строить", "buy": "покупать", "catch": "ловить", "choose": "выбирать",
-                "come": "приходить", "cost": "стоить", "cut": "резать", "do": "делать",
-                "draw": "рисовать", "drink": "пить", "drive": "водить машину", "eat": "есть",
-                "fall": "падать", "feel": "чувствовать(себя)", "fight": "драться", "find": "находить",
-                "fly": "летать", "forget": "забывать", "get": "получать", "give": "давать",
-                "go": "идти/ездить", "grow": "расти", "hang": "вешать", "have": "иметь",
-                "hear": "слышать", "hide": "прятать(ся)", "hit": "ударять", "hold": "держать",
-                "hurt": "причинять боль", "keep": "хранить/держать", "know": "знать",
-                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять"
+                "leave": "հեռանալ", "lend": "փոխ տալ", "let": "թույլ տալ",
+                "lie": "պառկել", "light": "վառել", "lose": "կորցնել", "make": "արել",
+                "mean": "նշանակել", "meet": "հանդիպել", "pay": "վճարել", "put": "դնել",
+                "read": "կարդալ", "ride": "ճարտակել", "ring": "զանգել", "rise": "բարձրանալ",
+                "run": "վազել", "say": "ասել", "see": "տեսնել", "sell": "վաճառել",
+                "send": "ուղարկել", "shine": "փայլել", "shoot": "կրակել", "show": "ցույց տալ",
+                "shut": "փակել", "sing": "երգել", "sit": "նստել", "sleep": "քնել",
+                "speak": "խոսել", "spend": "ծախսել", "stand": "կանգնել", "steal": "գողանալ",
+                "swim": "լողալ", "take": "վերցնել", "teach": "սովորեցնել", "tear": "պատռել",
+                "tell": "պատմել", "think": "մտածել", "throw": "նետել", "understand": "հասկանալ",
+                "wake": "արթնանալ", "wear": "հագնել", "win": "հաղթել", "write": "գրել"
             }
         };
 
@@ -798,7 +805,6 @@
             <div class="language-switcher">
                 <button class="lang-btn active" onclick="switchLanguage('ru')" id="lang-ru">🇷🇺 РУС</button>
                 <button class="lang-btn" onclick="switchLanguage('am')" id="lang-am">🇦🇲 ՀԱՅ</button>
-                <button class="lang-btn" onclick="switchLanguage('en')" id="lang-en">🇬🇧 ENG</button>
             </div>
             <h1 class="title" id="app-title">Irregular Verbs</h1>
             <p class="subtitle" id="app-subtitle">Мастер неправильных глаголов</p>
@@ -988,7 +994,47 @@
             { infinitive: "know", past: "knew", participle: "known", translation: "знать" },
             { infinitive: "leave", past: "left", participle: "left", translation: "покидать/уходить" },
             { infinitive: "lend", past: "lent", participle: "lent", translation: "одалживать" },
-            { infinitive: "let", past: "let", participle: "let", translation: "позволять" }
+            { infinitive: "let", past: "let", participle: "let", translation: "позволять" },
+            { infinitive: "lie", past: "lay", participle: "lain", translation: "лежать" },
+            { infinitive: "light", past: "lit", participle: "lit", translation: "зажигать" },
+            { infinitive: "lose", past: "lost", participle: "lost", translation: "терять" },
+            { infinitive: "make", past: "made", participle: "made", translation: "делать" },
+            { infinitive: "mean", past: "meant", participle: "meant", translation: "значить" },
+            { infinitive: "meet", past: "met", participle: "met", translation: "встречать(ся)" },
+            { infinitive: "pay", past: "paid", participle: "paid", translation: "платить" },
+            { infinitive: "put", past: "put", participle: "put", translation: "класть" },
+            { infinitive: "read", past: "read", participle: "read", translation: "читать" },
+            { infinitive: "ride", past: "rode", participle: "ridden", translation: "ездить(верхом)" },
+            { infinitive: "ring", past: "rang", participle: "rung", translation: "звонить" },
+            { infinitive: "rise", past: "rose", participle: "risen", translation: "подниматься" },
+            { infinitive: "run", past: "ran", participle: "run", translation: "бегать" },
+            { infinitive: "say", past: "said", participle: "said", translation: "говорить/сказать" },
+            { infinitive: "see", past: "saw", participle: "seen", translation: "видеть" },
+            { infinitive: "sell", past: "sold", participle: "sold", translation: "продавать" },
+            { infinitive: "send", past: "sent", participle: "sent", translation: "посылать" },
+            { infinitive: "shine", past: "shone", participle: "shone", translation: "светить" },
+            { infinitive: "shoot", past: "shot", participle: "shot", translation: "стрелять" },
+            { infinitive: "show", past: "showed", participle: "shown", translation: "показывать" },
+            { infinitive: "shut", past: "shut", participle: "shut", translation: "закрывать(ся)" },
+            { infinitive: "sing", past: "sang", participle: "sung", translation: "петь" },
+            { infinitive: "sit", past: "sat", participle: "sat", translation: "сидеть" },
+            { infinitive: "sleep", past: "slept", participle: "slept", translation: "спать" },
+            { infinitive: "speak", past: "spoke", participle: "spoken", translation: "говорить" },
+            { infinitive: "spend", past: "spent", participle: "spent", translation: "тратить" },
+            { infinitive: "stand", past: "stood", participle: "stood", translation: "стоять" },
+            { infinitive: "steal", past: "stole", participle: "stolen", translation: "воровать" },
+            { infinitive: "swim", past: "swam", participle: "swum", translation: "плавать" },
+            { infinitive: "take", past: "took", participle: "taken", translation: "брать" },
+            { infinitive: "teach", past: "taught", participle: "taught", translation: "обучать" },
+            { infinitive: "tear", past: "tore", participle: "torn", translation: "разрывать" },
+            { infinitive: "tell", past: "told", participle: "told", translation: "говорить" },
+            { infinitive: "think", past: "thought", participle: "thought", translation: "думать" },
+            { infinitive: "throw", past: "threw", participle: "thrown", translation: "кидать" },
+            { infinitive: "understand", past: "understood", participle: "understood", translation: "понимать" },
+            { infinitive: "wake", past: "woke", participle: "woken", translation: "просыпаться/будить" },
+            { infinitive: "wear", past: "wore", participle: "worn", translation: "носить одежду" },
+            { infinitive: "win", past: "won", participle: "won", translation: "побеждать" },
+            { infinitive: "write", past: "wrote", participle: "written", translation: "писать" }
         ];
 
         let currentVerb = {};
