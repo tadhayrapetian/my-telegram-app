@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тренажёр неправильных глаголов</title>
     
+    <!-- GOOGLE ANALYTICS -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QC21D7W205"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-QC21D7W205');
+    </script>
+    
     <!-- TELEGRAM WEB APP SCRIPT -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
@@ -614,6 +625,13 @@
         // Скрыть кнопку "Назад"
         tg.BackButton.hide();
         
+        // GOOGLE ANALYTICS СОБЫТИЯ
+        function trackEvent(eventName, parameters = {}) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, parameters);
+            }
+        }
+        
         // Загрузка информации о пользователе
         window.addEventListener('load', () => {
             const user = tg.initDataUnsafe.user;
@@ -624,8 +642,16 @@
                     Привет, <strong>${user.first_name || 'Пользователь'}</strong>! 👋<br>
                     Изучаем английские неправильные глаголы
                 `;
+                
+                // Отправляем в Analytics информацию о пользователе
+                trackEvent('user_start', {
+                    user_id: user.id,
+                    user_name: user.first_name,
+                    language: user.language_code || 'unknown'
+                });
             } else {
                 userInfoDiv.innerHTML = '🚀 Добро пожаловать в тренажёр неправильных глаголов!';
+                trackEvent('anonymous_start');
             }
             
             // Отправляем статистику боту при старте
@@ -736,6 +762,14 @@
                 
                 // Показываем уведомление о завершении круга
                 showTelegramAlert('🎉 Поздравляем! Вы прошли все глаголы. Начинаем новый круг!');
+                
+                // Отправляем в Analytics завершение круга
+                trackEvent('cycle_completed', {
+                    total_verbs: verbs.length,
+                    correct_answers: correctAnswers,
+                    total_answers: totalAnswers,
+                    accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+                });
             }
             
             currentVerb = verbs[currentIndex];
@@ -743,6 +777,13 @@
             document.getElementById('currentVerb').textContent = currentVerb.infinitive;
             document.getElementById('verbTranslation').textContent = currentVerb.translation;
             document.getElementById('infinitiveForm').textContent = currentVerb.infinitive;
+            
+            // Отправляем в Analytics новый глагол
+            trackEvent('verb_loaded', {
+                verb: currentVerb.infinitive,
+                verb_index: currentIndex + 1,
+                translation: currentVerb.translation
+            });
             
             // Очищаем поля ввода
             document.getElementById('pastInput').value = '';
@@ -826,6 +867,17 @@
             answered = true;
             document.getElementById('checkBtn').textContent = 'Проверено ✓';
             
+            // Отправляем в Analytics результат ответа
+            trackEvent('answer_submitted', {
+                verb: currentVerb.infinitive,
+                past_correct: pastCorrect,
+                participle_correct: participleCorrect,
+                fully_correct: isFullyCorrect,
+                user_past: pastInput,
+                user_participle: participleInput,
+                current_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
+            });
+            
             // Отправляем результат боту
             sendProgressToBot('answer', {
                 verb: currentVerb.infinitive,
@@ -882,6 +934,12 @@
                 utterance.pitch = 1;
                 speechSynthesis.speak(utterance);
                 
+                // Отправляем в Analytics использование аудио
+                trackEvent('audio_played', {
+                    text: text,
+                    verb: currentVerb.infinitive
+                });
+                
                 // Вибрация при озвучивании
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('light');
@@ -930,6 +988,15 @@
 
         // Обработка закрытия приложения
         window.addEventListener('beforeunload', function() {
+            // Отправляем финальную статистику в Analytics
+            trackEvent('session_end', {
+                total_correct: correctAnswers,
+                total_answers: totalAnswers,
+                final_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
+                verbs_studied: currentIndex + 1,
+                session_duration: Math.round((Date.now() - sessionStartTime) / 1000) // в секундах
+            });
+            
             sendProgressToBot('session_end', {
                 totalCorrect: correctAnswers,
                 totalAnswers: totalAnswers,
