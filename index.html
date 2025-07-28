@@ -189,6 +189,15 @@
             document.getElementById('participleInput').placeholder = t.placeholderParticiple;
             document.getElementById('nextBtn').textContent = t.nextBtn;
             
+            // Обновляем информацию о пользователе
+            const user = tg.initDataUnsafe.user;
+            const userInfoDiv = document.getElementById('userInfo');
+            if (user) {
+                userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
+            } else {
+                userInfoDiv.innerHTML = t.welcome;
+            }
+            
             // Обновляем кнопку проверки если не проверено
             if (!answered) {
                 document.getElementById('checkBtn').textContent = t.checkBtn;
@@ -811,7 +820,7 @@
         </div>
 
         <div class="telegram-info" id="telegramInfo">
-            <div id="userInfo">Загрузка информации о пользователе...</div>
+            <div id="userInfo"></div>
         </div>
 
         <div class="main-card" id="mainCard">
@@ -906,22 +915,28 @@
             const userInfoDiv = document.getElementById('userInfo');
             const t = translations[currentLanguage];
             
-            if (user) {
-                userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
-                
-                // Отправляем в Analytics информацию о пользователе
-                trackEvent('user_start', {
-                    user_id: user.id,
-                    user_name: user.first_name,
-                    language: user.language_code || 'unknown',
-                    interface_lang: currentLanguage
-                });
-            } else {
-                userInfoDiv.innerHTML = t.welcome;
-                trackEvent('anonymous_start', {
-                    interface_lang: currentLanguage
-                });
-            }
+            // Показываем сообщение загрузки на текущем языке
+            userInfoDiv.innerHTML = t.loadingUser;
+            
+            // Небольшая задержка для эффекта загрузки
+            setTimeout(() => {
+                if (user) {
+                    userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
+                    
+                    // Отправляем в Analytics информацию о пользователе
+                    trackEvent('user_start', {
+                        user_id: user.id,
+                        user_name: user.first_name,
+                        language: user.language_code || 'unknown',
+                        interface_lang: currentLanguage
+                    });
+                } else {
+                    userInfoDiv.innerHTML = t.welcome;
+                    trackEvent('anonymous_start', {
+                        interface_lang: currentLanguage
+                    });
+                }
+            }, 500);
             
             // Отправляем статистику боту при старте
             sendProgressToBot('start', {
@@ -1085,6 +1100,7 @@
             
             currentVerb = verbs[currentIndex];
             
+            // Показываем глагол и его формы
             document.getElementById('currentVerb').textContent = currentVerb.infinitive;
             document.getElementById('infinitiveForm').textContent = currentVerb.infinitive;
             updateVerbTranslation();
@@ -1119,10 +1135,6 @@
             answered = false;
             updateUI();
             updateTexts(); // Обновляем тексты после сброса
-            
-            // Показать главную кнопку Telegram
-            tg.MainButton.show();
-        }
             
             // Показать главную кнопку Telegram
             tg.MainButton.show();
@@ -1333,7 +1345,11 @@
         // Инициализация приложения
         createParticles();
         verbs.splice(0, verbs.length, ...shuffleArray(verbs));
-        loadNewVerb();
+        
+        // Загружаем первый глагол сразу после инициализации
+        setTimeout(() => {
+            loadNewVerb();
+        }, 1000);
 
         // Показать приветственное сообщение через 1 секунду
         setTimeout(() => {
