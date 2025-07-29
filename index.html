@@ -1,117 +1,4 @@
-// ФУНКЦИИ РЕГИСТРАЦИИ (ПРОСТЫЕ И РАБОЧИЕ)
-        function selectLevel(level) {
-            // Снимаем выделение со всех опций
-            document.querySelectorAll('.level-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Выделяем выбранную опцию
-            const optionId = `level${level.charAt(0).toUpperCase() + level.slice(1)}Option`;
-            const selectedOption = document.getElementById(optionId);
-            selectedOption.classList.add('selected');
-            
-            // Отмечаем radio button
-            const radioId = `level${level.charAt(0).toUpperCase() + level.slice(1)}`;
-            document.getElementById(radioId).checked = true;
-            
-            // Сохраняем выбор
-            userProfile.level = level;
-            
-            // Тактильная обратная связь
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
-        }
-
-        function updateRegistrationTexts() {
-            const t = translations[currentLanguage];
-            
-            document.getElementById('registrationTitle').textContent = t.registrationTitle;
-            document.getElementById('registrationSubtitle').textContent = t.registrationSubtitle;
-            document.getElementById('nameLabel').textContent = t.nameLabel;
-            document.getElementById('userNameInput').placeholder = t.namePlaceholder;
-            document.getElementById('levelLabel').textContent = t.levelLabel;
-            document.getElementById('levelBeginnerText').textContent = t.levelBeginner;
-            document.getElementById('levelIntermediateText').textContent = t.levelIntermediate;
-            document.getElementById('levelAdvancedText').textContent = t.levelAdvanced;
-            document.getElementById('startLearningBtn').textContent = t.startLearningBtn;
-        }
-
-        function handleRegistrationSubmit(event) {
-            event.preventDefault();
-            
-            const t = translations[currentLanguage];
-            const name = document.getElementById('userNameInput').value.trim();
-            const level = userProfile.level;
-            
-            // Простая валидация
-            if (!name) {
-                alert(t.nameRequired);
-                return;
-            }
-            
-            if (!level) {
-                alert(t.levelRequired);
-                return;
-            }
-            
-            // Сохраняем данные
-            userProfile.name = name;
-            userProfile.registered = true;
-            
-            // Скрываем регистрацию и показываем приложение
-            document.getElementById('registrationOverlay').style.display = 'none';
-            document.getElementById('appContainer').style.display = 'flex';
-            
-            // Обновляем приветствие
-            updateUserGreeting();
-            
-            // Загружаем первый глагол
-            loadNewVerb();
-            
-            // Аналитика
-            trackEvent('user_registered', {
-                user_name: name,
-                english_level: level,
-                interface_lang: currentLanguage
-            });
-        }
-
-        function updateUserGreeting() {
-            const t = translations[currentLanguage];
-            const userInfoDiv = document.getElementById('userInfo');
-            
-            if (userProfile.registered) {
-                userInfoDiv.innerHTML = t.userGreeting(userProfile.name);
-            } else {
-                userInfoDiv.innerHTML = t.welcome;
-            }
-        }
-
-        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА (ПРОСТАЯ)
-        function switchLanguage(lang) {
-            currentLanguage = lang;
-            
-            // Основные кнопки
-            document.querySelectorAll('#lang-ru, #lang-am').forEach(btn => btn.classList.remove('active'));
-            const mainBtn = document.getElementById(`lang-${lang}`);
-            if (mainBtn) mainBtn.classList.add('active');
-            
-            // Кнопки в регистрации
-            document.querySelectorAll('#regLangRu, #regLangAm').forEach(btn => btn.classList.remove('active'));
-            const regBtn = document.getElementById(`regLang${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
-            if (regBtn) regBtn.classList.add('active');
-            
-            // Обновляем тексты
-            if (!userProfile.registered) {
-                updateRegistrationTexts();
-            } else {
-                updateTexts();
-                if (currentVerb.infinitive) {
-                    updateVerbTranslation();
-                }
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -119,291 +6,11 @@
     <title>Тренажёр неправильных глаголов</title>
     
     <!-- GOOGLE ANALYTICS -->
-    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QC21D7W205"></script>
     <script>
-        // ПЕРЕВОДЫ
-        const translations = {
-            ru: {
-                title: "Irregular Verbs",
-                subtitle: "Мастер неправильных глаголов",
-                welcome: "🚀 Добро пожаловать в тренажёр неправильных глаголов!",
-                userGreeting: (name) => `Привет, <strong>${name}</strong>! 👋<br>Изучаем английские неправильные глаголы`,
-                statCurrent: "Текущий",
-                statCorrect: "Верно", 
-                statTotal: "Всего",
-                progress: "Прогресс",
-                labelInfinitive: "Infinitive",
-                labelPast: "Past Simple",
-                labelParticiple: "Past Participle",
-                placeholderPast: "Введите форму...",
-                placeholderParticiple: "Введите форму...",
-                checkBtn: "Проверить",
-                nextBtn: "Следующий",
-                skipBtn: "Пропустить",
-                checkBtnChecked: "Проверено ✓",
-                correctAnswer: "🎉 Превосходно! Правильный ответ!",
-                incorrectAnswer: "❌ Посмотрите правильные ответы ниже",
-                cycleCompleted: "🎉 Поздравляем! Вы прошли все глаголы. Начинаем новый круг!",
-                speechNotSupported: "Ваш браузер не поддерживает синтез речи",
-                nextVerb: "Следующий глагол",
-                skipVerb: "Пропустить глагол",
-                nextVerbArrow: "Следующий глагол →",
-                skipVerbArrow: "Пропустить →",
-                popupTitle: "🎯 Добро пожаловать!",
-                popupMessage: "Изучайте неправильные глаголы английского языка. Введите формы Past Simple и Past Participle для каждого глагола.",
-                popupStart: "Начать обучение!",
-                fillBothFields: "Заполните оба поля или нажмите 'Пропустить'",
-                newCycleStarted: "Начинается новый круг! Статистика сброшена.",
-                resultsTitle: "📊 Результаты пользователей",
-                showResults: "Показать результаты",
-                hideResults: "Скрыть результаты",
-                noResults: "Результаты пока отсутствуют",
-                filterPlaceholder: "Фильтр по имени или глаголу...",
-                userName: "Имя пользователя",
-                verbColumn: "Глагол",
-                userAnswers: "Ответы пользователя",
-                correctAnswers: "Правильные ответы",
-                resultColumn: "Результат",
-                correct: "Верно",
-                incorrect: "Неверно",
-                // Новые переводы для регистрации
-                registrationTitle: "👋 Добро пожаловать!",
-                registrationSubtitle: "Давайте знакомиться",
-                nameLabel: "Ваше имя",
-                namePlaceholder: "Введите ваше имя...",
-                levelLabel: "Ваш уровень английского",
-                levelBeginner: "🌱 Начинающий (A1-A2)",
-                levelIntermediate: "🌿 Средний (B1-B2)",
-                levelAdvanced: "🌳 Продвинутый (C1-C2)",
-                startLearningBtn: "Начать изучение!",
-                nameRequired: "Пожалуйста, введите ваше имя",
-                levelRequired: "Пожалуйста, выберите ваш уровень"
-            },
-            am: {
-                title: "Անկանոն բայեր",
-                subtitle: "Անկանոն բայերի մարզիչ",
-                welcome: "🚀 Բարի գալուստ անկանոն բայերի մարզիչ!",
-                userGreeting: (name) => `Բարև, <strong>${name}</strong>! 👋<br>Սովորում ենք անգլերեն անկանոն բայերը`,
-                statCurrent: "Ընթացիկ",
-                statCorrect: "Ճիշտ",
-                statTotal: "Ընդամենը",
-                progress: "Առաջընթաց",
-                labelInfinitive: "Infinitive",
-                labelPast: "Past Simple", 
-                labelParticiple: "Past Participle",
-                placeholderPast: "Մուտքագրիր ձևը...",
-                placeholderParticiple: "Մուտքագրիր ձևը...",
-                checkBtn: "Ստուգել",
-                nextBtn: "Հաջորդը",
-                skipBtn: "Բաց թողնել",
-                checkBtnChecked: "Ստուգված է ✓",
-                correctAnswer: "🎉 Հիանալի! Ճիշտ պատասխան!",
-                incorrectAnswer: "❌ Նայեք ճիշտ պատասխանները ներքևում",
-                cycleCompleted: "🎉 Շնորհավորում ենք! Դուք անցել եք բոլոր բայերը: Սկսում ենք նոր շրջան:",
-                speechNotSupported: "Ձեր բրաուզերը չի աջակցում խոսքի սինթեզին",
-                nextVerb: "Հաջորդ բայը",
-                skipVerb: "Բաց թողնել բայը",
-                nextVerbArrow: "Հաջորդ բայը →",
-                skipVerbArrow: "Բաց թողնել →",
-                popupTitle: "🎯 Բարի գալուստ!",
-                popupMessage: "Սովորեք անգլերեն անկանոն բայերը: Մուտքագրեք Past Simple և Past Participle ձևերը յուրաքանչյուր բայի համար:",
-                popupStart: "Սկսել ուսուցումը!",
-                fillBothFields: "Լրացրեք երկու դաշտերը կամ սեղմեք 'Բաց թողնել'",
-                newCycleStarted: "Սկսվում է նոր շրջան: Վիճակագրությունը զրոյացված է:",
-                resultsTitle: "📊 Օգտատերերի արդյունքները",
-                showResults: "Ցույց տալ արդյունքները",
-                hideResults: "Թաքցնել արդյունքները",
-                noResults: "Արդյունքներ դեռ չկան",
-                filterPlaceholder: "Զտիչ անվամբ կամ բայով...",
-                userName: "Օգտատերի անուն",
-                verbColumn: "Բայ",
-                userAnswers: "Օգտատերի պատասխաններ",
-                correctAnswers: "Ճիշտ պատասխաններ",
-                resultColumn: "Արդյունք",
-                correct: "Ճիշտ",
-                incorrect: "Սխալ",
-                // Новые переводы для регистрации
-                registrationTitle: "👋 Բարի գալուստ!",
-                registrationSubtitle: "Եկեք ծանոթանանք",
-                nameLabel: "Ձեր անունը",
-                namePlaceholder: "Մուտքագրեք ձեր անունը...",
-                levelLabel: "Ձեր անգլերենի մակարդակը",
-                levelBeginner: "🌱 Սկսնակ (A1-A2)",
-                levelIntermediate: "🌿 Միջին (B1-B2)",
-                levelAdvanced: "🌳 Առաջադեմ (C1-C2)",
-                startLearningBtn: "Սկսել ուսուցումը!",
-                nameRequired: "Խնդրում ենք մուտքագրել ձեր անունը",
-                levelRequired: "Խնդրում ենք ընտրել ձեր մակարդակը"
-            }
-        };
-
-        // ПЕРЕВОДЫ ЗНАЧЕНИЙ ГЛАГОЛОВ
-        const verbTranslations = {
-            ru: {
-                "be": "быть", "beat": "бить", "become": "становиться", "begin": "начинать(ся)",
-                "bite": "кусать(ся)", "blow": "дуть", "break": "ломать(ся)", "bring": "приносить",
-                "build": "строить", "buy": "покупать", "catch": "ловить", "choose": "выбирать",
-                "come": "приходить", "cost": "стоить", "cut": "резать", "do": "делать",
-                "draw": "рисовать", "drink": "пить", "drive": "водить машину", "eat": "есть",
-                "fall": "падать", "feel": "чувствовать(себя)", "fight": "драться", "find": "находить",
-                "fly": "летать", "forget": "забывать", "get": "получать", "give": "давать",
-                "go": "идти/ездить", "grow": "расти", "hang": "вешать", "have": "иметь",
-                "hear": "слышать", "hide": "прятать(ся)", "hit": "ударять", "hold": "держать",
-                "hurt": "причинять боль", "keep": "хранить/держать", "know": "знать",
-                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять",
-                "lie": "лежать", "light": "зажигать", "lose": "терять", "make": "делать",
-                "mean": "значить", "meet": "встречать(ся)", "pay": "платить", "put": "класть",
-                "read": "читать", "ride": "ездить(верхом)", "ring": "звонить", "rise": "подниматься",
-                "run": "бегать", "say": "говорить/сказать", "see": "видеть", "sell": "продавать",
-                "send": "посылать", "shine": "светить", "shoot": "стрелять", "show": "показывать",
-                "shut": "закрывать(ся)", "sing": "петь", "sit": "сидеть", "sleep": "спать",
-                "speak": "говорить", "spend": "тратить", "stand": "стоять", "steal": "воровать",
-                "swim": "плавать", "take": "брать", "teach": "обучать", "tear": "разрывать",
-                "tell": "говорить", "think": "думать", "throw": "кидать", "understand": "понимать",
-                "wake": "просыпаться/будить", "wear": "носить одежду", "win": "побеждать", "write": "писать"
-            },
-            am: {
-                "be": "լինել", "beat": "հարվածել", "become": "դառնալ", "begin": "սկսել",
-                "bite": "կծել", "blow": "փչել", "break": "կոտրել", "bring": "բերել",
-                "build": "կառուցել", "buy": "գնել", "catch": "բռնել", "choose": "ընտրել",
-                "come": "գալ", "cost": "արժել", "cut": "կտրել", "do": "անել",
-                "draw": "նկարել", "drink": "խմել", "drive": "վարել", "eat": "ուտել",
-                "fall": "ընկնել", "feel": "զգալ", "fight": "կռվել", "find": "գտնել",
-                "fly": "թռչել", "forget": "մոռանալ", "get": "ստանալ", "give": "տալ",
-                "go": "գնալ", "grow": "աճել", "hang": "կախել", "have": "ունենալ",
-                "hear": "լսել", "hide": "թաքցնել", "hit": "հարվածել", "hold": "պահել",
-                "hurt": "վնասել", "keep": "պահել", "know": "իմանալ",
-                "leave": "հեռանալ", "lend": "փոխ տալ", "let": "թույլ տալ",
-                "lie": "պառկել", "light": "վառել", "lose": "կորցնել", "make": "արել",
-                "mean": "նշանակել", "meet": "հանդիպել", "pay": "վճարել", "put": "դնել",
-                "read": "կարդալ", "ride": "ճարտակել", "ring": "զանգել", "rise": "բարձրանալ",
-                "run": "վազել", "say": "ասել", "see": "տեսնել", "sell": "վաճառել",
-                "send": "ուղարկել", "shine": "փայլել", "shoot": "կրակել", "show": "ցույց տալ",
-                "shut": "փակել", "sing": "երգել", "sit": "նստել", "sleep": "քնել",
-                "speak": "խոսել", "spend": "ծախսել", "stand": "կանգնել", "steal": "գողանալ",
-                "swim": "լողալ", "take": "վերցնել", "teach": "սովորեցնել", "tear": "պատռել",
-                "tell": "պատմել", "think": "մտածել", "throw": "նետել", "understand": "հասկանալ",
-                "wake": "արթնանալ", "wear": "հագնել", "win": "հաղթել", "write": "գրել"
-            }
-        };
-
-        let currentLanguage = 'ru';
-        let userProfile = {
-            name: '',
-            level: '',
-            registered: false
-        };
-
-        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА
-        function switchLanguage(lang) {
-            currentLanguage = lang;
-            
-            // Обновляем активную кнопку
-            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`lang-${lang}`).classList.add('active');
-            
-            // Обновляем тексты регистрации если модальное окно открыто
-            if (!userProfile.registered) {
-                updateRegistrationTexts();
-            }
-            
-            // Обновляем все тексты приложения
-            updateTexts();
-            
-            // Обновляем текущий глагол
-            if (currentVerb.infinitive) {
-                updateVerbTranslation();
-            }
-            
-            // Обновляем главную кнопку Telegram
-            updateMainButton();
-            
-            // Принудительно обновляем все элементы результатов
-            updateResultsTexts();
-            
-            // Отправляем в Analytics смену языка
-            trackEvent('language_changed', {
-                new_language: lang,
-                verb: currentVerb.infinitive || 'none'
-            });
-        }
-
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ ТЕКСТОВ
-        function updateTexts() {
-            const t = translations[currentLanguage];
-            
-            document.getElementById('app-title').textContent = t.title;
-            document.getElementById('app-subtitle').textContent = t.subtitle;
-            document.getElementById('stat-current').textContent = t.statCurrent;
-            document.getElementById('stat-correct').textContent = t.statCorrect;
-            document.getElementById('stat-total').textContent = t.statTotal;
-            document.getElementById('progress-label').textContent = t.progress;
-            document.getElementById('label-infinitive').textContent = t.labelInfinitive;
-            document.getElementById('label-past').textContent = t.labelPast;
-            document.getElementById('label-participle').textContent = t.labelParticiple;
-            document.getElementById('pastInput').placeholder = t.placeholderPast;
-            document.getElementById('participleInput').placeholder = t.placeholderParticiple;
-            document.getElementById('nextBtn').textContent = t.nextBtn;
-            document.getElementById('skipBtn').textContent = t.skipBtn;
-            
-            // Обновляем информацию о пользователе
-            updateUserGreeting();
-            
-            // Обновляем кнопку проверки если не проверено
-            if (!answered) {
-                document.getElementById('checkBtn').textContent = t.checkBtn;
-            } else {
-                document.getElementById('checkBtn').textContent = t.checkBtnChecked;
-            }
-
-            // Обновляем результаты
-            updateResultsTexts();
-        }
-
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ ТЕКСТОВ РЕЗУЛЬТАТОВ
-        function updateResultsTexts() {
-            const t = translations[currentLanguage];
-            const resultsBtn = document.getElementById('resultsBtn');
-            const resultsTitle = document.getElementById('resultsTitle');
-            const filterInput = document.getElementById('filterInput');
-            
-            if (resultsBtn) {
-                resultsBtn.textContent = showingResults ? t.hideResults : t.showResults;
-            }
-            if (resultsTitle) {
-                resultsTitle.textContent = t.resultsTitle;
-            }
-            if (filterInput) {
-                filterInput.placeholder = t.filterPlaceholder;
-            }
-            
-            // Обновляем таблицу результатов если она показана
-            if (showingResults && userResults.length > 0) {
-                updateResultsTable();
-            }
-        }
-
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ ПЕРЕВОДА ГЛАГОЛА
-        function updateVerbTranslation() {
-            const translation = verbTranslations[currentLanguage][currentVerb.infinitive] || currentVerb.translation;
-            document.getElementById('verbTranslation').textContent = translation;
-        }
-
-        // ФУНКЦИЯ ОБНОВЛЕНИЯ ГЛАВНОЙ КНОПКИ TELEGRAM
-        function updateMainButton() {
-            const t = translations[currentLanguage];
-            if (answered) {
-                tg.MainButton.setText(t.nextVerbArrow);
-            } else {
-                tg.MainButton.setText(t.skipVerbArrow);
-            }
-        }
-
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-QC21D7W205');
     </script>
     
@@ -442,22 +49,6 @@
             z-index: -1;
         }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
         .language-switcher {
             display: flex;
             justify-content: center;
@@ -472,18 +63,6 @@
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
-        }
-
-        .title {
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
-            margin-top: 0;
         }
 
         .lang-btn {
@@ -511,520 +90,7 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        @media (max-width: 768px) {            
-            .language-switcher {
-                gap: 4px;
-                margin-bottom: 25px;
-            }
-            
-            .lang-btn {
-                padding: 6px 8px;
-                font-size: 0.8rem;
-            }
-            
-            .title {
-                font-size: clamp(1.8rem, 8vw, 2.5rem);
-            }
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-            font-weight: 400;
-        }
-
-        .telegram-info {
-            background: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.1);
-            border: 1px solid rgba(var(--tg-theme-button-color, 102, 126, 234), 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.9rem;
-        }
-
-        .main-card {
-            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            max-width: 700px;
-            width: 100%;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .main-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        }
-
-        .main-card.correct {
-            border-color: rgba(34, 197, 94, 0.5);
-            box-shadow: 0 24px 48px rgba(34, 197, 94, 0.1);
-            animation: successPulse 0.8s ease-out;
-        }
-
-        .main-card.incorrect {
-            border-color: rgba(239, 68, 68, 0.5);
-            box-shadow: 0 24px 48px rgba(239, 68, 68, 0.1);
-            animation: errorShake 0.6s ease-out;
-        }
-
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes errorShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            75% { transform: translateX(8px); }
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover::before {
-            transform: translateX(0);
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--tg-theme-text-color, #ffffff);
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-            font-weight: 500;
-        }
-
-        .progress-container {
-            margin-bottom: 40px;
-        }
-
-        .progress-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-        }
-
-        .progress-bar {
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--tg-theme-button-color, #667eea), #764ba2, #f093fb);
-            border-radius: 8px;
-            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .verb-display {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .current-verb {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--tg-theme-text-color, #ffffff);
-            margin-bottom: 10px;
-            position: relative;
-            display: inline-block;
-        }
-
-        .verb-translation {
-            font-size: 1.2rem;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-            font-style: italic;
-            margin-bottom: 30px;
-        }
-
-        .forms-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .form-card {
-            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px 50px 20px 20px;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s ease;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .form-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .infinitive-card {
-            background: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.1);
-            border-color: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.3);
-        }
-
-        .input-card {
-            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-        }
-
-        .input-card.correct {
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.1);
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
-        }
-
-        .input-card.incorrect {
-            border-color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
-        }
-
-        .form-input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: var(--tg-theme-text-color, #ffffff);
-            font-size: 1.4rem;
-            font-weight: 600;
-            text-align: center;
-            outline: none;
-            padding: 8px 0;
-            margin-top: 8px;
-            max-length: 20;
-        }
-
-        .form-input::placeholder {
-            color: var(--tg-theme-hint-color, #666);
-            font-weight: 400;
-            font-size: 1rem;
-        }
-
-        .correct-answer {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #22c55e;
-            font-size: 0.9rem;
-            font-weight: 600;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .correct-answer.show {
-            opacity: 1;
-        }
-
-        .form-label {
-            font-size: 0.8rem;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .form-value {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #ffffff);
-            min-height: 2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .form-value.hidden {
-            color: var(--tg-theme-hint-color, #666);
-        }
-
-        .audio-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--tg-theme-text-color, #ffffff);
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .audio-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .audio-btn:active {
-            transform: scale(0.95);
-        }
-
-        .audio-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .controls {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .btn {
-            padding: 16px 32px;
-            border: none;
-            border-radius: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            min-width: 140px;
-            white-space: nowrap;
-        }
-
-        .btn-compact {
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            min-width: auto;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
-        }
-
-        .btn-primary {
-            background: var(--tg-theme-button-color, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
-            color: var(--tg-theme-text-color, #ffffff);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .btn-tertiary {
-            background: rgba(255, 165, 0, 0.1);
-            color: #ffa500;
-            border: 2px solid rgba(255, 165, 0, 0.3);
-        }
-
-        .btn-tertiary:hover {
-            background: rgba(255, 165, 0, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .feedback {
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 600;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.4s ease;
-        }
-
-        .feedback.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feedback.correct {
-            color: #22c55e;
-        }
-
-        .feedback.incorrect {
-            color: #ef4444;
-        }
-
-        .results-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 20px;
-        }
-
-        .results-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #ffffff);
-            flex: 1;
-            min-width: 0;
-        }
-
-        .filter-input {
-            width: 100%;
-            max-width: 300px;
-            padding: 12px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .filter-input::placeholder {
-            color: var(--tg-theme-hint-color, #666);
-        }
-
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .results-table th,
-        .results-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .results-table th {
-            background: rgba(255, 255, 255, 0.1);
-            font-weight: 600;
-            color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.9rem;
-        }
-
-        .results-table td {
-            color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.8rem;
-        }
-
-        .result-correct {
-            color: #22c55e;
-            font-weight: 600;
-        }
-
-        .result-incorrect {
-            color: #ef4444;
-            font-weight: 600;
-        }
-
-        .no-results {
-            text-align: center;
-            color: var(--tg-theme-hint-color, #a0a0a0);
-            font-style: italic;
-            padding: 40px 20px;
-        }
-
+        /* РЕГИСТРАЦИЯ */
         .registration-overlay {
             position: fixed;
             top: 0;
@@ -1037,13 +103,6 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        .registration-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
         }
 
         .registration-modal {
@@ -1055,12 +114,6 @@
             max-width: 500px;
             width: 90%;
             box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
-            transform: scale(1);
-            transition: transform 0.3s ease;
-        }
-
-        .registration-overlay.hidden .registration-modal {
-            transform: scale(0.9);
         }
 
         .registration-title {
@@ -1183,35 +236,333 @@
             box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
         }
 
-        .registration-btn:disabled {
+        /* ОСНОВНОЕ ПРИЛОЖЕНИЕ */
+        .app-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            font-weight: 400;
+        }
+
+        .telegram-info {
+            background: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.1);
+            border: 1px solid rgba(var(--tg-theme-button-color, 102, 126, 234), 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.9rem;
+        }
+
+        .main-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--tg-theme-text-color, #ffffff);
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            font-weight: 500;
+        }
+
+        .progress-container {
+            margin-bottom: 40px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tg-theme-button-color, #667eea), #764ba2, #f093fb);
+            border-radius: 8px;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .verb-display {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .current-verb {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--tg-theme-text-color, #ffffff);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .verb-translation {
+            font-size: 1.2rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .forms-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .form-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px 50px 20px 20px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .infinitive-card {
+            background: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.1);
+            border-color: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.3);
+        }
+
+        .input-card {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.03));
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .input-card.correct {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.2);
+        }
+
+        .input-card.incorrect {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+        }
+
+        .form-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+            outline: none;
+            padding: 8px 0;
+            margin-top: 8px;
+            max-length: 20;
+        }
+
+        .form-input::placeholder {
+            color: var(--tg-theme-hint-color, #666);
+            font-weight: 400;
+            font-size: 1rem;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-value {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            min-height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--tg-theme-text-color, #ffffff);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .audio-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .audio-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
 
-        .floating-particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 30px;
         }
 
-        .particle {
+        .btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            min-width: 140px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--tg-theme-button-color, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
+            color: var(--tg-theme-text-color, #ffffff);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-tertiary {
+            background: rgba(255, 165, 0, 0.1);
+            color: #ffa500;
+            border: 2px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback.correct {
+            color: #22c55e;
+        }
+
+        .feedback.incorrect {
+            color: #ef4444;
+        }
+
+        .correct-answer {
             position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            animation: float 6s infinite ease-in-out;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #22c55e;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-            50% { transform: translateY(-100px) rotate(180deg); opacity: 1; }
+        .correct-answer.show {
+            opacity: 1;
         }
 
         @media (max-width: 768px) {
@@ -1220,22 +571,13 @@
                 margin: 0 16px;
             }
             
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 12px;
-            }
-            
-            .stat-card {
-                padding: 16px 12px;
-            }
-            
-            .stat-value {
-                font-size: 1.5rem;
-            }
-            
             .forms-grid {
                 grid-template-columns: 1fr;
                 gap: 16px;
+            }
+            
+            .form-card {
+                padding: 20px;
             }
             
             .controls {
@@ -1247,47 +589,17 @@
                 width: 100%;
                 max-width: 200px;
             }
-            
-            .current-verb {
-                font-size: 2.5rem;
-            }
-
-            .results-header {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-
-            .results-title {
-                text-align: center;
-                font-size: 1.3rem;
-            }
-
-            .results-table {
-                font-size: 0.8rem;
-            }
-
-            .results-table th,
-            .results-table td {
-                padding: 8px 4px;
-            }
-
-            .form-card {
-                padding: 20px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="floating-particles" id="particles"></div>
-    
     <!-- Модальное окно регистрации -->
     <div class="registration-overlay" id="registrationOverlay">
         <div class="registration-modal">
             <!-- Переключатель языков в модальном окне -->
-            <div class="language-switcher" style="margin-bottom: 20px;">
-                <button class="lang-btn active" onclick="switchLanguage('ru')" id="regLangRu">🇷🇺 РУС</button>
-                <button class="lang-btn" onclick="switchLanguage('am')" id="regLangAm">🇦🇲 ՀԱՅ</button>
+            <div class="language-switcher">
+                <button class="lang-btn active" id="regLangRu">🇷🇺 РУС</button>
+                <button class="lang-btn" id="regLangAm">🇦🇲 ՀԱՅ</button>
             </div>
             
             <h2 class="registration-title" id="registrationTitle">👋 Добро пожаловать!</h2>
@@ -1302,16 +614,16 @@
                 <div class="form-group">
                     <label id="levelLabel">Ваш уровень английского</label>
                     <div class="level-options">
-                        <div class="level-option" onclick="selectLevel('beginner')" id="levelBeginnerOption">
-                            <input type="radio" name="level" value="beginner" id="levelBeginner">
+                        <div class="level-option" data-level="beginner">
+                            <input type="radio" name="level" value="beginner">
                             <span id="levelBeginnerText">🌱 Начинающий (A1-A2)</span>
                         </div>
-                        <div class="level-option" onclick="selectLevel('intermediate')" id="levelIntermediateOption">
-                            <input type="radio" name="level" value="intermediate" id="levelIntermediate">
+                        <div class="level-option" data-level="intermediate">
+                            <input type="radio" name="level" value="intermediate">
                             <span id="levelIntermediateText">🌿 Средний (B1-B2)</span>
                         </div>
-                        <div class="level-option" onclick="selectLevel('advanced')" id="levelAdvancedOption">
-                            <input type="radio" name="level" value="advanced" id="levelAdvanced">
+                        <div class="level-option" data-level="advanced">
+                            <input type="radio" name="level" value="advanced">
                             <span id="levelAdvancedText">🌳 Продвинутый (C1-C2)</span>
                         </div>
                     </div>
@@ -1322,14 +634,15 @@
         </div>
     </div>
     
-    <div class="app-container" id="appContainer" style="display: none;">
+    <!-- Основное приложение -->
+    <div class="app-container" id="appContainer">
         <div class="header">
             <div class="language-switcher">
-                <button class="lang-btn active" onclick="switchLanguage('ru')" id="lang-ru">🇷🇺 РУС</button>
-                <button class="lang-btn" onclick="switchLanguage('am')" id="lang-am">🇦🇲 ՀԱՅ</button>
+                <button class="lang-btn active" id="langRu">🇷🇺 РУС</button>
+                <button class="lang-btn" id="langAm">🇦🇲 ՀԱՅ</button>
             </div>
-            <h1 class="title" id="app-title">Irregular Verbs</h1>
-            <p class="subtitle" id="app-subtitle">Мастер неправильных глаголов</p>
+            <h1 class="title" id="appTitle">Irregular Verbs</h1>
+            <p class="subtitle" id="appSubtitle">Мастер неправильных глаголов</p>
         </div>
 
         <div class="telegram-info" id="telegramInfo">
@@ -1340,21 +653,21 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-value" id="currentNumber">1</span>
-                    <span class="stat-label" id="stat-current">Текущий</span>
+                    <span class="stat-label" id="statCurrent">Текущий</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="correctCount">0</span>
-                    <span class="stat-label" id="stat-correct">Верно</span>
+                    <span class="stat-label" id="statCorrect">Верно</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="totalCount">0</span>
-                    <span class="stat-label" id="stat-total">Всего</span>
+                    <span class="stat-label" id="statTotal">Всего</span>
                 </div>
             </div>
 
             <div class="progress-container">
                 <div class="progress-label">
-                    <span id="progress-label">Прогресс</span>
+                    <span id="progressLabel">Прогресс</span>
                     <span id="progressText">0%</span>
                 </div>
                 <div class="progress-bar">
@@ -1369,18 +682,18 @@
 
             <div class="forms-grid">
                 <div class="form-card infinitive-card">
-                    <div class="form-label" id="label-infinitive">Infinitive</div>
+                    <div class="form-label" id="labelInfinitive">Infinitive</div>
                     <div class="form-value" id="infinitiveForm"></div>
                     <button class="audio-btn" onclick="speakText(currentVerb.infinitive)" title="Произношение">🔊</button>
                 </div>
                 <div class="form-card input-card">
-                    <div class="form-label" id="label-past">Past Simple</div>
+                    <div class="form-label" id="labelPast">Past Simple</div>
                     <input type="text" class="form-input" id="pastInput" placeholder="Введите форму..." maxlength="20">
                     <button class="audio-btn" id="pastAudioBtn" onclick="speakCorrectForm('past')" title="Произношение" disabled>🔊</button>
                     <div class="correct-answer" id="pastCorrect"></div>
                 </div>
                 <div class="form-card input-card">
-                    <div class="form-label" id="label-participle">Past Participle</div>
+                    <div class="form-label" id="labelParticiple">Past Participle</div>
                     <input type="text" class="form-input" id="participleInput" placeholder="Введите форму..." maxlength="20">
                     <button class="audio-btn" id="participleAudioBtn" onclick="speakCorrectForm('participle')" title="Произношение" disabled>🔊</button>
                     <div class="correct-answer" id="participleCorrect"></div>
@@ -1394,34 +707,14 @@
             </div>
 
             <div class="feedback" id="feedback"></div>
-
-            <!-- Результаты -->
-            <div class="results-section">
-                <div class="results-header">
-                    <h3 class="results-title" id="resultsTitle">📊 Результаты пользователей</h3>
-                    <button class="btn btn-secondary btn-compact" onclick="toggleResults()" id="resultsBtn">Показать результаты</button>
-                </div>
-                <div id="resultsContainer" style="display: none;">
-                    <input type="text" class="filter-input" id="filterInput" placeholder="Фильтр по имени или глаголу..." oninput="filterResults()">
-                    <div id="resultsTableContainer">
-                        <div class="no-results" id="noResults">Результаты пока отсутствуют</div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
         // ИНИЦИАЛИЗАЦИЯ TELEGRAM WEB APP
         let tg = window.Telegram.WebApp;
-        
-        // Готовность приложения
         tg.ready();
-        
-        // Развернуть приложение на весь экран
         tg.expand();
-        
-        // Настройка главной кнопки
         tg.MainButton.setText("Пропустить →");
         tg.MainButton.onClick(() => {
             if (answered) {
@@ -1430,36 +723,162 @@
                 skipVerb();
             }
         });
-        
-        // Скрыть кнопку "Назад"
         tg.BackButton.hide();
         
-        // GOOGLE ANALYTICS СОБЫТИЯ
+        // ПЕРЕВОДЫ
+        const translations = {
+            ru: {
+                title: "Irregular Verbs",
+                subtitle: "Мастер неправильных глаголов",
+                userGreeting: (name) => `Привет, <strong>${name}</strong>! 👋<br>Изучаем английские неправильные глаголы`,
+                statCurrent: "Текущий",
+                statCorrect: "Верно", 
+                statTotal: "Всего",
+                progress: "Прогресс",
+                labelInfinitive: "Infinitive",
+                labelPast: "Past Simple",
+                labelParticiple: "Past Participle",
+                placeholderPast: "Введите форму...",
+                placeholderParticiple: "Введите форму...",
+                checkBtn: "Проверить",
+                nextBtn: "Следующий",
+                skipBtn: "Пропустить",
+                checkBtnChecked: "Проверено ✓",
+                correctAnswer: "🎉 Превосходно! Правильный ответ!",
+                incorrectAnswer: "❌ Посмотрите правильные ответы ниже",
+                cycleCompleted: "🎉 Поздравляем! Вы прошли все глаголы. Начинаем новый круг!",
+                speechNotSupported: "Ваш браузер не поддерживает синтез речи",
+                fillBothFields: "Заполните оба поля или нажмите 'Пропустить'",
+                newCycleStarted: "Начинается новый круг! Статистика сброшена.",
+                registrationTitle: "👋 Добро пожаловать!",
+                registrationSubtitle: "Давайте знакомиться",
+                nameLabel: "Ваше имя",
+                namePlaceholder: "Введите ваше имя...",
+                levelLabel: "Ваш уровень английского",
+                levelBeginner: "🌱 Начинающий (A1-A2)",
+                levelIntermediate: "🌿 Средний (B1-B2)",
+                levelAdvanced: "🌳 Продвинутый (C1-C2)",
+                startLearningBtn: "Начать изучение!",
+                nameRequired: "Пожалуйста, введите ваше имя",
+                levelRequired: "Пожалуйста, выберите ваш уровень"
+            },
+            am: {
+                title: "Անկանոն բայեր",
+                subtitle: "Անկանոն բայերի մարզիչ",
+                userGreeting: (name) => `Բարև, <strong>${name}</strong>! 👋<br>Սովորում ենք անգլերեն անկանոն բայերը`,
+                statCurrent: "Ընթացիկ",
+                statCorrect: "Ճիշտ",
+                statTotal: "Ընդամենը",
+                progress: "Առաջընթաց",
+                labelInfinitive: "Infinitive",
+                labelPast: "Past Simple", 
+                labelParticiple: "Past Participle",
+                placeholderPast: "Մուտքագրիր ձևը...",
+                placeholderParticiple: "Մուտքագրիր ձևը...",
+                checkBtn: "Ստուգել",
+                nextBtn: "Հաջորդը",
+                skipBtn: "Բաց թողնել",
+                checkBtnChecked: "Ստուգված է ✓",
+                correctAnswer: "🎉 Հիանալի! Ճիշտ պատասխան!",
+                incorrectAnswer: "❌ Նայեք ճիշտ պատասխանները ներքևում",
+                cycleCompleted: "🎉 Շնորհավորում ենք! Դուք անցել եք բոլոր բայերը: Սկսում ենք նոր շրջան:",
+                speechNotSupported: "Ձեր բրաուզերը չի աջակցում խոսքի սինթեզին",
+                fillBothFields: "Լրացրեք երկու դաշտերը կամ սեղմեք 'Բաց թողնել'",
+                newCycleStarted: "Սկսվում է նոր շրջան: Վիճակագրությունը զրոյացված է:",
+                registrationTitle: "👋 Բարի գալուստ!",
+                registrationSubtitle: "Եկեք ծանոթանանք",
+                nameLabel: "Ձեր անունը",
+                namePlaceholder: "Մուտքագրեք ձեր անունը...",
+                levelLabel: "Ձեր անգլերենի մակարդակը",
+                levelBeginner: "🌱 Սկսնակ (A1-A2)",
+                levelIntermediate: "🌿 Միջին (B1-B2)",
+                levelAdvanced: "🌳 Առաջադեմ (C1-C2)",
+                startLearningBtn: "Սկսել ուսուցումը!",
+                nameRequired: "Խնդրում ենք մուտքագրել ձեր անունը",
+                levelRequired: "Խնդրում ենք ընտրել ձեր մակարդակը"
+            }
+        };
+
+        // ПЕРЕВОДЫ ГЛАГОЛОВ
+        const verbTranslations = {
+            ru: {
+                "be": "быть", "beat": "бить", "become": "становиться", "begin": "начинать(ся)",
+                "bite": "кусать(ся)", "blow": "дуть", "break": "ломать(ся)", "bring": "приносить",
+                "build": "строить", "buy": "покупать", "catch": "ловить", "choose": "выбирать",
+                "come": "приходить", "cost": "стоить", "cut": "резать", "do": "делать",
+                "draw": "рисовать", "drink": "пить", "drive": "водить машину", "eat": "есть",
+                "fall": "падать", "feel": "чувствовать(себя)", "fight": "драться", "find": "находить",
+                "fly": "летать", "forget": "забывать", "get": "получать", "give": "давать",
+                "go": "идти/ездить", "grow": "расти", "hang": "вешать", "have": "иметь",
+                "hear": "слышать", "hide": "прятать(ся)", "hit": "ударять", "hold": "держать",
+                "hurt": "причинять боль", "keep": "хранить/держать", "know": "знать",
+                "leave": "покидать/уходить", "lend": "одалживать", "let": "позволять",
+                "lie": "лежать", "light": "зажигать", "lose": "терять", "make": "делать",
+                "mean": "значить", "meet": "встречать(ся)", "pay": "платить", "put": "класть",
+                "read": "читать", "ride": "ездить(верхом)", "ring": "звонить", "rise": "подниматься",
+                "run": "бегать", "say": "говорить/сказать", "see": "видеть", "sell": "продавать",
+                "send": "посылать", "shine": "светить", "shoot": "стрелять", "show": "показывать",
+                "shut": "закрывать(ся)", "sing": "петь", "sit": "сидеть", "sleep": "спать",
+                "speak": "говорить", "spend": "тратить", "stand": "стоять", "steal": "воровать",
+                "swim": "плавать", "take": "брать", "teach": "обучать", "tear": "разрывать",
+                "tell": "говорить", "think": "думать", "throw": "кидать", "understand": "понимать",
+                "wake": "просыпаться/будить", "wear": "носить одежду", "win": "побеждать", "write": "писать"
+            },
+            am: {
+                "be": "լինել", "beat": "հարվածել", "become": "դառնալ", "begin": "սկսել",
+                "bite": "կծել", "blow": "փչել", "break": "կոտրել", "bring": "բերել",
+                "build": "կառուցել", "buy": "գնել", "catch": "բռնել", "choose": "ընտրել",
+                "come": "գալ", "cost": "արժել", "cut": "կտրել", "do": "անել",
+                "draw": "նկարել", "drink": "խմել", "drive": "վարել", "eat": "ուտել",
+                "fall": "ընկնել", "feel": "զգալ", "fight": "կռվել", "find": "գտնել",
+                "fly": "թռչել", "forget": "մոռանալ", "get": "ստանալ", "give": "տալ",
+                "go": "գնալ", "grow": "աճել", "hang": "կախել", "have": "ունենալ",
+                "hear": "լսել", "hide": "թաքցնել", "hit": "հարվածել", "hold": "պահել",
+                "hurt": "վնասել", "keep": "պահել", "know": "իմանալ",
+                "leave": "հեռանալ", "lend": "փոխ տալ", "let": "թույլ տալ",
+                "lie": "պառկել", "light": "վառել", "lose": "կորցնել", "make": "արել",
+                "mean": "նշանակել", "meet": "հանդիպել", "pay": "վճարել", "put": "դնել",
+                "read": "կարդալ", "ride": "ճարտակել", "ring": "զանգել", "rise": "բարձրանալ",
+                "run": "վազել", "say": "ասել", "see": "տեսնել", "sell": "վաճառել",
+                "send": "ուղարկել", "shine": "փայլել", "shoot": "կրակել", "show": "ցույց տալ",
+                "shut": "փակել", "sing": "երգել", "sit": "նստել", "sleep": "քնել",
+                "speak": "խոսել", "spend": "ծախսել", "stand": "կանգնել", "steal": "գողանալ",
+                "swim": "լողալ", "take": "վերցնել", "teach": "սովորեցնել", "tear": "պատռել",
+                "tell": "պատմել", "think": "մտածել", "throw": "նետել", "understand": "հասկանալ",
+                "wake": "արթնանալ", "wear": "հագնել", "win": "հաղթել", "write": "գրել"
+            }
+        };
+
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        let currentLanguage = 'ru';
+        let userProfile = { name: '', level: '', registered: false };
+        let currentVerb = {};
+        let currentIndex = 0;
+        let correctAnswers = 0;
+        let totalAnswers = 0;
+        let answered = false;
+
+        // СПИСОК ГЛАГОЛОВ
+        const verbs = [
+            { infinitive: "be", past: "was/were", participle: "been", translation: "быть" },
+            { infinitive: "beat", past: "beat", participle: "beaten", translation: "бить" },
+            { infinitive: "become", past: "became", participle: "become", translation: "становиться" },
+            { infinitive: "begin", past: "began", participle: "begun", translation: "начинать(ся)" },
+            { infinitive: "bite", past: "bit", participle: "bitten", translation: "кусать(ся)" },
+            { infinitive: "blow", past: "blew", participle: "blown", translation: "дуть" },
+            { infinitive: "break", past: "broke", participle: "broken", translation: "ломать(ся)" },
+            { infinitive: "bring", past: "brought", participle: "brought", translation: "приносить" },
+            { infinitive: "build", past: "built", participle: "built", translation: "строить" },
+            { infinitive: "buy", past: "bought", participle: "bought", translation: "покупать" }
+        ];
+
+        // ФУНКЦИИ АНАЛИТИКИ
         function trackEvent(eventName, parameters = {}) {
             if (typeof gtag !== 'undefined') {
                 gtag('event', eventName, parameters);
             }
         }
-        
-        // Загрузка приложения (УПРОЩЕННАЯ)
-        window.addEventListener('load', () => {
-            // Инициализация
-            updateRegistrationTexts();
-            
-            // Обработчик формы
-            document.getElementById('registrationForm').addEventListener('submit', handleRegistrationSubmit);
-            
-            // Валидация имени
-            const nameInput = document.getElementById('userNameInput');
-            nameInput.addEventListener('input', function(e) {
-                const allowed = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
-                if (!allowed.test(e.target.value)) {
-                    e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
-                }
-            });
-        });
-        
-        // Функция отправки данных боту
+
         function sendProgressToBot(action, data) {
             try {
                 tg.sendData(JSON.stringify({
@@ -1471,109 +890,128 @@
                 console.log('Отправка данных недоступна:', error);
             }
         }
-        
-        // Показать уведомление через Telegram
-        function showTelegramAlert(message) {
-            if (tg.showAlert) {
-                tg.showAlert(message);
+
+        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Обновляем кнопки в регистрации
+            document.getElementById('regLangRu').classList.remove('active');
+            document.getElementById('regLangAm').classList.remove('active');
+            document.getElementById('regLang' + (lang === 'ru' ? 'Ru' : 'Am')).classList.add('active');
+            
+            // Обновляем кнопки в приложении
+            document.getElementById('langRu').classList.remove('active');
+            document.getElementById('langAm').classList.remove('active');
+            document.getElementById('lang' + (lang === 'ru' ? 'Ru' : 'Am')).classList.add('active');
+            
+            // Обновляем тексты
+            if (!userProfile.registered) {
+                updateRegistrationTexts();
             } else {
-                alert(message);
+                updateTexts();
+                if (currentVerb.infinitive) {
+                    updateVerbTranslation();
+                }
             }
         }
 
-        const verbs = [
-            { infinitive: "be", past: "was/were", participle: "been", translation: "быть" },
-            { infinitive: "beat", past: "beat", participle: "beaten", translation: "бить" },
-            { infinitive: "become", past: "became", participle: "become", translation: "становиться" },
-            { infinitive: "begin", past: "began", participle: "begun", translation: "начинать(ся)" },
-            { infinitive: "bite", past: "bit", participle: "bitten", translation: "кусать(ся)" },
-            { infinitive: "blow", past: "blew", participle: "blown", translation: "дуть" },
-            { infinitive: "break", past: "broke", participle: "broken", translation: "ломать(ся)" },
-            { infinitive: "bring", past: "brought", participle: "brought", translation: "приносить" },
-            { infinitive: "build", past: "built", participle: "built", translation: "строить" },
-            { infinitive: "buy", past: "bought", participle: "bought", translation: "покупать" },
-            { infinitive: "catch", past: "caught", participle: "caught", translation: "ловить" },
-            { infinitive: "choose", past: "chose", participle: "chosen", translation: "выбирать" },
-            { infinitive: "come", past: "came", participle: "come", translation: "приходить" },
-            { infinitive: "cost", past: "cost", participle: "cost", translation: "стоить" },
-            { infinitive: "cut", past: "cut", participle: "cut", translation: "резать" },
-            { infinitive: "do", past: "did", participle: "done", translation: "делать" },
-            { infinitive: "draw", past: "drew", participle: "drawn", translation: "рисовать" },
-            { infinitive: "drink", past: "drank", participle: "drunk", translation: "пить" },
-            { infinitive: "drive", past: "drove", participle: "driven", translation: "водить машину" },
-            { infinitive: "eat", past: "ate", participle: "eaten", translation: "есть" },
-            { infinitive: "fall", past: "fell", participle: "fallen", translation: "падать" },
-            { infinitive: "feel", past: "felt", participle: "felt", translation: "чувствовать(себя)" },
-            { infinitive: "fight", past: "fought", participle: "fought", translation: "драться" },
-            { infinitive: "find", past: "found", participle: "found", translation: "находить" },
-            { infinitive: "fly", past: "flew", participle: "flown", translation: "летать" },
-            { infinitive: "forget", past: "forgot", participle: "forgotten", translation: "забывать" },
-            { infinitive: "get", past: "got", participle: "got", translation: "получать" },
-            { infinitive: "give", past: "gave", participle: "given", translation: "давать" },
-            { infinitive: "go", past: "went", participle: "gone", translation: "идти/ездить" },
-            { infinitive: "grow", past: "grew", participle: "grown", translation: "расти" },
-            { infinitive: "hang", past: "hung", participle: "hung", translation: "вешать" },
-            { infinitive: "have", past: "had", participle: "had", translation: "иметь" },
-            { infinitive: "hear", past: "heard", participle: "heard", translation: "слышать" },
-            { infinitive: "hide", past: "hid", participle: "hidden", translation: "прятать(ся)" },
-            { infinitive: "hit", past: "hit", participle: "hit", translation: "ударять" },
-            { infinitive: "hold", past: "held", participle: "held", translation: "держать" },
-            { infinitive: "hurt", past: "hurt", participle: "hurt", translation: "причинять боль" },
-            { infinitive: "keep", past: "kept", participle: "kept", translation: "хранить/держать" },
-            { infinitive: "know", past: "knew", participle: "known", translation: "знать" },
-            { infinitive: "leave", past: "left", participle: "left", translation: "покидать/уходить" },
-            { infinitive: "lend", past: "lent", participle: "lent", translation: "одалживать" },
-            { infinitive: "let", past: "let", participle: "let", translation: "позволять" },
-            { infinitive: "lie", past: "lay", participle: "lain", translation: "лежать" },
-            { infinitive: "light", past: "lit", participle: "lit", translation: "зажигать" },
-            { infinitive: "lose", past: "lost", participle: "lost", translation: "терять" },
-            { infinitive: "make", past: "made", participle: "made", translation: "делать" },
-            { infinitive: "mean", past: "meant", participle: "meant", translation: "значить" },
-            { infinitive: "meet", past: "met", participle: "met", translation: "встречать(ся)" },
-            { infinitive: "pay", past: "paid", participle: "paid", translation: "платить" },
-            { infinitive: "put", past: "put", participle: "put", translation: "класть" },
-            { infinitive: "read", past: "read", participle: "read", translation: "читать" },
-            { infinitive: "ride", past: "rode", participle: "ridden", translation: "ездить(верхом)" },
-            { infinitive: "ring", past: "rang", participle: "rung", translation: "звонить" },
-            { infinitive: "rise", past: "rose", participle: "risen", translation: "подниматься" },
-            { infinitive: "run", past: "ran", participle: "run", translation: "бегать" },
-            { infinitive: "say", past: "said", participle: "said", translation: "говорить/сказать" },
-            { infinitive: "see", past: "saw", participle: "seen", translation: "видеть" },
-            { infinitive: "sell", past: "sold", participle: "sold", translation: "продавать" },
-            { infinitive: "send", past: "sent", participle: "sent", translation: "посылать" },
-            { infinitive: "shine", past: "shone", participle: "shone", translation: "светить" },
-            { infinitive: "shoot", past: "shot", participle: "shot", translation: "стрелять" },
-            { infinitive: "show", past: "showed", participle: "shown", translation: "показывать" },
-            { infinitive: "shut", past: "shut", participle: "shut", translation: "закрывать(ся)" },
-            { infinitive: "sing", past: "sang", participle: "sung", translation: "петь" },
-            { infinitive: "sit", past: "sat", participle: "sat", translation: "сидеть" },
-            { infinitive: "sleep", past: "slept", participle: "slept", translation: "спать" },
-            { infinitive: "speak", past: "spoke", participle: "spoken", translation: "говорить" },
-            { infinitive: "spend", past: "spent", participle: "spent", translation: "тратить" },
-            { infinitive: "stand", past: "stood", participle: "stood", translation: "стоять" },
-            { infinitive: "steal", past: "stole", participle: "stolen", translation: "воровать" },
-            { infinitive: "swim", past: "swam", participle: "swum", translation: "плавать" },
-            { infinitive: "take", past: "took", participle: "taken", translation: "брать" },
-            { infinitive: "teach", past: "taught", participle: "taught", translation: "обучать" },
-            { infinitive: "tear", past: "tore", participle: "torn", translation: "разрывать" },
-            { infinitive: "tell", past: "told", participle: "told", translation: "говорить" },
-            { infinitive: "think", past: "thought", participle: "thought", translation: "думать" },
-            { infinitive: "throw", past: "threw", participle: "thrown", translation: "кидать" },
-            { infinitive: "understand", past: "understood", participle: "understood", translation: "понимать" },
-            { infinitive: "wake", past: "woke", participle: "woken", translation: "просыпаться/будить" },
-            { infinitive: "wear", past: "wore", participle: "worn", translation: "носить одежду" },
-            { infinitive: "win", past: "won", participle: "won", translation: "побеждать" },
-            { infinitive: "write", past: "wrote", participle: "written", translation: "писать" }
-        ];
+        // ФУНКЦИИ РЕГИСТРАЦИИ
+        function updateRegistrationTexts() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('registrationTitle').textContent = t.registrationTitle;
+            document.getElementById('registrationSubtitle').textContent = t.registrationSubtitle;
+            document.getElementById('nameLabel').textContent = t.nameLabel;
+            document.getElementById('userNameInput').placeholder = t.namePlaceholder;
+            document.getElementById('levelLabel').textContent = t.levelLabel;
+            document.getElementById('levelBeginnerText').textContent = t.levelBeginner;
+            document.getElementById('levelIntermediateText').textContent = t.levelIntermediate;
+            document.getElementById('levelAdvancedText').textContent = t.levelAdvanced;
+            document.getElementById('startLearningBtn').textContent = t.startLearningBtn;
+        }
 
-        let currentVerb = {};
-        let currentIndex = 0;
-        let correctAnswers = 0;
-        let totalAnswers = 0;
-        let answered = false;
-        let cycleCount = 0;
-        let userResults = [];
-        let showingResults = false;
+        function selectLevel(level) {
+            // Снимаем выделение со всех
+            document.querySelectorAll('.level-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Выделяем выбранный
+            const selectedOption = document.querySelector(`[data-level="${level}"]`);
+            selectedOption.classList.add('selected');
+            selectedOption.querySelector('input').checked = true;
+            
+            userProfile.level = level;
+        }
+
+        function handleRegistration(event) {
+            event.preventDefault();
+            
+            const t = translations[currentLanguage];
+            const name = document.getElementById('userNameInput').value.trim();
+            const level = userProfile.level;
+            
+            if (!name) {
+                alert(t.nameRequired);
+                return;
+            }
+            
+            if (!level) {
+                alert(t.levelRequired);
+                return;
+            }
+            
+            // Сохраняем данные
+            userProfile.name = name;
+            userProfile.registered = true;
+            
+            // Скрываем регистрацию
+            document.getElementById('registrationOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
+            
+            // Обновляем приветствие
+            updateUserGreeting();
+            
+            // Загружаем первый глагол
+            loadNewVerb();
+            
+            trackEvent('user_registered', {
+                user_name: name,
+                english_level: level,
+                interface_lang: currentLanguage
+            });
+        }
+
+        // ФУНКЦИИ ОСНОВНОГО ПРИЛОЖЕНИЯ
+        function updateTexts() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('appTitle').textContent = t.title;
+            document.getElementById('appSubtitle').textContent = t.subtitle;
+            document.getElementById('statCurrent').textContent = t.statCurrent;
+            document.getElementById('statCorrect').textContent = t.statCorrect;
+            document.getElementById('statTotal').textContent = t.statTotal;
+            document.getElementById('progressLabel').textContent = t.progress;
+            document.getElementById('labelInfinitive').textContent = t.labelInfinitive;
+            document.getElementById('labelPast').textContent = t.labelPast;
+            document.getElementById('labelParticiple').textContent = t.labelParticiple;
+            document.getElementById('pastInput').placeholder = t.placeholderPast;
+            document.getElementById('participleInput').placeholder = t.placeholderParticiple;
+            document.getElementById('checkBtn').textContent = answered ? t.checkBtnChecked : t.checkBtn;
+            document.getElementById('nextBtn').textContent = t.nextBtn;
+            document.getElementById('skipBtn').textContent = t.skipBtn;
+        }
+
+        function updateUserGreeting() {
+            const t = translations[currentLanguage];
+            document.getElementById('userInfo').innerHTML = t.userGreeting(userProfile.name);
+        }
+
+        function updateVerbTranslation() {
+            const translation = verbTranslations[currentLanguage][currentVerb.infinitive] || currentVerb.translation;
+            document.getElementById('verbTranslation').textContent = translation;
+        }
 
         function shuffleArray(array) {
             const shuffled = [...array];
@@ -1584,51 +1022,13 @@
             return shuffled;
         }
 
-        function createParticles() {
-            const container = document.getElementById('particles');
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 6 + 's';
-                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
-                container.appendChild(particle);
-            }
-        }
-
-        function resetCycleStats() {
-            correctAnswers = 0;
-            totalAnswers = 0;
-            currentIndex = 0;
-            cycleCount++;
-            
-            const t = translations[currentLanguage];
-            showTelegramAlert(t.newCycleStarted);
-            
-            trackEvent('cycle_reset', {
-                cycle_count: cycleCount,
-                interface_lang: currentLanguage
-            });
-        }
-
         function loadNewVerb() {
-            if (currentIndex >= verbs.length) {
-                // Только если пользователь прошел весь цикл с ответами
-                if (totalAnswers > 0) {
-                    const t = translations[currentLanguage];
-                    showTelegramAlert(t.cycleCompleted);
-                    
-                    trackEvent('cycle_completed', {
-                        total_verbs: verbs.length,
-                        correct_answers: correctAnswers,
-                        total_answers: totalAnswers,
-                        accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
-                        interface_lang: currentLanguage,
-                        cycle_count: cycleCount
-                    });
-                }
-                
-                resetCycleStats();
+            if (correctAnswers >= verbs.length) {
+                const t = translations[currentLanguage];
+                alert(t.cycleCompleted);
+                correctAnswers = 0;
+                totalAnswers = 0;
+                currentIndex = 0;
                 verbs.splice(0, verbs.length, ...shuffleArray(verbs));
             }
             
@@ -1638,18 +1038,11 @@
             document.getElementById('infinitiveForm').textContent = currentVerb.infinitive;
             updateVerbTranslation();
             
-            trackEvent('verb_loaded', {
-                verb: currentVerb.infinitive,
-                verb_index: currentIndex + 1,
-                translation: verbTranslations[currentLanguage][currentVerb.infinitive],
-                interface_lang: currentLanguage
-            });
-            
-            // Очищаем поля ввода
+            // Очищаем поля
             document.getElementById('pastInput').value = '';
             document.getElementById('participleInput').value = '';
             
-            // Сбрасываем стили карточек
+            // Сбрасываем стили
             const inputCards = document.querySelectorAll('.input-card');
             inputCards.forEach(card => {
                 card.className = 'form-card input-card';
@@ -1661,7 +1054,7 @@
             document.getElementById('pastCorrect').className = 'correct-answer';
             document.getElementById('participleCorrect').className = 'correct-answer';
             
-            // Отключаем аудиокнопки для правильных ответов
+            // Отключаем аудиокнопки
             document.getElementById('pastAudioBtn').disabled = true;
             document.getElementById('participleAudioBtn').disabled = true;
             
@@ -1683,7 +1076,7 @@
             
             if (!pastInput || !participleInput) {
                 const t = translations[currentLanguage];
-                showTelegramAlert(t.fillBothFields);
+                alert(t.fillBothFields);
                 return;
             }
             
@@ -1693,13 +1086,13 @@
             const pastCorrect = correctPast.some(form => form.trim() === pastInput);
             const participleCorrect = participleInput === correctParticiple;
             
-            // Показываем правильные ответы под полями
+            // Показываем правильные ответы
             document.getElementById('pastCorrect').textContent = currentVerb.past;
             document.getElementById('participleCorrect').textContent = currentVerb.participle;
             document.getElementById('pastCorrect').className = 'correct-answer show';
             document.getElementById('participleCorrect').className = 'correct-answer show';
             
-            // Включаем аудиокнопки для правильных ответов
+            // Включаем аудиокнопки
             document.getElementById('pastAudioBtn').disabled = false;
             document.getElementById('participleAudioBtn').disabled = false;
             
@@ -1711,7 +1104,6 @@
             participleCard.className = participleCorrect ? 'form-card input-card correct' : 'form-card input-card incorrect';
             
             const feedback = document.getElementById('feedback');
-            const mainCard = document.getElementById('mainCard');
             const t = translations[currentLanguage];
             
             const isFullyCorrect = pastCorrect && participleCorrect;
@@ -1719,66 +1111,15 @@
             if (isFullyCorrect) {
                 feedback.textContent = t.correctAnswer;
                 feedback.className = 'feedback correct show';
-                mainCard.className = 'main-card correct';
                 correctAnswers++;
-                
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('medium');
-                }
             } else {
                 feedback.textContent = t.incorrectAnswer;
                 feedback.className = 'feedback incorrect show';
-                mainCard.className = 'main-card incorrect';
-                
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('heavy');
-                }
             }
-            
-            // Записываем результат пользователя
-            userResults.push({
-                userName: userProfile.registered ? userProfile.name : (user ? user.first_name || 'Анонимный' : 'Анонимный'),
-                userLevel: userProfile.level || 'unknown',
-                verb: currentVerb.infinitive,
-                userPast: pastInput,
-                userParticiple: participleInput,
-                correctPast: currentVerb.past,
-                correctParticiple: currentVerb.participle,
-                pastCorrect: pastCorrect,
-                participleCorrect: participleCorrect,
-                isFullyCorrect: isFullyCorrect,
-                timestamp: Date.now()
-            });
-            
-            updateResultsTable();
             
             totalAnswers++;
             answered = true;
             document.getElementById('checkBtn').textContent = t.checkBtnChecked;
-            
-            trackEvent('answer_submitted', {
-                verb: currentVerb.infinitive,
-                past_correct: pastCorrect,
-                participle_correct: participleCorrect,
-                fully_correct: isFullyCorrect,
-                user_past: pastInput,
-                user_participle: participleInput,
-                current_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
-                interface_lang: currentLanguage
-            });
-            
-            sendProgressToBot('answer', {
-                verb: currentVerb.infinitive,
-                userPast: pastInput,
-                userParticiple: participleInput,
-                correctPast: currentVerb.past,
-                correctParticiple: currentVerb.participle,
-                pastCorrect: pastCorrect,
-                participleCorrect: participleCorrect,
-                isFullyCorrect: isFullyCorrect,
-                totalCorrect: correctAnswers,
-                totalAnswers: totalAnswers
-            });
             
             updateUI();
         }
@@ -1786,62 +1127,36 @@
         function nextVerb() {
             if (!answered) {
                 const t = translations[currentLanguage];
-                showTelegramAlert(t.fillBothFields);
+                alert(t.fillBothFields);
                 return;
             }
-            
-            // Переходим к следующему глаголу только после правильного ответа
             currentIndex++;
             loadNewVerb();
-            
-            sendProgressToBot('next', {
-                currentIndex: currentIndex,
-                correctAnswers: correctAnswers,
-                totalAnswers: totalAnswers
-            });
         }
 
         function skipVerb() {
-            // При пропуске не увеличиваем currentIndex, просто загружаем новый глагол
-            // Перемешиваем массив и берем случайный глагол
             const availableVerbs = verbs.filter((verb, index) => index !== currentIndex);
             if (availableVerbs.length > 0) {
                 const randomIndex = Math.floor(Math.random() * availableVerbs.length);
                 const newVerbIndex = verbs.indexOf(availableVerbs[randomIndex]);
                 currentIndex = newVerbIndex;
             } else {
-                // Если все глаголы пройдены, перемешиваем заново
                 verbs.splice(0, verbs.length, ...shuffleArray(verbs));
                 currentIndex = 0;
             }
             
             loadNewVerb();
-            
-            trackEvent('verb_skipped', {
-                verb: currentVerb.infinitive,
-                interface_lang: currentLanguage
-            });
-            
-            sendProgressToBot('skip', {
-                skipped: true,
-                totalCorrect: correctAnswers,
-                totalAnswers: totalAnswers
-            });
         }
 
         function updateUI() {
-            // Показываем позицию в цикле только на основе правильных ответов
             const cyclePosition = Math.min(correctAnswers + 1, verbs.length);
             document.getElementById('currentNumber').textContent = cyclePosition;
             document.getElementById('correctCount').textContent = correctAnswers;
             document.getElementById('totalCount').textContent = totalAnswers;
             
-            // Прогресс основан только на правильных ответах
             const progress = (correctAnswers / verbs.length) * 100;
             document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
             document.getElementById('progressText').textContent = Math.round(Math.min(progress, 100)) + '%';
-            
-            updateMainButton();
         }
 
         function speakText(text) {
@@ -1852,19 +1167,6 @@
                 utterance.rate = 0.8;
                 utterance.pitch = 1;
                 speechSynthesis.speak(utterance);
-                
-                trackEvent('audio_played', {
-                    text: text,
-                    verb: currentVerb.infinitive,
-                    interface_lang: currentLanguage
-                });
-                
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
-            } else {
-                const t = translations[currentLanguage];
-                showTelegramAlert(t.speechNotSupported);
             }
         }
 
@@ -1881,155 +1183,42 @@
             speakText(text);
         }
 
-        function toggleResults() {
-            const container = document.getElementById('resultsContainer');
-            const btn = document.getElementById('resultsBtn');
-            const t = translations[currentLanguage];
-            
-            showingResults = !showingResults;
-            container.style.display = showingResults ? 'block' : 'none';
-            btn.textContent = showingResults ? t.hideResults : t.showResults;
-            
-            if (showingResults) {
-                updateResultsTable();
-            }
-        }
-
-        function updateResultsTable() {
-            const container = document.getElementById('resultsTableContainer');
-            const t = translations[currentLanguage];
-            
-            if (userResults.length === 0) {
-                container.innerHTML = `<div class="no-results">${t.noResults}</div>`;
-                return;
-            }
-            
-            let tableHtml = `
-                <table class="results-table">
-                    <thead>
-                        <tr>
-                            <th>${t.userName}</th>
-                            <th>${t.verbColumn}</th>
-                            <th>${t.userAnswers}</th>
-                            <th>${t.correctAnswers}</th>
-                            <th>${t.resultColumn}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            userResults.forEach(result => {
-                tableHtml += `
-                    <tr>
-                        <td>${result.userName}</td>
-                        <td>${result.verb}</td>
-                        <td>${result.userPast} / ${result.userParticiple}</td>
-                        <td>${result.correctPast} / ${result.correctParticiple}</td>
-                        <td class="${result.isFullyCorrect ? 'result-correct' : 'result-incorrect'}">
-                            ${result.isFullyCorrect ? t.correct : t.incorrect}
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            tableHtml += '</tbody></table>';
-            container.innerHTML = tableHtml;
-        }
-
-        function filterResults() {
-            const filter = document.getElementById('filterInput').value.toLowerCase();
-            const rows = document.querySelectorAll('.results-table tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
-        }
-
-        // Обработка нажатий клавиш
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                if (!answered) {
-                    checkAnswer();
-                } else {
-                    nextVerb();
-                }
-            }
-        });
-
-        // Автофокус на первое поле ввода
+        // ИНИЦИАЛИЗАЦИЯ
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const firstInput = document.getElementById('pastInput');
-                if (firstInput) {
-                    firstInput.focus();
-                }
-            }, 500);
-        });
-
-        // Переключение между полями ввода по Tab
-        document.getElementById('pastInput').addEventListener('keydown', function(event) {
-            if (event.key === 'Tab') {
-                event.preventDefault();
-                document.getElementById('participleInput').focus();
-            }
-        });
-
-        document.getElementById('participleInput').addEventListener('keydown', function(event) {
-            if (event.key === 'Tab') {
-                event.preventDefault();
-                document.getElementById('pastInput').focus();
-            }
-        });
-
-        // Обработка закрытия приложения
-        window.addEventListener('beforeunload', function() {
-            trackEvent('session_end', {
-                total_correct: correctAnswers,
-                total_answers: totalAnswers,
-                final_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
-                verbs_studied: currentIndex + 1,
-                session_duration: Math.round((Date.now() - sessionStartTime) / 1000)
+            // Кнопки языков в регистрации
+            document.getElementById('regLangRu').addEventListener('click', () => switchLanguage('ru'));
+            document.getElementById('regLangAm').addEventListener('click', () => switchLanguage('am'));
+            
+            // Кнопки языков в приложении
+            document.getElementById('langRu').addEventListener('click', () => switchLanguage('ru'));
+            document.getElementById('langAm').addEventListener('click', () => switchLanguage('am'));
+            
+            // Обработка выбора уровня
+            document.querySelectorAll('.level-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const level = this.getAttribute('data-level');
+                    selectLevel(level);
+                });
             });
             
-            sendProgressToBot('session_end', {
-                totalCorrect: correctAnswers,
-                totalAnswers: totalAnswers,
-                currentIndex: currentIndex,
-                sessionDuration: Date.now() - sessionStartTime
+            // Обработка формы регистрации
+            document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
+            
+            // Валидация имени
+            document.getElementById('userNameInput').addEventListener('input', function(e) {
+                const allowed = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
+                if (!allowed.test(e.target.value)) {
+                    e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
+                }
+                if (e.target.value.length > 30) {
+                    e.target.value = e.target.value.slice(0, 30);
+                }
             });
+            
+            // Инициализация
+            updateRegistrationTexts();
+            verbs.splice(0, verbs.length, ...shuffleArray(verbs));
         });
-
-        // Время начала сессии
-        const sessionStartTime = Date.now();
-
-        // Инициализация приложения
-        createParticles();
-        verbs.splice(0, verbs.length, ...shuffleArray(verbs));
-        
-        // Убираем автозагрузку первого глагола - теперь это происходит после регистрации
-        // setTimeout(() => {
-        //     loadNewVerb();
-        // }, 1000);
-
-        // Убираем старое приветственное сообщение
-        // setTimeout(() => {
-        //     if (tg.showPopup) {
-        //         const t = translations[currentLanguage];
-        //         tg.showPopup({
-        //             title: t.popupTitle,
-        //             message: t.popupMessage,
-        //             buttons: [
-        //                 {id: "start", type: "default", text: t.popupStart}
-        //             ]
-        //         }, (buttonId) => {
-        //             if (buttonId === "start") {
-        //                 document.getElementById('pastInput').focus();
-        //             }
-        //         });
-        //     }
-        // }, 1000);
     </script>
 </body>
 </html>
