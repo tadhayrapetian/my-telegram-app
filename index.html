@@ -1,4 +1,147 @@
-<!DOCTYPE html>
+// ФУНКЦИИ РЕГИСТРАЦИИ
+        function selectLevel(level) {
+            // Снимаем выделение со всех опций
+            document.querySelectorAll('.level-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Выделяем выбранную опцию
+            const selectedOption = document.getElementById(`level${level.charAt(0).toUpperCase() + level.slice(1)}Option`);
+            selectedOption.classList.add('selected');
+            
+            // Устанавливаем значение radio button
+            document.getElementById(`level${level.charAt(0).toUpperCase() + level.slice(1)}`).checked = true;
+            
+            userProfile.level = level;
+            
+            // Визуальная обратная связь
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        }
+
+        function updateRegistrationTexts() {
+            const t = translations[currentLanguage];
+            
+            document.getElementById('registrationTitle').textContent = t.registrationTitle;
+            document.getElementById('registrationSubtitle').textContent = t.registrationSubtitle;
+            document.getElementById('nameLabel').textContent = t.nameLabel;
+            document.getElementById('userNameInput').placeholder = t.namePlaceholder;
+            document.getElementById('levelLabel').textContent = t.levelLabel;
+            document.getElementById('levelBeginnerText').textContent = t.levelBeginner;
+            document.getElementById('levelIntermediateText').textContent = t.levelIntermediate;
+            document.getElementById('levelAdvancedText').textContent = t.levelAdvanced;
+            document.getElementById('startLearningBtn').textContent = t.startLearningBtn;
+        }
+
+        function handleRegistrationSubmit(event) {
+            event.preventDefault();
+            
+            const t = translations[currentLanguage];
+            const name = document.getElementById('userNameInput').value.trim();
+            const level = userProfile.level;
+            
+            // Валидация
+            if (!name) {
+                showTelegramAlert(t.nameRequired);
+                return;
+            }
+            
+            if (!level) {
+                showTelegramAlert(t.levelRequired);
+                return;
+            }
+            
+            // Сохраняем данные пользователя
+            userProfile.name = name;
+            userProfile.registered = true;
+            
+            // Отправляем данные в Analytics
+            trackEvent('user_registered', {
+                user_name: name,
+                english_level: level,
+                interface_lang: currentLanguage
+            });
+            
+            // Отправляем данные боту
+            sendProgressToBot('registration', {
+                name: name,
+                level: level,
+                language: currentLanguage
+            });
+            
+            // Скрываем модальное окно и показываем приложение
+            hideRegistrationModal();
+        }
+
+        function hideRegistrationModal() {
+            const overlay = document.getElementById('registrationOverlay');
+            const appContainer = document.getElementById('appContainer');
+            
+            overlay.classList.add('hidden');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                appContainer.style.display = 'flex';
+                
+                // Обновляем приветствие пользователя
+                updateUserGreeting();
+                
+                // Загружаем первый глагол
+                setTimeout(() => {
+                    loadNewVerb();
+                }, 500);
+                
+            }, 300);
+        }
+
+        function updateUserGreeting() {
+            const t = translations[currentLanguage];
+            const userInfoDiv = document.getElementById('userInfo');
+            
+            if (userProfile.registered) {
+                userInfoDiv.innerHTML = t.userGreeting(userProfile.name);
+            } else {
+                userInfoDiv.innerHTML = t.welcome;
+            }
+        }
+
+        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА (обновленная)
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Обновляем активную кнопку в главном приложении
+            document.querySelectorAll('#lang-ru, #lang-am').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`lang-${lang}`).classList.add('active');
+            
+            // Обновляем активную кнопку в модальном окне регистрации
+            document.querySelectorAll('#reg-lang-ru, #reg-lang-am').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`reg-lang-${lang}`).classList.add('active');
+            
+            // Обновляем тексты регистрации если модальное окно открыто
+            if (!userProfile.registered) {
+                updateRegistrationTexts();
+            }
+            
+            // Обновляем все тексты приложения
+            updateTexts();
+            
+            // Обновляем текущий глагол
+            if (currentVerb.infinitive) {
+                updateVerbTranslation();
+            }
+            
+            // Обновляем главную кнопку Telegram
+            updateMainButton();
+            
+            // Принудительно обновляем все элементы результатов
+            updateResultsTexts();
+            
+            // Отправляем в Analytics смену языка
+            trackEvent('language_changed', {
+                new_language: lang,
+                verb: currentVerb.infinitive || 'none'
+            });
+        }<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -53,7 +196,19 @@
                 correctAnswers: "Правильные ответы",
                 resultColumn: "Результат",
                 correct: "Верно",
-                incorrect: "Неверно"
+                incorrect: "Неверно",
+                // Новые переводы для регистрации
+                registrationTitle: "👋 Добро пожаловать!",
+                registrationSubtitle: "Давайте знакомиться",
+                nameLabel: "Ваше имя",
+                namePlaceholder: "Введите ваше имя...",
+                levelLabel: "Ваш уровень английского",
+                levelBeginner: "🌱 Начинающий (A1-A2)",
+                levelIntermediate: "🌿 Средний (B1-B2)",
+                levelAdvanced: "🌳 Продвинутый (C1-C2)",
+                startLearningBtn: "Начать изучение!",
+                nameRequired: "Пожалуйста, введите ваше имя",
+                levelRequired: "Пожалуйста, выберите ваш уровень"
             },
             am: {
                 title: "Անկանոն բայեր",
@@ -97,7 +252,19 @@
                 correctAnswers: "Ճիշտ պատասխաններ",
                 resultColumn: "Արդյունք",
                 correct: "Ճիշտ",
-                incorrect: "Սխալ"
+                incorrect: "Սխալ",
+                // Новые переводы для регистрации
+                registrationTitle: "👋 Բարի գալուստ!",
+                registrationSubtitle: "Եկեք ծանոթանանք",
+                nameLabel: "Ձեր անունը",
+                namePlaceholder: "Մուտքագրեք ձեր անունը...",
+                levelLabel: "Ձեր անգլերենի մակարդակը",
+                levelBeginner: "🌱 Սկսնակ (A1-A2)",
+                levelIntermediate: "🌿 Միջին (B1-B2)",
+                levelAdvanced: "🌳 Առաջադեմ (C1-C2)",
+                startLearningBtn: "Սկսել ուսուցումը!",
+                nameRequired: "Խնդրում ենք մուտքագրել ձեր անունը",
+                levelRequired: "Խնդրում ենք ընտրել ձեր մակարդակը"
             }
         };
 
@@ -152,6 +319,11 @@
         };
 
         let currentLanguage = 'ru';
+        let userProfile = {
+            name: '',
+            level: '',
+            registered: false
+        };
 
         // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА
         function switchLanguage(lang) {
@@ -161,7 +333,12 @@
             document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`lang-${lang}`).classList.add('active');
             
-            // Обновляем все тексты
+            // Обновляем тексты регистрации если модальное окно открыто
+            if (!userProfile.registered) {
+                updateRegistrationTexts();
+            }
+            
+            // Обновляем все тексты приложения
             updateTexts();
             
             // Обновляем текущий глагол
@@ -201,13 +378,7 @@
             document.getElementById('skipBtn').textContent = t.skipBtn;
             
             // Обновляем информацию о пользователе
-            const user = tg.initDataUnsafe.user;
-            const userInfoDiv = document.getElementById('userInfo');
-            if (user) {
-                userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
-            } else {
-                userInfoDiv.innerHTML = t.welcome;
-            }
+            updateUserGreeting();
             
             // Обновляем кнопку проверки если не проверено
             if (!answered) {
@@ -884,6 +1055,171 @@
             padding: 40px 20px;
         }
 
+        .registration-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .registration-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .registration-modal {
+            background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .registration-overlay.hidden .registration-modal {
+            transform: scale(0.9);
+        }
+
+        .registration-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .registration-subtitle {
+            font-size: 1.1rem;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            margin-bottom: 8px;
+        }
+
+        .form-input-large {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input-large:focus {
+            border-color: var(--tg-theme-button-color, #667eea);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .form-input-large::placeholder {
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .level-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .level-option {
+            padding: 16px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--tg-theme-text-color, #ffffff);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .level-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .level-option.selected {
+            border-color: var(--tg-theme-button-color, #667eea);
+            background: rgba(var(--tg-theme-button-color, 102, 126, 234), 0.2);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .level-option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--tg-theme-button-color, #667eea);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .level-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .registration-btn {
+            width: 100%;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 16px;
+            background: var(--tg-theme-button-color, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+            color: var(--tg-theme-button-text-color, #ffffff);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .registration-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .registration-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .floating-particles {
             position: fixed;
             top: 0;
@@ -975,7 +1311,48 @@
 <body>
     <div class="floating-particles" id="particles"></div>
     
-    <div class="app-container">
+    <!-- Модальное окно регистрации -->
+    <div class="registration-overlay" id="registrationOverlay">
+        <div class="registration-modal">
+            <!-- Переключатель языков в модальном окне -->
+            <div class="language-switcher" style="margin-bottom: 20px;">
+                <button class="lang-btn active" onclick="switchLanguage('ru')" id="reg-lang-ru">🇷🇺 РУС</button>
+                <button class="lang-btn" onclick="switchLanguage('am')" id="reg-lang-am">🇦🇲 ՀԱՅ</button>
+            </div>
+            
+            <h2 class="registration-title" id="registrationTitle">👋 Добро пожаловать!</h2>
+            <p class="registration-subtitle" id="registrationSubtitle">Давайте знакомиться</p>
+            
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="userNameInput" id="nameLabel">Ваше имя</label>
+                    <input type="text" id="userNameInput" class="form-input-large" placeholder="Введите ваше имя..." maxlength="30" required>
+                </div>
+                
+                <div class="form-group">
+                    <label id="levelLabel">Ваш уровень английского</label>
+                    <div class="level-options">
+                        <div class="level-option" onclick="selectLevel('beginner')" id="levelBeginnerOption">
+                            <input type="radio" name="level" value="beginner" id="levelBeginner">
+                            <span id="levelBeginnerText">🌱 Начинающий (A1-A2)</span>
+                        </div>
+                        <div class="level-option" onclick="selectLevel('intermediate')" id="levelIntermediateOption">
+                            <input type="radio" name="level" value="intermediate" id="levelIntermediate">
+                            <span id="levelIntermediateText">🌿 Средний (B1-B2)</span>
+                        </div>
+                        <div class="level-option" onclick="selectLevel('advanced')" id="levelAdvancedOption">
+                            <input type="radio" name="level" value="advanced" id="levelAdvanced">
+                            <span id="levelAdvancedText">🌳 Продвинутый (C1-C2)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="registration-btn" id="startLearningBtn">Начать изучение!</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="app-container" id="appContainer" style="display: none;">
         <div class="header">
             <div class="language-switcher">
                 <button class="lang-btn active" onclick="switchLanguage('ru')" id="lang-ru">🇷🇺 РУС</button>
@@ -1096,29 +1473,58 @@
         
         // Загрузка информации о пользователе
         window.addEventListener('load', () => {
-            const user = tg.initDataUnsafe.user;
-            const userInfoDiv = document.getElementById('userInfo');
-            const t = translations[currentLanguage];
+            // Инициализируем тексты регистрации
+            updateRegistrationTexts();
             
+            // Добавляем обработчик формы регистрации
+            document.getElementById('registrationForm').addEventListener('submit', handleRegistrationSubmit);
+            
+            // Добавляем валидацию поля имени - только буквы
+            const nameInput = document.getElementById('userNameInput');
+            nameInput.addEventListener('input', function(e) {
+                // Разрешаем только буквы (латиница, кириллица, армянские), пробелы и дефисы
+                const allowedPattern = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
+                
+                if (!allowedPattern.test(e.target.value)) {
+                    // Удаляем недопустимые символы
+                    e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
+                }
+                
+                // Ограничиваем длину
+                if (e.target.value.length > 30) {
+                    e.target.value = e.target.value.slice(0, 30);
+                }
+            });
+            
+            // Добавляем обработчик для предотвращения вставки недопустимых символов
+            nameInput.addEventListener('paste', function(e) {
+                setTimeout(() => {
+                    const allowedPattern = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
+                    if (!allowedPattern.test(e.target.value)) {
+                        e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
+                    }
+                }, 0);
+            });
+            
+            const user = tg.initDataUnsafe.user;
+            
+            // Отправляем начальную статистику
             setTimeout(() => {
                 if (user) {
-                    userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
-                    
-                    trackEvent('user_start', {
+                    trackEvent('telegram_user_detected', {
                         user_id: user.id,
                         user_name: user.first_name,
                         language: user.language_code || 'unknown',
                         interface_lang: currentLanguage
                     });
                 } else {
-                    userInfoDiv.innerHTML = t.welcome;
-                    trackEvent('anonymous_start', {
+                    trackEvent('anonymous_user', {
                         interface_lang: currentLanguage
                     });
                 }
             }, 500);
             
-            sendProgressToBot('start', {
+            sendProgressToBot('app_loaded', {
                 user: user,
                 timestamp: Date.now()
             });
@@ -1401,9 +1807,9 @@
             }
             
             // Записываем результат пользователя
-            const user = tg.initDataUnsafe.user;
             userResults.push({
-                userName: user ? user.first_name || 'Анонимный' : 'Анонимный',
+                userName: userProfile.registered ? userProfile.name : (user ? user.first_name || 'Анонимный' : 'Анонимный'),
+                userLevel: userProfile.level || 'unknown',
                 verb: currentVerb.infinitive,
                 userPast: pastInput,
                 userParticiple: participleInput,
@@ -1673,27 +2079,28 @@
         createParticles();
         verbs.splice(0, verbs.length, ...shuffleArray(verbs));
         
-        setTimeout(() => {
-            loadNewVerb();
-        }, 1000);
+        // Убираем автозагрузку первого глагола - теперь это происходит после регистрации
+        // setTimeout(() => {
+        //     loadNewVerb();
+        // }, 1000);
 
-        // Показать приветственное сообщение через 1 секунду
-        setTimeout(() => {
-            if (tg.showPopup) {
-                const t = translations[currentLanguage];
-                tg.showPopup({
-                    title: t.popupTitle,
-                    message: t.popupMessage,
-                    buttons: [
-                        {id: "start", type: "default", text: t.popupStart}
-                    ]
-                }, (buttonId) => {
-                    if (buttonId === "start") {
-                        document.getElementById('pastInput').focus();
-                    }
-                });
-            }
-        }, 1000);
+        // Убираем старое приветственное сообщение
+        // setTimeout(() => {
+        //     if (tg.showPopup) {
+        //         const t = translations[currentLanguage];
+        //         tg.showPopup({
+        //             title: t.popupTitle,
+        //             message: t.popupMessage,
+        //             buttons: [
+        //                 {id: "start", type: "default", text: t.popupStart}
+        //             ]
+        //         }, (buttonId) => {
+        //             if (buttonId === "start") {
+        //                 document.getElementById('pastInput').focus();
+        //             }
+        //         });
+        //     }
+        // }, 1000);
     </script>
 </body>
 </html>
