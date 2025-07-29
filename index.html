@@ -27,6 +27,7 @@
                 placeholderParticiple: "Введите форму...",
                 checkBtn: "Проверить",
                 nextBtn: "Следующий",
+                skipBtn: "Пропустить",
                 checkBtnChecked: "Проверено ✓",
                 correctAnswer: "🎉 Превосходно! Правильный ответ!",
                 incorrectAnswer: "❌ Посмотрите правильные ответы ниже",
@@ -35,9 +36,24 @@
                 nextVerb: "Следующий глагол",
                 skipVerb: "Пропустить глагол",
                 nextVerbArrow: "Следующий глагол →",
+                skipVerbArrow: "Пропустить →",
                 popupTitle: "🎯 Добро пожаловать!",
                 popupMessage: "Изучайте неправильные глаголы английского языка. Введите формы Past Simple и Past Participle для каждого глагола.",
-                popupStart: "Начать обучение!"
+                popupStart: "Начать обучение!",
+                fillBothFields: "Заполните оба поля или нажмите 'Пропустить'",
+                newCycleStarted: "Начинается новый круг! Статистика сброшена.",
+                resultsTitle: "📊 Результаты пользователей",
+                showResults: "Показать результаты",
+                hideResults: "Скрыть результаты",
+                noResults: "Результаты пока отсутствуют",
+                filterPlaceholder: "Фильтр по имени или глаголу...",
+                userName: "Имя пользователя",
+                verbColumn: "Глагол",
+                userAnswers: "Ответы пользователя",
+                correctAnswers: "Правильные ответы",
+                resultColumn: "Результат",
+                correct: "Верно",
+                incorrect: "Неверно"
             },
             am: {
                 title: "Անկանոն բայեր",
@@ -55,6 +71,7 @@
                 placeholderParticiple: "Մուտքագրիր ձևը...",
                 checkBtn: "Ստուգել",
                 nextBtn: "Հաջորդը",
+                skipBtn: "Բաց թողնել",
                 checkBtnChecked: "Ստուգված է ✓",
                 correctAnswer: "🎉 Հիանալի! Ճիշտ պատասխան!",
                 incorrectAnswer: "❌ Նայեք ճիշտ պատասխանները ներքևում",
@@ -63,37 +80,24 @@
                 nextVerb: "Հաջորդ բայը",
                 skipVerb: "Բաց թողնել բայը",
                 nextVerbArrow: "Հաջորդ բայը →",
+                skipVerbArrow: "Բաց թողնել →",
                 popupTitle: "🎯 Բարի գալուստ!",
                 popupMessage: "Սովորեք անգլերեն անկանոն բայերը: Մուտքագրեք Past Simple և Past Participle ձևերը յուրաքանչյուր բայի համար:",
-                popupStart: "Սկսել ուսուցումը!"
-            },
-            en: {
-                title: "Irregular Verbs",
-                subtitle: "Master of Irregular Verbs",
-                welcome: "🚀 Welcome to the Irregular Verbs Trainer!",
-                userGreeting: (name) => `Hello, <strong>${name}</strong>! 👋<br>Learning English irregular verbs`,
-                statCurrent: "Current",
-                statCorrect: "Correct",
-                statTotal: "Total", 
-                progress: "Progress",
-                labelInfinitive: "Infinitive",
-                labelPast: "Past Simple",
-                labelParticiple: "Past Participle",
-                placeholderPast: "Enter form...",
-                placeholderParticiple: "Enter form...",
-                checkBtn: "Check",
-                nextBtn: "Next",
-                checkBtnChecked: "Checked ✓",
-                correctAnswer: "🎉 Excellent! Correct answer!",
-                incorrectAnswer: "❌ Look at the correct answers below",
-                cycleCompleted: "🎉 Congratulations! You completed all verbs. Starting a new round!",
-                speechNotSupported: "Your browser doesn't support speech synthesis",
-                nextVerb: "Next verb",
-                skipVerb: "Skip verb", 
-                nextVerbArrow: "Next verb →",
-                popupTitle: "🎯 Welcome!",
-                popupMessage: "Learn English irregular verbs. Enter Past Simple and Past Participle forms for each verb.",
-                popupStart: "Start learning!"
+                popupStart: "Սկսել ուսուցումը!",
+                fillBothFields: "Լրացրեք երկու դաշտերը կամ սեղմեք 'Բաց թողնել'",
+                newCycleStarted: "Սկսվում է նոր շրջան: Վիճակագրությունը զրոյացված է:",
+                resultsTitle: "📊 Օգտատերերի արդյունքները",
+                showResults: "Ցույց տալ արդյունքները",
+                hideResults: "Թաքցնել արդյունքները",
+                noResults: "Արդյունքներ դեռ չկան",
+                filterPlaceholder: "Զտիչ անվամբ կամ բայով...",
+                userName: "Օգտատերի անուն",
+                verbColumn: "Բայ",
+                userAnswers: "Օգտատերի պատասխաններ",
+                correctAnswers: "Ճիշտ պատասխաններ",
+                resultColumn: "Արդյունք",
+                correct: "Ճիշտ",
+                incorrect: "Սխալ"
             }
         };
 
@@ -165,6 +169,12 @@
                 updateVerbTranslation();
             }
             
+            // Обновляем главную кнопку Telegram
+            updateMainButton();
+            
+            // Принудительно обновляем все элементы результатов
+            updateResultsTexts();
+            
             // Отправляем в Analytics смену языка
             trackEvent('language_changed', {
                 new_language: lang,
@@ -188,6 +198,7 @@
             document.getElementById('pastInput').placeholder = t.placeholderPast;
             document.getElementById('participleInput').placeholder = t.placeholderParticiple;
             document.getElementById('nextBtn').textContent = t.nextBtn;
+            document.getElementById('skipBtn').textContent = t.skipBtn;
             
             // Обновляем информацию о пользователе
             const user = tg.initDataUnsafe.user;
@@ -204,6 +215,32 @@
             } else {
                 document.getElementById('checkBtn').textContent = t.checkBtnChecked;
             }
+
+            // Обновляем результаты
+            updateResultsTexts();
+        }
+
+        // ФУНКЦИЯ ОБНОВЛЕНИЯ ТЕКСТОВ РЕЗУЛЬТАТОВ
+        function updateResultsTexts() {
+            const t = translations[currentLanguage];
+            const resultsBtn = document.getElementById('resultsBtn');
+            const resultsTitle = document.getElementById('resultsTitle');
+            const filterInput = document.getElementById('filterInput');
+            
+            if (resultsBtn) {
+                resultsBtn.textContent = showingResults ? t.hideResults : t.showResults;
+            }
+            if (resultsTitle) {
+                resultsTitle.textContent = t.resultsTitle;
+            }
+            if (filterInput) {
+                filterInput.placeholder = t.filterPlaceholder;
+            }
+            
+            // Обновляем таблицу результатов если она показана
+            if (showingResults && userResults.length > 0) {
+                updateResultsTable();
+            }
         }
 
         // ФУНКЦИЯ ОБНОВЛЕНИЯ ПЕРЕВОДА ГЛАГОЛА
@@ -211,6 +248,17 @@
             const translation = verbTranslations[currentLanguage][currentVerb.infinitive] || currentVerb.translation;
             document.getElementById('verbTranslation').textContent = translation;
         }
+
+        // ФУНКЦИЯ ОБНОВЛЕНИЯ ГЛАВНОЙ КНОПКИ TELEGRAM
+        function updateMainButton() {
+            const t = translations[currentLanguage];
+            if (answered) {
+                tg.MainButton.setText(t.nextVerbArrow);
+            } else {
+                tg.MainButton.setText(t.skipVerbArrow);
+            }
+        }
+
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -279,7 +327,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 10;
-            margin-bottom: 30px; /* Отступ от заголовка */
+            margin-bottom: 30px;
             width: fit-content;
             margin-left: auto;
             margin-right: auto;
@@ -322,7 +370,6 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* Адаптация для мобильных устройств */
         @media (max-width: 768px) {            
             .language-switcher {
                 gap: 4px;
@@ -337,17 +384,6 @@
             .title {
                 font-size: clamp(1.8rem, 8vw, 2.5rem);
             }
-        }
-
-        .title {
-            font-size: clamp(2rem, 5vw, 3.5rem);
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
         }
 
         .subtitle {
@@ -539,7 +575,7 @@
             background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.05));
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 20px;
+            padding: 20px 50px 20px 20px;
             text-align: center;
             position: relative;
             transition: all 0.3s ease;
@@ -588,6 +624,7 @@
             outline: none;
             padding: 8px 0;
             margin-top: 8px;
+            max-length: 20;
         }
 
         .form-input::placeholder {
@@ -663,6 +700,11 @@
             transform: scale(0.95);
         }
 
+        .audio-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .controls {
             display: flex;
             gap: 16px;
@@ -681,6 +723,13 @@
             position: relative;
             overflow: hidden;
             min-width: 140px;
+            white-space: nowrap;
+        }
+
+        .btn-compact {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            min-width: auto;
         }
 
         .btn::before {
@@ -720,6 +769,17 @@
             transform: translateY(-2px);
         }
 
+        .btn-tertiary {
+            background: rgba(255, 165, 0, 0.1);
+            color: #ffa500;
+            border: 2px solid rgba(255, 165, 0, 0.3);
+        }
+
+        .btn-tertiary:hover {
+            background: rgba(255, 165, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
         .feedback {
             text-align: center;
             font-size: 1.1rem;
@@ -740,6 +800,88 @@
 
         .feedback.incorrect {
             color: #ef4444;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .filter-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .filter-input::placeholder {
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.9rem;
+        }
+
+        .results-table td {
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.8rem;
+        }
+
+        .result-correct {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .result-incorrect {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            font-style: italic;
+            padding: 40px 20px;
         }
 
         .floating-particles {
@@ -803,6 +945,30 @@
             .current-verb {
                 font-size: 2.5rem;
             }
+
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .results-title {
+                text-align: center;
+                font-size: 1.3rem;
+            }
+
+            .results-table {
+                font-size: 0.8rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 4px;
+            }
+
+            .form-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -862,14 +1028,14 @@
                 </div>
                 <div class="form-card input-card">
                     <div class="form-label" id="label-past">Past Simple</div>
-                    <input type="text" class="form-input" id="pastInput" placeholder="Введите форму...">
-                    <button class="audio-btn" onclick="speakText(currentVerb.past)" title="Произношение">🔊</button>
+                    <input type="text" class="form-input" id="pastInput" placeholder="Введите форму..." maxlength="20">
+                    <button class="audio-btn" id="pastAudioBtn" onclick="speakCorrectForm('past')" title="Произношение" disabled>🔊</button>
                     <div class="correct-answer" id="pastCorrect"></div>
                 </div>
                 <div class="form-card input-card">
                     <div class="form-label" id="label-participle">Past Participle</div>
-                    <input type="text" class="form-input" id="participleInput" placeholder="Введите форму...">
-                    <button class="audio-btn" onclick="speakText(currentVerb.participle)" title="Произношение">🔊</button>
+                    <input type="text" class="form-input" id="participleInput" placeholder="Введите форму..." maxlength="20">
+                    <button class="audio-btn" id="participleAudioBtn" onclick="speakCorrectForm('participle')" title="Произношение" disabled>🔊</button>
                     <div class="correct-answer" id="participleCorrect"></div>
                 </div>
             </div>
@@ -877,9 +1043,24 @@
             <div class="controls">
                 <button class="btn btn-primary" onclick="checkAnswer()" id="checkBtn">Проверить</button>
                 <button class="btn btn-secondary" onclick="nextVerb()" id="nextBtn">Следующий</button>
+                <button class="btn btn-tertiary" onclick="skipVerb()" id="skipBtn">Пропустить</button>
             </div>
 
             <div class="feedback" id="feedback"></div>
+
+            <!-- Результаты -->
+            <div class="results-section">
+                <div class="results-header">
+                    <h3 class="results-title" id="resultsTitle">📊 Результаты пользователей</h3>
+                    <button class="btn btn-secondary btn-compact" onclick="toggleResults()" id="resultsBtn">Показать результаты</button>
+                </div>
+                <div id="resultsContainer" style="display: none;">
+                    <input type="text" class="filter-input" id="filterInput" placeholder="Фильтр по имени или глаголу..." oninput="filterResults()">
+                    <div id="resultsTableContainer">
+                        <div class="no-results" id="noResults">Результаты пока отсутствуют</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -894,9 +1075,13 @@
         tg.expand();
         
         // Настройка главной кнопки
-        tg.MainButton.setText("Следующий глагол");
+        tg.MainButton.setText("Пропустить →");
         tg.MainButton.onClick(() => {
-            nextVerb();
+            if (answered) {
+                nextVerb();
+            } else {
+                skipVerb();
+            }
         });
         
         // Скрыть кнопку "Назад"
@@ -915,15 +1100,10 @@
             const userInfoDiv = document.getElementById('userInfo');
             const t = translations[currentLanguage];
             
-            // Показываем сообщение загрузки на текущем языке
-            userInfoDiv.innerHTML = t.loadingUser;
-            
-            // Небольшая задержка для эффекта загрузки
             setTimeout(() => {
                 if (user) {
                     userInfoDiv.innerHTML = t.userGreeting(user.first_name || 'Пользователь');
                     
-                    // Отправляем в Analytics информацию о пользователе
                     trackEvent('user_start', {
                         user_id: user.id,
                         user_name: user.first_name,
@@ -938,7 +1118,6 @@
                 }
             }, 500);
             
-            // Отправляем статистику боту при старте
             sendProgressToBot('start', {
                 user: user,
                 timestamp: Date.now()
@@ -1057,6 +1236,9 @@
         let correctAnswers = 0;
         let totalAnswers = 0;
         let answered = false;
+        let cycleCount = 0;
+        let userResults = [];
+        let showingResults = false;
 
         function shuffleArray(array) {
             const shuffled = [...array];
@@ -1079,33 +1261,48 @@
             }
         }
 
+        function resetCycleStats() {
+            correctAnswers = 0;
+            totalAnswers = 0;
+            currentIndex = 0;
+            cycleCount++;
+            
+            const t = translations[currentLanguage];
+            showTelegramAlert(t.newCycleStarted);
+            
+            trackEvent('cycle_reset', {
+                cycle_count: cycleCount,
+                interface_lang: currentLanguage
+            });
+        }
+
         function loadNewVerb() {
             if (currentIndex >= verbs.length) {
-                currentIndex = 0;
+                // Только если пользователь прошел весь цикл с ответами
+                if (totalAnswers > 0) {
+                    const t = translations[currentLanguage];
+                    showTelegramAlert(t.cycleCompleted);
+                    
+                    trackEvent('cycle_completed', {
+                        total_verbs: verbs.length,
+                        correct_answers: correctAnswers,
+                        total_answers: totalAnswers,
+                        accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
+                        interface_lang: currentLanguage,
+                        cycle_count: cycleCount
+                    });
+                }
+                
+                resetCycleStats();
                 verbs.splice(0, verbs.length, ...shuffleArray(verbs));
-                
-                // Показываем уведомление о завершении круга
-                const t = translations[currentLanguage];
-                showTelegramAlert(t.cycleCompleted);
-                
-                // Отправляем в Analytics завершение круга
-                trackEvent('cycle_completed', {
-                    total_verbs: verbs.length,
-                    correct_answers: correctAnswers,
-                    total_answers: totalAnswers,
-                    accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
-                    interface_lang: currentLanguage
-                });
             }
             
             currentVerb = verbs[currentIndex];
             
-            // Показываем глагол и его формы
             document.getElementById('currentVerb').textContent = currentVerb.infinitive;
             document.getElementById('infinitiveForm').textContent = currentVerb.infinitive;
             updateVerbTranslation();
             
-            // Отправляем в Analytics новый глагол
             trackEvent('verb_loaded', {
                 verb: currentVerb.infinitive,
                 verb_index: currentIndex + 1,
@@ -1129,14 +1326,17 @@
             document.getElementById('pastCorrect').className = 'correct-answer';
             document.getElementById('participleCorrect').className = 'correct-answer';
             
+            // Отключаем аудиокнопки для правильных ответов
+            document.getElementById('pastAudioBtn').disabled = true;
+            document.getElementById('participleAudioBtn').disabled = true;
+            
             document.getElementById('feedback').className = 'feedback';
             document.getElementById('mainCard').className = 'main-card';
             
             answered = false;
             updateUI();
-            updateTexts(); // Обновляем тексты после сброса
+            updateTexts();
             
-            // Показать главную кнопку Telegram
             tg.MainButton.show();
         }
 
@@ -1145,6 +1345,12 @@
             
             const pastInput = document.getElementById('pastInput').value.trim().toLowerCase();
             const participleInput = document.getElementById('participleInput').value.trim().toLowerCase();
+            
+            if (!pastInput || !participleInput) {
+                const t = translations[currentLanguage];
+                showTelegramAlert(t.fillBothFields);
+                return;
+            }
             
             const correctPast = currentVerb.past.toLowerCase().split('/');
             const correctParticiple = currentVerb.participle.toLowerCase();
@@ -1157,6 +1363,10 @@
             document.getElementById('participleCorrect').textContent = currentVerb.participle;
             document.getElementById('pastCorrect').className = 'correct-answer show';
             document.getElementById('participleCorrect').className = 'correct-answer show';
+            
+            // Включаем аудиокнопки для правильных ответов
+            document.getElementById('pastAudioBtn').disabled = false;
+            document.getElementById('participleAudioBtn').disabled = false;
             
             // Подсвечиваем карточки
             const pastCard = document.getElementById('pastInput').closest('.form-card');
@@ -1177,7 +1387,6 @@
                 mainCard.className = 'main-card correct';
                 correctAnswers++;
                 
-                // Вибрация успеха
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('medium');
                 }
@@ -1186,17 +1395,32 @@
                 feedback.className = 'feedback incorrect show';
                 mainCard.className = 'main-card incorrect';
                 
-                // Вибрация ошибки
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('heavy');
                 }
             }
             
+            // Записываем результат пользователя
+            const user = tg.initDataUnsafe.user;
+            userResults.push({
+                userName: user ? user.first_name || 'Анонимный' : 'Анонимный',
+                verb: currentVerb.infinitive,
+                userPast: pastInput,
+                userParticiple: participleInput,
+                correctPast: currentVerb.past,
+                correctParticiple: currentVerb.participle,
+                pastCorrect: pastCorrect,
+                participleCorrect: participleCorrect,
+                isFullyCorrect: isFullyCorrect,
+                timestamp: Date.now()
+            });
+            
+            updateResultsTable();
+            
             totalAnswers++;
             answered = true;
             document.getElementById('checkBtn').textContent = t.checkBtnChecked;
             
-            // Отправляем в Analytics результат ответа
             trackEvent('answer_submitted', {
                 verb: currentVerb.infinitive,
                 past_correct: pastCorrect,
@@ -1208,7 +1432,6 @@
                 interface_lang: currentLanguage
             });
             
-            // Отправляем результат боту
             sendProgressToBot('answer', {
                 verb: currentVerb.infinitive,
                 userPast: pastInput,
@@ -1226,35 +1449,64 @@
         }
 
         function nextVerb() {
+            if (!answered) {
+                const t = translations[currentLanguage];
+                showTelegramAlert(t.fillBothFields);
+                return;
+            }
+            
+            // Переходим к следующему глаголу только после правильного ответа
             currentIndex++;
             loadNewVerb();
             
-            // Отправляем прогресс боту
             sendProgressToBot('next', {
                 currentIndex: currentIndex,
-                progress: Math.round(((currentIndex % verbs.length) / verbs.length) * 100),
+                correctAnswers: correctAnswers,
+                totalAnswers: totalAnswers
+            });
+        }
+
+        function skipVerb() {
+            // При пропуске не увеличиваем currentIndex, просто загружаем новый глагол
+            // Перемешиваем массив и берем случайный глагол
+            const availableVerbs = verbs.filter((verb, index) => index !== currentIndex);
+            if (availableVerbs.length > 0) {
+                const randomIndex = Math.floor(Math.random() * availableVerbs.length);
+                const newVerbIndex = verbs.indexOf(availableVerbs[randomIndex]);
+                currentIndex = newVerbIndex;
+            } else {
+                // Если все глаголы пройдены, перемешиваем заново
+                verbs.splice(0, verbs.length, ...shuffleArray(verbs));
+                currentIndex = 0;
+            }
+            
+            loadNewVerb();
+            
+            trackEvent('verb_skipped', {
+                verb: currentVerb.infinitive,
+                interface_lang: currentLanguage
+            });
+            
+            sendProgressToBot('skip', {
+                skipped: true,
                 totalCorrect: correctAnswers,
                 totalAnswers: totalAnswers
             });
         }
 
         function updateUI() {
-            document.getElementById('currentNumber').textContent = currentIndex + 1;
+            // Показываем позицию в цикле только на основе правильных ответов
+            const cyclePosition = Math.min(correctAnswers + 1, verbs.length);
+            document.getElementById('currentNumber').textContent = cyclePosition;
             document.getElementById('correctCount').textContent = correctAnswers;
             document.getElementById('totalCount').textContent = totalAnswers;
             
-            const progress = ((currentIndex % verbs.length) / verbs.length) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('progressText').textContent = Math.round(progress) + '%';
+            // Прогресс основан только на правильных ответах
+            const progress = (correctAnswers / verbs.length) * 100;
+            document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+            document.getElementById('progressText').textContent = Math.round(Math.min(progress, 100)) + '%';
             
-            const t = translations[currentLanguage];
-            
-            // Обновляем текст главной кнопки в зависимости от состояния
-            if (answered) {
-                tg.MainButton.setText(t.nextVerbArrow);
-            } else {
-                tg.MainButton.setText(t.skipVerb);
-            }
+            updateMainButton();
         }
 
         function speakText(text) {
@@ -1266,14 +1518,12 @@
                 utterance.pitch = 1;
                 speechSynthesis.speak(utterance);
                 
-                // Отправляем в Analytics использование аудио
                 trackEvent('audio_played', {
                     text: text,
                     verb: currentVerb.infinitive,
                     interface_lang: currentLanguage
                 });
                 
-                // Вибрация при озвучивании
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('light');
                 }
@@ -1281,6 +1531,84 @@
                 const t = translations[currentLanguage];
                 showTelegramAlert(t.speechNotSupported);
             }
+        }
+
+        function speakCorrectForm(formType) {
+            if (!answered) return;
+            
+            let text = '';
+            if (formType === 'past') {
+                text = currentVerb.past.split('/')[0];
+            } else if (formType === 'participle') {
+                text = currentVerb.participle;
+            }
+            
+            speakText(text);
+        }
+
+        function toggleResults() {
+            const container = document.getElementById('resultsContainer');
+            const btn = document.getElementById('resultsBtn');
+            const t = translations[currentLanguage];
+            
+            showingResults = !showingResults;
+            container.style.display = showingResults ? 'block' : 'none';
+            btn.textContent = showingResults ? t.hideResults : t.showResults;
+            
+            if (showingResults) {
+                updateResultsTable();
+            }
+        }
+
+        function updateResultsTable() {
+            const container = document.getElementById('resultsTableContainer');
+            const t = translations[currentLanguage];
+            
+            if (userResults.length === 0) {
+                container.innerHTML = `<div class="no-results">${t.noResults}</div>`;
+                return;
+            }
+            
+            let tableHtml = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>${t.userName}</th>
+                            <th>${t.verbColumn}</th>
+                            <th>${t.userAnswers}</th>
+                            <th>${t.correctAnswers}</th>
+                            <th>${t.resultColumn}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            userResults.forEach(result => {
+                tableHtml += `
+                    <tr>
+                        <td>${result.userName}</td>
+                        <td>${result.verb}</td>
+                        <td>${result.userPast} / ${result.userParticiple}</td>
+                        <td>${result.correctPast} / ${result.correctParticiple}</td>
+                        <td class="${result.isFullyCorrect ? 'result-correct' : 'result-incorrect'}">
+                            ${result.isFullyCorrect ? t.correct : t.incorrect}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += '</tbody></table>';
+            container.innerHTML = tableHtml;
+        }
+
+        function filterResults() {
+            const filter = document.getElementById('filterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.results-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
         }
 
         // Обработка нажатий клавиш
@@ -1322,13 +1650,12 @@
 
         // Обработка закрытия приложения
         window.addEventListener('beforeunload', function() {
-            // Отправляем финальную статистику в Analytics
             trackEvent('session_end', {
                 total_correct: correctAnswers,
                 total_answers: totalAnswers,
                 final_accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0,
                 verbs_studied: currentIndex + 1,
-                session_duration: Math.round((Date.now() - sessionStartTime) / 1000) // в секундах
+                session_duration: Math.round((Date.now() - sessionStartTime) / 1000)
             });
             
             sendProgressToBot('session_end', {
@@ -1346,7 +1673,6 @@
         createParticles();
         verbs.splice(0, verbs.length, ...shuffleArray(verbs));
         
-        // Загружаем первый глагол сразу после инициализации
         setTimeout(() => {
             loadNewVerb();
         }, 1000);
