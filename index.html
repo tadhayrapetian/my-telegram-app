@@ -610,31 +610,43 @@
             color: var(--tg-theme-hint-color, #666);
         }
 
+        .results-table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            -webkit-overflow-scrolling: touch;
+        }
+
         .results-table {
             width: 100%;
+            min-width: 800px;
             border-collapse: collapse;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            overflow: hidden;
+            background: transparent;
         }
 
         .results-table th,
         .results-table td {
-            padding: 12px;
+            padding: 12px 8px;
             text-align: left;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .results-table th {
             background: rgba(255, 255, 255, 0.1);
             font-weight: 600;
             color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .results-table td {
             color: var(--tg-theme-text-color, #ffffff);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
         }
 
         .result-correct {
@@ -647,11 +659,61 @@
             font-weight: 600;
         }
 
+        .user-score {
+            font-weight: 700;
+            color: #f093fb;
+        }
+
+        .user-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-mini {
+            width: 60px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-mini-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #f093fb);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
         .no-results {
             text-align: center;
             color: var(--tg-theme-hint-color, #a0a0a0);
             font-style: italic;
             padding: 40px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .results-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .results-title {
+                text-align: center;
+                font-size: 1.3rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 4px;
+                font-size: 0.7rem;
+            }
+
+            .progress-mini {
+                width: 40px;
+                height: 4px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -801,12 +863,14 @@
             <div class="results-section">
                 <div class="results-header">
                     <h3 class="results-title" id="resultsTitle">📊 Рейтинг пользователей</h3>
-                    <button class="btn btn-secondary btn-compact" onclick="toggleResults()" id="resultsBtn">Показать рейтинг</button>
+                    <button class="btn btn-secondary btn-compact" id="resultsBtn">Показать рейтинг</button>
                 </div>
                 <div id="resultsContainer" style="display: none;">
-                    <input type="text" class="filter-input" id="filterInput" placeholder="Фильтр по имени или глаголу..." oninput="filterResults()">
-                    <div id="resultsTableContainer">
-                        <div class="no-results" id="noResults">Результаты пока отсутствуют</div>
+                    <input type="text" class="filter-input" id="filterInput" placeholder="Фильтр по имени или глаголу...">
+                    <div class="results-table-wrapper">
+                        <div id="resultsTableContainer">
+                            <div class="no-results" id="noResults">Результаты пока отсутствуют</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -864,6 +928,8 @@
                 userAnswers: "Ответы пользователя",
                 correctAnswers: "Правильные ответы",
                 resultColumn: "Результат",
+                userScore: "Баллы",
+                userProgress: "Прогресс",
                 correct: "Верно",
                 incorrect: "Неверно",
                 registrationTitle: "👋 Добро пожаловать!",
@@ -912,6 +978,8 @@
                 userAnswers: "Օգտատերի պատասխաններ",
                 correctAnswers: "Ճիշտ պատասխաններ",
                 resultColumn: "Արդյունք",
+                userScore: "Միավորներ",
+                userProgress: "Առաջընթաց",
                 correct: "Ճիշտ",
                 incorrect: "Սխալ",
                 registrationTitle: "👋 Բարի գալուստ!",
@@ -988,6 +1056,8 @@
         let answered = false;
         let userResults = [];
         let showingResults = false;
+        let userScores = {}; // Храним баллы пользователей
+        let userProgress = 0; // Прогресс текущего пользователя в процентах
 
         // СПИСОК ГЛАГОЛОВ
         const verbs = [
@@ -1041,6 +1111,7 @@
                 updateRegistrationTexts();
             } else {
                 updateTexts();
+                updateResultsTexts(); // ВАЖНО: обновляем тексты результатов
                 if (currentVerb.infinitive) {
                     updateVerbTranslation();
                 }
@@ -1132,6 +1203,35 @@
             document.getElementById('checkBtn').textContent = answered ? t.checkBtnChecked : t.checkBtn;
             document.getElementById('nextBtn').textContent = t.nextBtn;
             document.getElementById('skipBtn').textContent = t.skipBtn;
+            
+            // Обновляем результаты
+            updateResultsTexts();
+        }
+
+        function updateResultsTexts() {
+            const t = translations[currentLanguage];
+            const resultsBtn = document.getElementById('resultsBtn');
+            const resultsTitle = document.getElementById('resultsTitle');
+            const filterInput = document.getElementById('filterInput');
+            const noResults = document.getElementById('noResults');
+            
+            if (resultsBtn) {
+                resultsBtn.textContent = showingResults ? t.hideResults : t.showResults;
+            }
+            if (resultsTitle) {
+                resultsTitle.textContent = t.resultsTitle;
+            }
+            if (filterInput) {
+                filterInput.placeholder = t.filterPlaceholder;
+            }
+            if (noResults) {
+                noResults.textContent = t.noResults;
+            }
+            
+            // Обновляем таблицу результатов если она показана
+            if (showingResults && userResults.length > 0) {
+                updateResultsTable();
+            }
         }
 
         function updateUserGreeting() {
@@ -1157,8 +1257,11 @@
             if (correctAnswers >= verbs.length) {
                 const t = translations[currentLanguage];
                 alert(t.cycleCompleted);
+                
+                // Сбрасываем статистику для нового цикла
                 correctAnswers = 0;
                 totalAnswers = 0;
+                userProgress = 0; // Сбрасываем прогресс
                 currentIndex = 0;
                 verbs.splice(0, verbs.length, ...shuffleArray(verbs));
             }
@@ -1248,6 +1351,45 @@
                 feedback.className = 'feedback incorrect show';
             }
             
+            // Записываем результат пользователя
+            userResults.push({
+                userName: userProfile.name,
+                userLevel: userProfile.level,
+                verb: currentVerb.infinitive,
+                userPast: pastInput,
+                userParticiple: participleInput,
+                correctPast: currentVerb.past,
+                correctParticiple: currentVerb.participle,
+                pastCorrect: pastCorrect,
+                participleCorrect: participleCorrect,
+                isFullyCorrect: isFullyCorrect,
+                timestamp: Date.now()
+            });
+            
+            // Обновляем баллы и прогресс пользователя
+            if (!userScores[userProfile.name]) {
+                userScores[userProfile.name] = 0;
+            }
+            
+            if (isFullyCorrect) {
+                userScores[userProfile.name] += 1; // 1 балл за правильный ответ
+                userProgress += 1; // +1% за правильный ответ
+            } else {
+                userProgress -= 1; // -1% за неправильный ответ
+            }
+            
+            // Не даем прогрессу уйти в минус
+            if (userProgress < 0) {
+                userProgress = 0;
+            }
+            
+            // Максимум 100%
+            if (userProgress > 100) {
+                userProgress = 100;
+            }
+            
+            updateResultsTable();
+            
             totalAnswers++;
             answered = true;
             document.getElementById('checkBtn').textContent = t.checkBtnChecked;
@@ -1285,9 +1427,9 @@
             document.getElementById('correctCount').textContent = correctAnswers;
             document.getElementById('totalCount').textContent = totalAnswers;
             
-            const progress = (correctAnswers / verbs.length) * 100;
-            document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
-            document.getElementById('progressText').textContent = Math.round(Math.min(progress, 100)) + '%';
+            // Используем userProgress вместо расчета на основе correctAnswers
+            document.getElementById('progressFill').style.width = userProgress + '%';
+            document.getElementById('progressText').textContent = Math.round(userProgress) + '%';
         }
 
         function speakText(text) {
@@ -1314,6 +1456,150 @@
             speakText(text);
         }
 
+        // ФУНКЦИИ РЕЗУЛЬТАТОВ
+        function toggleResults() {
+            console.log('Кнопка рейтинга нажата!'); // Для отладки
+            
+            const container = document.getElementById('resultsContainer');
+            const btn = document.getElementById('resultsBtn');
+            const t = translations[currentLanguage];
+            
+            showingResults = !showingResults;
+            container.style.display = showingResults ? 'block' : 'none';
+            btn.textContent = showingResults ? t.hideResults : t.showResults;
+            
+            console.log('Показывать результаты:', showingResults); // Для отладки
+            console.log('Количество результатов:', userResults.length); // Для отладки
+            
+            if (showingResults) {
+                updateResultsTable();
+            }
+        }
+
+        function updateResultsTable() {
+            console.log('Обновляем таблицу результатов'); // Для отладки
+            
+            const container = document.getElementById('resultsTableContainer');
+            const t = translations[currentLanguage];
+            
+            if (userResults.length === 0) {
+                container.innerHTML = `<div class="no-results">${t.noResults}</div>`;
+                console.log('Результатов нет'); // Для отладки
+                return;
+            }
+            
+            console.log('Найдено результатов:', userResults.length); // Для отладки
+            
+            // Группируем результаты по пользователям для подсчета статистики
+            const userStats = {};
+            userResults.forEach(result => {
+                if (!userStats[result.userName]) {
+                    userStats[result.userName] = {
+                        userName: result.userName,
+                        userLevel: result.userLevel,
+                        totalAnswers: 0,
+                        correctAnswers: 0,
+                        incorrectAnswers: 0,
+                        score: 0,
+                        progressPercent: 0,
+                        lastAnswer: result
+                    };
+                }
+                userStats[result.userName].totalAnswers++;
+                if (result.isFullyCorrect) {
+                    userStats[result.userName].correctAnswers++;
+                    userStats[result.userName].score++;
+                    userStats[result.userName].progressPercent += 1; // +1% за правильный
+                } else {
+                    userStats[result.userName].incorrectAnswers++;
+                    userStats[result.userName].progressPercent -= 1; // -1% за неправильный
+                }
+                
+                // Не даем прогрессу уйти в минус или превысить 100%
+                if (userStats[result.userName].progressPercent < 0) {
+                    userStats[result.userName].progressPercent = 0;
+                }
+                if (userStats[result.userName].progressPercent > 100) {
+                    userStats[result.userName].progressPercent = 100;
+                }
+                
+                // Обновляем последний ответ если он новее
+                if (result.timestamp > userStats[result.userName].lastAnswer.timestamp) {
+                    userStats[result.userName].lastAnswer = result;
+                }
+            });
+            
+            let tableHtml = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>${t.userName}</th>
+                            <th>${t.userLevel}</th>
+                            <th>${t.userScore}</th>
+                            <th>${t.userProgress}</th>
+                            <th>${t.verbColumn}</th>
+                            <th>${t.userAnswers}</th>
+                            <th>${t.correctAnswers}</th>
+                            <th>${t.resultColumn}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Сортируем пользователей по баллам (убывание)
+            const sortedUsers = Object.values(userStats).sort((a, b) => b.score - a.score);
+            
+            sortedUsers.forEach(user => {
+                const levelText = getLevelText(user.userLevel);
+                const result = user.lastAnswer;
+                
+                tableHtml += `
+                    <tr>
+                        <td><strong>${user.userName}</strong></td>
+                        <td>${levelText}</td>
+                        <td class="user-score">${user.score}</td>
+                        <td class="user-progress">
+                            <div class="progress-mini">
+                                <div class="progress-mini-fill" style="width: ${user.progressPercent}%"></div>
+                            </div>
+                            <span>${user.progressPercent}%</span>
+                        </td>
+                        <td>${result.verb}</td>
+                        <td>${result.userPast} / ${result.userParticiple}</td>
+                        <td>${result.correctPast} / ${result.correctParticiple}</td>
+                        <td class="${result.isFullyCorrect ? 'result-correct' : 'result-incorrect'}">
+                            ${result.isFullyCorrect ? t.correct : t.incorrect}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += '</tbody></table>';
+            container.innerHTML = tableHtml;
+            
+            console.log('Таблица создана'); // Для отладки
+        }
+
+        function getLevelText(level) {
+            const t = translations[currentLanguage];
+            switch(level) {
+                case 'beginner': return t.levelBeginner;
+                case 'intermediate': return t.levelIntermediate; 
+                case 'advanced': return t.levelAdvanced;
+                default: return level;
+            }
+        }
+
+        function filterResults() {
+            const filter = document.getElementById('filterInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.results-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
         // ИНИЦИАЛИЗАЦИЯ
         document.addEventListener('DOMContentLoaded', function() {
             // Кнопки языков в регистрации
@@ -1334,6 +1620,16 @@
             
             // Обработка формы регистрации
             document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
+            
+            // ОБРАБОТЧИК КНОПКИ РЕЙТИНГА
+            document.getElementById('resultsBtn').addEventListener('click', function() {
+                toggleResults();
+            });
+            
+            // ОБРАБОТЧИК ФИЛЬТРА
+            document.getElementById('filterInput').addEventListener('input', function() {
+                filterResults();
+            });
             
             // Валидация имени
             document.getElementById('userNameInput').addEventListener('input', function(e) {
