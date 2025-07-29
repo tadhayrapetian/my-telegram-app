@@ -114,8 +114,8 @@
             document.getElementById(`lang-${lang}`).classList.add('active');
             
             // Обновляем активную кнопку в модальном окне регистрации
-            document.querySelectorAll('#reg-lang-ru, #reg-lang-am').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`reg-lang-${lang}`).classList.add('active');
+            document.querySelectorAll('#regLangRu, #regLangAm').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`regLang${lang.charAt(0).toUpperCase() + lang.slice(1)}`).classList.add('active');
             
             // Обновляем тексты регистрации если модальное окно открыто
             if (!userProfile.registered) {
@@ -1316,8 +1316,8 @@
         <div class="registration-modal">
             <!-- Переключатель языков в модальном окне -->
             <div class="language-switcher" style="margin-bottom: 20px;">
-                <button class="lang-btn active" onclick="switchLanguage('ru')" id="reg-lang-ru">🇷🇺 РУС</button>
-                <button class="lang-btn" onclick="switchLanguage('am')" id="reg-lang-am">🇦🇲 ՀԱՅ</button>
+                <button class="lang-btn active" onclick="switchLanguage('ru')" id="regLangRu">🇷🇺 РУС</button>
+                <button class="lang-btn" onclick="switchLanguage('am')" id="regLangAm">🇦🇲 ՀԱՅ</button>
             </div>
             
             <h2 class="registration-title" id="registrationTitle">👋 Добро пожаловать!</h2>
