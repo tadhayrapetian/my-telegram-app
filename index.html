@@ -565,6 +565,95 @@
             opacity: 1;
         }
 
+        /* РЕЗУЛЬТАТЫ ПОЛЬЗОВАТЕЛЕЙ */
+        .results-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .btn-compact {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            min-width: auto;
+        }
+
+        .filter-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .filter-input::placeholder {
+            color: var(--tg-theme-hint-color, #666);
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.9rem;
+        }
+
+        .results-table td {
+            color: var(--tg-theme-text-color, #ffffff);
+            font-size: 0.8rem;
+        }
+
+        .result-correct {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .result-incorrect {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .no-results {
+            text-align: center;
+            color: var(--tg-theme-hint-color, #a0a0a0);
+            font-style: italic;
+            padding: 40px 20px;
+        }
+
         @media (max-width: 768px) {
             .main-card {
                 padding: 24px;
@@ -707,6 +796,20 @@
             </div>
 
             <div class="feedback" id="feedback"></div>
+
+            <!-- Раздел результатов пользователей -->
+            <div class="results-section">
+                <div class="results-header">
+                    <h3 class="results-title" id="resultsTitle">📊 Рейтинг пользователей</h3>
+                    <button class="btn btn-secondary btn-compact" onclick="toggleResults()" id="resultsBtn">Показать рейтинг</button>
+                </div>
+                <div id="resultsContainer" style="display: none;">
+                    <input type="text" class="filter-input" id="filterInput" placeholder="Фильтр по имени или глаголу..." oninput="filterResults()">
+                    <div id="resultsTableContainer">
+                        <div class="no-results" id="noResults">Результаты пока отсутствуют</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -750,6 +853,19 @@
                 speechNotSupported: "Ваш браузер не поддерживает синтез речи",
                 fillBothFields: "Заполните оба поля или нажмите 'Пропустить'",
                 newCycleStarted: "Начинается новый круг! Статистика сброшена.",
+                resultsTitle: "📊 Рейтинг пользователей",
+                showResults: "Показать рейтинг",
+                hideResults: "Скрыть рейтинг",
+                noResults: "Результаты пока отсутствуют",
+                filterPlaceholder: "Фильтр по имени или глаголу...",
+                userName: "Имя пользователя",
+                userLevel: "Уровень",
+                verbColumn: "Глагол", 
+                userAnswers: "Ответы пользователя",
+                correctAnswers: "Правильные ответы",
+                resultColumn: "Результат",
+                correct: "Верно",
+                incorrect: "Неверно",
                 registrationTitle: "👋 Добро пожаловать!",
                 registrationSubtitle: "Давайте знакомиться",
                 nameLabel: "Ваше имя",
@@ -785,6 +901,19 @@
                 speechNotSupported: "Ձեր բրաուզերը չի աջակցում խոսքի սինթեզին",
                 fillBothFields: "Լրացրեք երկու դաշտերը կամ սեղմեք 'Բաց թողնել'",
                 newCycleStarted: "Սկսվում է նոր շրջան: Վիճակագրությունը զրոյացված է:",
+                resultsTitle: "📊 Օգտատերերի վարկանիշ",
+                showResults: "Ցույց տալ վարկանիշը",
+                hideResults: "Թաքցնել վարկանիշը",
+                noResults: "Արդյունքներ դեռ չկան",
+                filterPlaceholder: "Զտիչ անվամբ կամ բայով...",
+                userName: "Օգտատերի անուն",
+                userLevel: "Մակարդակ",
+                verbColumn: "Բայ",
+                userAnswers: "Օգտատերի պատասխաններ",
+                correctAnswers: "Ճիշտ պատասխաններ",
+                resultColumn: "Արդյունք",
+                correct: "Ճիշտ",
+                incorrect: "Սխալ",
                 registrationTitle: "👋 Բարի գալուստ!",
                 registrationSubtitle: "Եկեք ծանոթանանք",
                 nameLabel: "Ձեր անունը",
@@ -857,6 +986,8 @@
         let correctAnswers = 0;
         let totalAnswers = 0;
         let answered = false;
+        let userResults = [];
+        let showingResults = false;
 
         // СПИСОК ГЛАГОЛОВ
         const verbs = [
