@@ -1,30 +1,23 @@
-// ФУНКЦИИ РЕГИСТРАЦИИ (исправленные)
+// ФУНКЦИИ РЕГИСТРАЦИИ (ПРОСТЫЕ И РАБОЧИЕ)
         function selectLevel(level) {
-            console.log('Выбран уровень:', level); // Для отладки
-            
             // Снимаем выделение со всех опций
             document.querySelectorAll('.level-option').forEach(option => {
                 option.classList.remove('selected');
             });
             
             // Выделяем выбранную опцию
-            const selectedOption = document.getElementById(`level${level.charAt(0).toUpperCase() + level.slice(1)}Option`);
-            if (selectedOption) {
-                selectedOption.classList.add('selected');
-                console.log('Опция выделена:', selectedOption); // Для отладки
-            }
+            const optionId = `level${level.charAt(0).toUpperCase() + level.slice(1)}Option`;
+            const selectedOption = document.getElementById(optionId);
+            selectedOption.classList.add('selected');
             
-            // Устанавливаем значение radio button
-            const radioButton = document.getElementById(`level${level.charAt(0).toUpperCase() + level.slice(1)}`);
-            if (radioButton) {
-                radioButton.checked = true;
-                console.log('Radio button отмечен:', radioButton); // Для отладки
-            }
+            // Отмечаем radio button
+            const radioId = `level${level.charAt(0).toUpperCase() + level.slice(1)}`;
+            document.getElementById(radioId).checked = true;
             
+            // Сохраняем выбор
             userProfile.level = level;
-            console.log('Профиль обновлен:', userProfile); // Для отладки
             
-            // Визуальная обратная связь
+            // Тактильная обратная связь
             if (tg.HapticFeedback) {
                 tg.HapticFeedback.impactOccurred('light');
             }
@@ -32,8 +25,6 @@
 
         function updateRegistrationTexts() {
             const t = translations[currentLanguage];
-            
-            console.log('Обновляем тексты регистрации на:', currentLanguage); // Для отладки
             
             document.getElementById('registrationTitle').textContent = t.registrationTitle;
             document.getElementById('registrationSubtitle').textContent = t.registrationSubtitle;
@@ -48,76 +39,42 @@
 
         function handleRegistrationSubmit(event) {
             event.preventDefault();
-            console.log('Форма отправлена'); // Для отладки
             
             const t = translations[currentLanguage];
             const name = document.getElementById('userNameInput').value.trim();
             const level = userProfile.level;
             
-            console.log('Данные формы:', { name, level }); // Для отладки
-            
-            // Валидация
+            // Простая валидация
             if (!name) {
-                console.log('Ошибка: имя пустое'); // Для отладки
-                showTelegramAlert(t.nameRequired);
+                alert(t.nameRequired);
                 return;
             }
             
             if (!level) {
-                console.log('Ошибка: уровень не выбран'); // Для отладки
-                showTelegramAlert(t.levelRequired);
+                alert(t.levelRequired);
                 return;
             }
             
-            console.log('Валидация прошла успешно'); // Для отладки
-            
-            // Сохраняем данные пользователя
+            // Сохраняем данные
             userProfile.name = name;
             userProfile.registered = true;
             
-            console.log('Пользователь зарегистрирован:', userProfile); // Для отладки
+            // Скрываем регистрацию и показываем приложение
+            document.getElementById('registrationOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'flex';
             
-            // Отправляем данные в Analytics
+            // Обновляем приветствие
+            updateUserGreeting();
+            
+            // Загружаем первый глагол
+            loadNewVerb();
+            
+            // Аналитика
             trackEvent('user_registered', {
                 user_name: name,
                 english_level: level,
                 interface_lang: currentLanguage
             });
-            
-            // Отправляем данные боту
-            sendProgressToBot('registration', {
-                name: name,
-                level: level,
-                language: currentLanguage
-            });
-            
-            // Скрываем модальное окно и показываем приложение
-            hideRegistrationModal();
-        }
-
-        function hideRegistrationModal() {
-            console.log('Скрываем модальное окно'); // Для отладки
-            
-            const overlay = document.getElementById('registrationOverlay');
-            const appContainer = document.getElementById('appContainer');
-            
-            overlay.classList.add('hidden');
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                appContainer.style.display = 'flex';
-                
-                console.log('Приложение показано'); // Для отладки
-                
-                // Обновляем приветствие пользователя
-                updateUserGreeting();
-                
-                // Загружаем первый глагол
-                setTimeout(() => {
-                    console.log('Загружаем первый глагол'); // Для отладки
-                    loadNewVerb();
-                }, 500);
-                
-            }, 300);
         }
 
         function updateUserGreeting() {
@@ -131,52 +88,29 @@
             }
         }
 
-        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА (исправленная)
+        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЯЗЫКА (ПРОСТАЯ)
         function switchLanguage(lang) {
             currentLanguage = lang;
             
-            // Обновляем активную кнопку в главном приложении
+            // Основные кнопки
             document.querySelectorAll('#lang-ru, #lang-am').forEach(btn => btn.classList.remove('active'));
-            if (document.getElementById(`lang-${lang}`)) {
-                document.getElementById(`lang-${lang}`).classList.add('active');
-            }
+            const mainBtn = document.getElementById(`lang-${lang}`);
+            if (mainBtn) mainBtn.classList.add('active');
             
-            // Обновляем активную кнопку в модальном окне регистрации
+            // Кнопки в регистрации
             document.querySelectorAll('#regLangRu, #regLangAm').forEach(btn => btn.classList.remove('active'));
-            if (document.getElementById(`regLang${lang.charAt(0).toUpperCase() + lang.slice(1)}`)) {
-                document.getElementById(`regLang${lang.charAt(0).toUpperCase() + lang.slice(1)}`).classList.add('active');
-            }
+            const regBtn = document.getElementById(`regLang${lang.charAt(0).toUpperCase() + lang.slice(1)}`);
+            if (regBtn) regBtn.classList.add('active');
             
-            // Обновляем тексты регистрации если модальное окно открыто
+            // Обновляем тексты
             if (!userProfile.registered) {
                 updateRegistrationTexts();
-            }
-            
-            // Обновляем все тексты приложения
-            if (userProfile.registered) {
+            } else {
                 updateTexts();
+                if (currentVerb.infinitive) {
+                    updateVerbTranslation();
+                }
             }
-            
-            // Обновляем текущий глагол
-            if (currentVerb.infinitive) {
-                updateVerbTranslation();
-            }
-            
-            // Обновляем главную кнопку Telegram
-            if (typeof updateMainButton === 'function') {
-                updateMainButton();
-            }
-            
-            // Принудительно обновляем все элементы результатов
-            if (typeof updateResultsTexts === 'function') {
-                updateResultsTexts();
-            }
-            
-            // Отправляем в Analytics смену языка
-            trackEvent('language_changed', {
-                new_language: lang,
-                verb: currentVerb.infinitive || 'none'
-            });
         }<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -1368,15 +1302,15 @@
                 <div class="form-group">
                     <label id="levelLabel">Ваш уровень английского</label>
                     <div class="level-options">
-                        <div class="level-option" id="levelBeginnerOption">
+                        <div class="level-option" onclick="selectLevel('beginner')" id="levelBeginnerOption">
                             <input type="radio" name="level" value="beginner" id="levelBeginner">
                             <span id="levelBeginnerText">🌱 Начинающий (A1-A2)</span>
                         </div>
-                        <div class="level-option" id="levelIntermediateOption">
+                        <div class="level-option" onclick="selectLevel('intermediate')" id="levelIntermediateOption">
                             <input type="radio" name="level" value="intermediate" id="levelIntermediate">
                             <span id="levelIntermediateText">🌿 Средний (B1-B2)</span>
                         </div>
-                        <div class="level-option" id="levelAdvancedOption">
+                        <div class="level-option" onclick="selectLevel('advanced')" id="levelAdvancedOption">
                             <input type="radio" name="level" value="advanced" id="levelAdvanced">
                             <span id="levelAdvancedText">🌳 Продвинутый (C1-C2)</span>
                         </div>
@@ -1507,82 +1441,21 @@
             }
         }
         
-        // Загрузка информации о пользователе (исправленная)
+        // Загрузка приложения (УПРОЩЕННАЯ)
         window.addEventListener('load', () => {
-            console.log('Приложение загружено'); // Для отладки
-            
-            // Инициализируем тексты регистрации
+            // Инициализация
             updateRegistrationTexts();
             
-            // Добавляем обработчик формы регистрации
-            const registrationForm = document.getElementById('registrationForm');
-            if (registrationForm) {
-                registrationForm.addEventListener('submit', handleRegistrationSubmit);
-                console.log('Обработчик формы добавлен'); // Для отладки
-            }
+            // Обработчик формы
+            document.getElementById('registrationForm').addEventListener('submit', handleRegistrationSubmit);
             
-            // Добавляем валидацию поля имени - только буквы
+            // Валидация имени
             const nameInput = document.getElementById('userNameInput');
-            if (nameInput) {
-                nameInput.addEventListener('input', function(e) {
-                    // Разрешаем только буквы (латиница, кириллица, армянские), пробелы и дефисы
-                    const allowedPattern = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
-                    
-                    if (!allowedPattern.test(e.target.value)) {
-                        // Удаляем недопустимые символы
-                        e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
-                    }
-                    
-                    // Ограничиваем длину
-                    if (e.target.value.length > 30) {
-                        e.target.value = e.target.value.slice(0, 30);
-                    }
-                });
-                
-                // Добавляем обработчик для предотвращения вставки недопустимых символов
-                nameInput.addEventListener('paste', function(e) {
-                    setTimeout(() => {
-                        const allowedPattern = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
-                        if (!allowedPattern.test(e.target.value)) {
-                            e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
-                        }
-                    }, 0);
-                });
-                
-                console.log('Валидация поля имени добавлена'); // Для отладки
-            }
-            
-            // Добавляем обработчики для кнопок выбора уровня
-            const levelOptions = document.querySelectorAll('.level-option');
-            levelOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    const level = this.querySelector('input[type="radio"]').value;
-                    console.log('Клик по уровню:', level); // Для отладки
-                    selectLevel(level);
-                });
-            });
-            
-            const user = tg.initDataUnsafe.user;
-            
-            // Отправляем начальную статистику
-            setTimeout(() => {
-                if (user) {
-                    trackEvent('telegram_user_detected', {
-                        user_id: user.id,
-                        user_name: user.first_name,
-                        language: user.language_code || 'unknown',
-                        interface_lang: currentLanguage
-                    });
-                } else {
-                    trackEvent('anonymous_user', {
-                        interface_lang: currentLanguage
-                    });
+            nameInput.addEventListener('input', function(e) {
+                const allowed = /^[a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]*$/;
+                if (!allowed.test(e.target.value)) {
+                    e.target.value = e.target.value.replace(/[^a-zA-Zа-яёА-ЯЁաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆուև\s\-]/g, '');
                 }
-            }, 500);
-            
-            sendProgressToBot('app_loaded', {
-                user: user,
-                timestamp: Date.now()
             });
         });
         
