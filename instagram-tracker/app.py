@@ -66,6 +66,23 @@ PAGE = """<!DOCTYPE html>
     background: rgba(255,255,255,.08); color: #fff; font-size: .9rem;
   }
   select option { color: #000; }
+  .note { margin-top: 8px; font-size: .8rem; color: #C9A0FF; line-height: 1.4; }
+  .btn2 {
+    margin-top: 18px; width: 100%; background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.2);
+  }
+  .people { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .people .col {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 10px 12px; min-height: 60px;
+  }
+  .people .col h3 { font-size: .8rem; margin-bottom: 6px; font-weight: 600; }
+  .people .col.gained h3 { color: #4CD97B; }
+  .people .col.lost h3 { color: #FF6B81; }
+  .people a { display: block; color: #ddd; font-size: .85rem; padding: 2px 0;
+              text-decoration: none; word-break: break-all; }
+  .people a:hover { color: #fff; text-decoration: underline; }
+  .people .none { color: #9A9AC0; font-size: .8rem; }
   .hist-title { margin: 22px 0 8px; color: #9A9AC0; font-size: .85rem; }
   .hist {
     background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
@@ -100,12 +117,23 @@ PAGE = """<!DOCTYPE html>
     <input type="checkbox" id="auto" onchange="saveAndSchedule()">
     Обновлять автоматически
     <select id="interval" onchange="saveAndSchedule()">
-      <option value="1800">каждые 30 минут</option>
-      <option value="3600" selected>каждый час</option>
-      <option value="10800">каждые 3 часа</option>
-      <option value="21600">каждые 6 часов</option>
+      <option value="60">каждую минуту</option>
+      <option value="300" selected>каждые 5 минут</option>
+      <option value="900">каждые 15 минут</option>
+      <option value="3600">каждый час</option>
     </select>
   </label>
+  <div class="note" id="fastNote"></div>
+
+  <button class="btn2" id="peopleBtn" onclick="loadPeople()">
+    Показать, кто подписался и отписался
+  </button>
+  <div class="people" id="people" style="display:none">
+    <div class="col gained"><h3>➕ Новые подписчики</h3><div id="gained"></div></div>
+    <div class="col lost"><h3>➖ Отписались</h3><div id="lost"></div></div>
+  </div>
+  <div class="note" id="peopleNote"></div>
+
   <div class="hist-title">История проверок</div>
   <div class="hist" id="history"><div class="empty">Проверок ещё не было.</div></div>
   <div class="status" id="status"></div>
@@ -195,6 +223,66 @@ async function check() {
   $('checkBtn').disabled = false;
 }
 
+function renderPeopleList(boxId, people) {
+  const box = $(boxId);
+  box.innerHTML = '';
+  if (!people.length) {
+    box.innerHTML = '<div class="none">никого</div>';
+    return;
+  }
+  for (const u of people) {
+    const a = document.createElement('a');
+    a.href = 'https://www.instagram.com/' + u.username + '/';
+    a.target = '_blank';
+    a.textContent = '@' + u.username + (u.full_name ? '  ·  ' + u.full_name : '');
+    box.appendChild(a);
+  }
+}
+
+async function loadPeople() {
+  const username = $('username').value.replace(/^@/, '').trim();
+  if (!username) { setStatus('Сначала впишите аккаунт.', true); return; }
+  $('peopleBtn').disabled = true;
+  $('peopleNote').textContent = 'Загружаю список подписчиков… это может занять до минуты.';
+  try {
+    const resp = await fetch('/api/followers?username=' + encodeURIComponent(username));
+    const data = await resp.json();
+    if (data.error) {
+      $('peopleNote').textContent = data.error;
+      $('peopleNote').style.color = '#FF6B81';
+      $('people').style.display = 'none';
+    } else {
+      $('people').style.display = 'grid';
+      renderPeopleList('gained', data.gained);
+      renderPeopleList('lost', data.lost);
+      $('peopleNote').style.color = '#C9A0FF';
+      if (data.first_time) {
+        $('peopleNote').textContent = 'Сохранил текущий список из ' + data.total +
+          ' подписчиков. При следующей проверке покажу, кто пришёл и ушёл.';
+      } else {
+        $('peopleNote').textContent = 'Всего подписчиков в списке: ' + data.total +
+          '. Сравнил с прошлым разом.';
+      }
+    }
+  } catch (e) {
+    $('peopleNote').textContent = 'Не удалось связаться с трекером. Не закрывайте окно Терминала.';
+    $('peopleNote').style.color = '#FF6B81';
+  }
+  $('peopleBtn').disabled = false;
+}
+
+function updateFastNote() {
+  const v = parseInt($('interval').value, 10);
+  const note = $('fastNote');
+  if ($('auto').checked && v <= 60) {
+    note.textContent = '⚠ Instagram блокирует слишком частые запросы. ' +
+      'Раз в минуту — уже смелый режим; при блокировке (ошибка 429) поставьте реже. ' +
+      'Обновлять каждые несколько секунд Instagram не даёт — забанит аккаунт.';
+  } else {
+    note.textContent = '';
+  }
+}
+
 async function loadSaved() {
   const username = localStorage.getItem('ig_username') || '';
   $('username').value = username;
@@ -213,6 +301,7 @@ async function loadSaved() {
     } catch (e) {}
   }
   schedule();
+  updateFastNote();
   if ($('auto').checked && username) check();
 }
 
@@ -229,7 +318,7 @@ function schedule() {
   }
 }
 
-function saveAndSchedule() { save(); schedule(); }
+function saveAndSchedule() { save(); schedule(); updateFastNote(); }
 
 $('username').addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
 loadSaved();
@@ -273,6 +362,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 tracker.save_history(username, records)
                 self._send_json({"profile": profile, "prev": prev,
                                  "records": records[-100:]})
+            except tracker.FetchError as e:
+                self._send_json({"error": str(e)})
+            except Exception as e:  # noqa: BLE001
+                self._send_json({"error": f"Неожиданная ошибка: {e}"})
+        elif parsed.path == "/api/followers":
+            if not username:
+                self._send_json({"error": "Не указан аккаунт."})
+                return
+            try:
+                profile = tracker.fetch_profile(username)
+                new_list = tracker.fetch_followers(profile["user_id"])
+                old_list = tracker.load_followers(username)
+                first_time = not old_list
+                diff = tracker.diff_followers(old_list, new_list)
+                tracker.save_followers(username, new_list)
+                self._send_json({
+                    "total": len(new_list),
+                    "gained": diff["gained"] if not first_time else [],
+                    "lost": diff["lost"] if not first_time else [],
+                    "first_time": first_time,
+                })
             except tracker.FetchError as e:
                 self._send_json({"error": str(e)})
             except Exception as e:  # noqa: BLE001

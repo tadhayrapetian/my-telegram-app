@@ -87,6 +87,7 @@ def fetch_profile(username: str) -> dict:
         )
 
     return {
+        "user_id": user.get("id", ""),
         "username": user.get("username", username),
         "full_name": user.get("full_name", ""),
         "followers": user["edge_followed_by"]["count"],
@@ -95,6 +96,102 @@ def fetch_profile(username: str) -> dict:
         "is_private": user.get("is_private", False),
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
+
+
+def fetch_followers(user_id: str, hard_limit: int = 5000) -> list:
+    """Список подписчиков (ники + имена). Требует входа через IG_SESSIONID.
+
+    Работает надёжно для СВОЕГО аккаунта. Instagram отдаёт список
+    постранично; между страницами делаем паузу, чтобы не попасть под лимит.
+    hard_limit ограничивает выборку, чтобы очень большие аккаунты не
+    вызывали тысячи запросов и блокировку.
+    """
+    sessionid = os.environ.get("IG_SESSIONID")
+    if not sessionid:
+        raise FetchError(
+            "Чтобы видеть ники подписчиков, нужно войти в аккаунт: "
+            "задайте переменную окружения IG_SESSIONID (значение cookie "
+            "sessionid из вашего браузера). Инструкция — в README."
+        )
+
+    followers = []
+    max_id = None
+    while True:
+        params = {"count": "100"}
+        if max_id:
+            params["max_id"] = max_id
+        url = (
+            f"https://i.instagram.com/api/v1/friendships/{user_id}/followers/?"
+            + urllib.parse.urlencode(params)
+        )
+        headers = {
+            "User-Agent": USER_AGENT,
+            "X-IG-App-ID": IG_APP_ID,
+            "Accept": "*/*",
+            "Cookie": f"sessionid={sessionid}",
+        }
+        req = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code in (401, 403):
+                raise FetchError(
+                    "Instagram не пустил (нужен вход). Проверьте, что "
+                    "IG_SESSIONID актуальный — cookie мог устареть."
+                )
+            if e.code == 429:
+                raise FetchError(
+                    "Instagram временно ограничил запросы (слишком часто). "
+                    "Подождите и увеличьте интервал проверок."
+                )
+            raise FetchError(f"HTTP-ошибка {e.code} при получении подписчиков.")
+        except (urllib.error.URLError, TimeoutError) as e:
+            raise FetchError(f"Сетевая ошибка: {e}")
+
+        for u in data.get("users", []):
+            followers.append({
+                "username": u.get("username", ""),
+                "full_name": u.get("full_name", ""),
+            })
+
+        max_id = data.get("next_max_id")
+        if not max_id or len(followers) >= hard_limit:
+            break
+        time.sleep(2)  # пауза между страницами — вежливо к Instagram
+
+    return followers
+
+
+def followers_path(username: str) -> str:
+    return os.path.join(HISTORY_DIR, f"{username.lower()}_followers.json")
+
+
+def load_followers(username: str) -> list:
+    try:
+        with open(followers_path(username), encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_followers(username: str, followers: list) -> None:
+    os.makedirs(HISTORY_DIR, exist_ok=True)
+    with open(followers_path(username), "w", encoding="utf-8") as f:
+        json.dump(followers, f, ensure_ascii=False, indent=2)
+
+
+def diff_followers(old: list, new: list) -> dict:
+    """Сравнивает два списка подписчиков, возвращает пришедших и ушедших."""
+    old_map = {u["username"]: u for u in old}
+    new_map = {u["username"]: u for u in new}
+    old_set = set(old_map)
+    new_set = set(new_map)
+    gained = [new_map[u] for u in new_set - old_set]
+    lost = [old_map[u] for u in old_set - new_set]
+    gained.sort(key=lambda u: u["username"].lower())
+    lost.sort(key=lambda u: u["username"].lower())
+    return {"gained": gained, "lost": lost}
 
 
 # ---------------------------------------------------------------- история
