@@ -1,272 +1,302 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Instagram Follower Tracker — версия с окном (без терминала).
+Instagram Follower Tracker — версия с окном в браузере.
 
 Запуск двойным щелчком по файлу «Запустить трекер.command» (macOS)
 или командой: python3 app.py
+
+Скрипт поднимает локальный мини-сервер (только на этом компьютере,
+наружу ничего не открывается) и открывает страницу трекера в браузере.
 """
 
+import http.server
 import json
-import os
 import threading
-import tkinter as tk
-from tkinter import font as tkfont
-from tkinter import ttk
+import urllib.parse
+import webbrowser
 
 import tracker
 
-SETTINGS_PATH = os.path.join(tracker.HISTORY_DIR, "_settings.json")
+PAGE = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Подписчики Instagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0F0F23; color: #fff; min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(120,119,198,.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255,119,198,.3) 0%, transparent 50%);
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 28px 20px; }
+  h1 { font-size: 1.15rem; font-weight: 600; margin-bottom: 18px; text-align: center; }
+  .row { display: flex; gap: 8px; }
+  input[type=text] {
+    flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.08); color: #fff; font-size: 1rem; outline: none;
+  }
+  input[type=text]:focus { border-color: #7877C6; }
+  button {
+    padding: 12px 18px; border: none; border-radius: 12px; cursor: pointer;
+    background: #7877C6; color: #fff; font-size: 1rem; font-weight: 600;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  .card {
+    margin-top: 20px; padding: 24px 16px; border-radius: 16px; text-align: center;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  }
+  .name { color: #9A9AC0; font-size: .95rem; min-height: 1.2em; }
+  .count { font-size: 2.9rem; font-weight: 800; letter-spacing: .5px; margin: 6px 0 2px;
+           word-break: break-all; }
+  .delta { color: #9A9AC0; font-size: 1rem; min-height: 1.3em; }
+  .delta.up { color: #4CD97B; } .delta.down { color: #FF6B81; }
+  .extra { color: #9A9AC0; font-size: .85rem; margin-top: 8px; }
+  .auto { display: flex; align-items: center; gap: 8px; margin-top: 18px;
+          font-size: .95rem; color: #ddd; flex-wrap: wrap; }
+  select {
+    padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,.2);
+    background: rgba(255,255,255,.08); color: #fff; font-size: .9rem;
+  }
+  select option { color: #000; }
+  .hist-title { margin: 22px 0 8px; color: #9A9AC0; font-size: .85rem; }
+  .hist {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    border-radius: 14px; padding: 8px 0; max-height: 300px; overflow-y: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .hist .line { display: flex; justify-content: space-between; gap: 10px;
+                padding: 6px 14px; font-size: .9rem; }
+  .hist .line:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,.06); }
+  .hist .when { color: #9A9AC0; white-space: nowrap; }
+  .hist .n { font-weight: 600; }
+  .hist .d.up { color: #4CD97B; } .hist .d.down { color: #FF6B81; }
+  .hist .empty { color: #9A9AC0; padding: 10px 14px; font-size: .9rem; }
+  .status { margin-top: 14px; color: #9A9AC0; font-size: .85rem; min-height: 1.3em; }
+  .status.error { color: #FF6B81; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Подписчики Instagram</h1>
+  <div class="row">
+    <input type="text" id="username" placeholder="аккаунт, например cristiano">
+    <button id="checkBtn" onclick="check()">Проверить</button>
+  </div>
+  <div class="card">
+    <div class="name" id="name">&nbsp;</div>
+    <div class="count" id="count">· · ·</div>
+    <div class="delta" id="delta">подписчиков</div>
+    <div class="extra" id="extra"></div>
+  </div>
+  <label class="auto">
+    <input type="checkbox" id="auto" onchange="saveAndSchedule()">
+    Обновлять автоматически
+    <select id="interval" onchange="saveAndSchedule()">
+      <option value="1800">каждые 30 минут</option>
+      <option value="3600" selected>каждый час</option>
+      <option value="10800">каждые 3 часа</option>
+      <option value="21600">каждые 6 часов</option>
+    </select>
+  </label>
+  <div class="hist-title">История проверок</div>
+  <div class="hist" id="history"><div class="empty">Проверок ещё не было.</div></div>
+  <div class="status" id="status"></div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let timer = null, busy = false;
 
-INTERVALS = {
-    "каждые 30 минут": 30 * 60,
-    "каждый час": 60 * 60,
-    "каждые 3 часа": 3 * 60 * 60,
-    "каждые 6 часов": 6 * 60 * 60,
+const fmt = n => n.toLocaleString('ru-RU');
+const fmtDelta = d => (d > 0 ? '+' : '−') + fmt(Math.abs(d)) + (d > 0 ? ' ▲' : ' ▼');
+
+function setStatus(text, isError) {
+  $('status').textContent = text;
+  $('status').className = 'status' + (isError ? ' error' : '');
 }
 
-# Цвета только для акцентов — фон и текст оставляем системными,
-# чтобы окно корректно выглядело на любой версии macOS.
-GREEN = "#1E8E3E"
-RED = "#D93025"
-MUTED = "#777777"
+function renderProfile(p, prev) {
+  $('name').textContent = '@' + p.username + (p.full_name ? '  ·  ' + p.full_name : '');
+  $('count').textContent = fmt(p.followers);
+  if (prev == null || p.followers === prev) {
+    $('delta').textContent = 'подписчиков';
+    $('delta').className = 'delta';
+  } else {
+    const d = p.followers - prev;
+    $('delta').textContent = 'подписчиков  (' + fmtDelta(d) + ')';
+    $('delta').className = 'delta ' + (d > 0 ? 'up' : 'down');
+  }
+  $('extra').textContent = 'подписки: ' + fmt(p.following) + '   посты: ' + fmt(p.posts);
+}
+
+function renderHistory(records) {
+  const box = $('history');
+  if (!records.length) {
+    box.innerHTML = '<div class="empty">Проверок ещё не было.</div>';
+    return;
+  }
+  box.innerHTML = '';
+  const recent = records.slice(-100);
+  for (let i = recent.length - 1; i >= 0; i--) {
+    const r = recent[i];
+    const line = document.createElement('div');
+    line.className = 'line';
+    const when = document.createElement('span');
+    when.className = 'when';
+    when.textContent = r.checked_at.replace('T', ' ').slice(0, 16);
+    const right = document.createElement('span');
+    const n = document.createElement('span');
+    n.className = 'n';
+    n.textContent = fmt(r.followers);
+    right.appendChild(n);
+    if (i > 0) {
+      const d = r.followers - recent[i - 1].followers;
+      if (d !== 0) {
+        const ds = document.createElement('span');
+        ds.className = 'd ' + (d > 0 ? 'up' : 'down');
+        ds.textContent = '  ' + fmtDelta(d);
+        right.appendChild(ds);
+      }
+    }
+    line.appendChild(when);
+    line.appendChild(right);
+    box.appendChild(line);
+  }
+}
+
+async function check() {
+  const username = $('username').value.replace(/^@/, '').trim();
+  if (!username) { setStatus('Введите имя аккаунта — например, cristiano.', true); return; }
+  if (busy) return;
+  busy = true;
+  $('checkBtn').disabled = true;
+  setStatus('Проверяю…', false);
+  try {
+    const resp = await fetch('/api/check?username=' + encodeURIComponent(username));
+    const data = await resp.json();
+    if (data.error) { setStatus(data.error, true); }
+    else {
+      renderProfile(data.profile, data.prev);
+      renderHistory(data.records);
+      setStatus('Обновлено ' + data.profile.checked_at.replace('T', ' в ').slice(0, 19), false);
+      save();
+    }
+  } catch (e) {
+    setStatus('Трекер закрыт? Не закрывайте маленькое окно Терминала, пока пользуетесь страницей.', true);
+  }
+  busy = false;
+  $('checkBtn').disabled = false;
+}
+
+async function loadSaved() {
+  const username = localStorage.getItem('ig_username') || '';
+  $('username').value = username;
+  $('auto').checked = localStorage.getItem('ig_auto') === '1';
+  $('interval').value = localStorage.getItem('ig_interval') || '3600';
+  if (username) {
+    try {
+      const resp = await fetch('/api/history?username=' + encodeURIComponent(username));
+      const data = await resp.json();
+      if (data.records && data.records.length) {
+        const rs = data.records;
+        renderProfile(rs[rs.length - 1], rs.length > 1 ? rs[rs.length - 2].followers : null);
+        renderHistory(rs);
+        setStatus('Показаны данные последней проверки. Нажмите «Проверить», чтобы обновить.', false);
+      }
+    } catch (e) {}
+  }
+  schedule();
+  if ($('auto').checked && username) check();
+}
+
+function save() {
+  localStorage.setItem('ig_username', $('username').value.replace(/^@/, '').trim());
+  localStorage.setItem('ig_auto', $('auto').checked ? '1' : '0');
+  localStorage.setItem('ig_interval', $('interval').value);
+}
+
+function schedule() {
+  if (timer) { clearInterval(timer); timer = null; }
+  if ($('auto').checked) {
+    timer = setInterval(check, parseInt($('interval').value, 10) * 1000);
+  }
+}
+
+function saveAndSchedule() { save(); schedule(); }
+
+$('username').addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+loadSaved();
+</script>
+</body>
+</html>"""
 
 
-def load_settings() -> dict:
-    try:
-        with open(SETTINGS_PATH, encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+class Handler(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *args):  # не засорять терминал
+        pass
 
+    def _send(self, code: int, body: bytes, content_type: str) -> None:
+        self.send_response(code)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
-def save_settings(settings: dict) -> None:
-    os.makedirs(tracker.HISTORY_DIR, exist_ok=True)
-    with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
-        json.dump(settings, f, ensure_ascii=False, indent=2)
+    def _send_json(self, payload: dict) -> None:
+        self._send(200, json.dumps(payload, ensure_ascii=False).encode(),
+                   "application/json; charset=utf-8")
 
+    def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        qs = urllib.parse.parse_qs(parsed.query)
+        username = (qs.get("username") or [""])[0].lstrip("@").strip()
 
-class App:
-    def __init__(self, root: tk.Tk):
-        self.root = root
-        self.timer_id = None
-        self.busy = False
-
-        root.title("Подписчики Instagram")
-        root.geometry("440x640")
-        root.minsize(400, 560)
-
-        settings = load_settings()
-
-        self.big = tkfont.Font(size=44, weight="bold")
-        body = tkfont.Font(size=13)
-        small = tkfont.Font(size=11)
-        mono = tkfont.Font(family="Menlo", size=12)
-
-        outer = ttk.Frame(root, padding=20)
-        outer.pack(fill="both", expand=True)
-
-        ttk.Label(outer, text="Аккаунт Instagram (без @):",
-                  foreground=MUTED, font=small).pack(anchor="w")
-
-        row = ttk.Frame(outer)
-        row.pack(fill="x", pady=(4, 0))
-        self.username_var = tk.StringVar(value=settings.get("username", ""))
-        entry = ttk.Entry(row, textvariable=self.username_var, font=body)
-        entry.pack(side="left", fill="x", expand=True, ipady=4)
-        entry.bind("<Return>", lambda e: self.check())
-
-        self.check_btn = ttk.Button(row, text="Проверить", command=self.check)
-        self.check_btn.pack(side="left", padx=(10, 0))
-
-        self.name_label = ttk.Label(outer, text="—", foreground=MUTED,
-                                    font=body, anchor="center")
-        self.name_label.pack(fill="x", pady=(24, 0))
-
-        self.count_label = ttk.Label(outer, text="· · ·", font=self.big,
-                                     anchor="center")
-        self.count_label.pack(fill="x")
-
-        self.delta_label = ttk.Label(outer, text="подписчиков",
-                                     foreground=MUTED, font=body,
-                                     anchor="center")
-        self.delta_label.pack(fill="x")
-
-        self.extra_label = ttk.Label(outer, text="", foreground=MUTED,
-                                     font=small, anchor="center")
-        self.extra_label.pack(fill="x", pady=(4, 20))
-
-        auto_row = ttk.Frame(outer)
-        auto_row.pack(fill="x")
-        self.auto_var = tk.BooleanVar(value=settings.get("auto", False))
-        ttk.Checkbutton(auto_row, text="Обновлять автоматически",
-                        variable=self.auto_var,
-                        command=self.toggle_auto).pack(side="left")
-        self.interval_var = tk.StringVar(
-            value=settings.get("interval", "каждый час"))
-        combo = ttk.Combobox(auto_row, textvariable=self.interval_var,
-                             values=list(INTERVALS), state="readonly",
-                             width=16)
-        combo.bind("<<ComboboxSelected>>", lambda e: self.toggle_auto())
-        combo.pack(side="left", padx=(8, 0))
-
-        ttk.Label(outer, text="История проверок", foreground=MUTED,
-                  font=small).pack(anchor="w", pady=(20, 4))
-
-        hist_frame = ttk.Frame(outer, borderwidth=1, relief="solid")
-        hist_frame.pack(fill="both", expand=True)
-        self.history_text = tk.Text(hist_frame, font=mono, relief="flat",
-                                    height=8, state="disabled", padx=10,
-                                    pady=8, cursor="arrow", wrap="none",
-                                    borderwidth=0, highlightthickness=0)
-        self.history_text.tag_configure("up", foreground=GREEN)
-        self.history_text.tag_configure("down", foreground=RED)
-        self.history_text.tag_configure("muted", foreground=MUTED)
-        self.history_text.pack(fill="both", expand=True)
-
-        self.status_label = ttk.Label(outer, text="", foreground=MUTED,
-                                      font=small, wraplength=390,
-                                      justify="left")
-        self.status_label.pack(fill="x", pady=(10, 0))
-
-        if self.username_var.get():
-            self.show_history(self.username_var.get())
-            self.show_last_record(self.username_var.get())
-        if self.auto_var.get() and self.username_var.get():
-            self.check()
-
-    # ------------------------------------------------------------- действия
-
-    def check(self):
-        username = self.username_var.get().lstrip("@").strip()
-        if not username or self.busy:
+        if parsed.path == "/":
+            self._send(200, PAGE.encode(), "text/html; charset=utf-8")
+        elif parsed.path == "/api/check":
             if not username:
-                self.set_status("Введите имя аккаунта — например, cristiano.",
-                                RED)
-            return
-        self.busy = True
-        self.check_btn.configure(state="disabled")
-        self.set_status("Проверяю…", MUTED)
-        threading.Thread(target=self._fetch, args=(username,),
-                         daemon=True).start()
-
-    def _fetch(self, username: str):
-        try:
-            records = tracker.load_history(username)
-            prev = records[-1]["followers"] if records else None
-            profile = tracker.fetch_profile(username)
-            records.append(profile)
-            tracker.save_history(username, records)
-            self.root.after(0, self._on_success, profile, prev)
-        except tracker.FetchError as e:
-            self.root.after(0, self._on_error, str(e))
-        except Exception as e:  # noqa: BLE001
-            self.root.after(0, self._on_error, f"Неожиданная ошибка: {e}")
-
-    def _on_success(self, profile: dict, prev):
-        self.busy = False
-        self.check_btn.configure(state="normal")
-        self.render_profile(profile, prev)
-        self.show_history(profile["username"])
-        self.set_status(
-            "Обновлено " + profile["checked_at"].replace("T", " в ")[:19],
-            MUTED)
-        save_settings({"username": self.username_var.get().strip(),
-                       "auto": self.auto_var.get(),
-                       "interval": self.interval_var.get()})
-        self.schedule_next()
-
-    def _on_error(self, message: str):
-        self.busy = False
-        self.check_btn.configure(state="normal")
-        self.set_status(message, RED)
-        self.schedule_next()
-
-    # --------------------------------------------------------- автообновление
-
-    def toggle_auto(self):
-        save_settings({"username": self.username_var.get().strip(),
-                       "auto": self.auto_var.get(),
-                       "interval": self.interval_var.get()})
-        self.schedule_next()
-
-    def schedule_next(self):
-        if self.timer_id:
-            self.root.after_cancel(self.timer_id)
-            self.timer_id = None
-        if self.auto_var.get():
-            seconds = INTERVALS.get(self.interval_var.get(), 3600)
-            self.timer_id = self.root.after(seconds * 1000, self.check)
-
-    # ----------------------------------------------------------------- вывод
-
-    def render_profile(self, profile: dict, prev):
-        name = "@" + profile["username"]
-        if profile.get("full_name"):
-            name += "  ·  " + profile["full_name"]
-        self.name_label.configure(text=name)
-
-        text = tracker.fmt(profile["followers"])
-        # подгоняем размер шрифта, чтобы длинное число влезало в окно
-        size = 44
-        max_width = max(self.root.winfo_width() - 80, 300)
-        probe = tkfont.Font(size=size, weight="bold")
-        while size > 18 and probe.measure(text) > max_width:
-            size -= 2
-            probe.configure(size=size)
-        self.big.configure(size=size)
-        self.count_label.configure(text=text)
-
-        if prev is None or profile["followers"] == prev:
-            self.delta_label.configure(text="подписчиков", foreground=MUTED)
+                self._send_json({"error": "Не указан аккаунт."})
+                return
+            try:
+                records = tracker.load_history(username)
+                prev = records[-1]["followers"] if records else None
+                profile = tracker.fetch_profile(username)
+                records.append(profile)
+                tracker.save_history(username, records)
+                self._send_json({"profile": profile, "prev": prev,
+                                 "records": records[-100:]})
+            except tracker.FetchError as e:
+                self._send_json({"error": str(e)})
+            except Exception as e:  # noqa: BLE001
+                self._send_json({"error": f"Неожиданная ошибка: {e}"})
+        elif parsed.path == "/api/history":
+            self._send_json({"records": tracker.load_history(username)[-100:]})
         else:
-            d = profile["followers"] - prev
-            color = GREEN if d > 0 else RED
-            self.delta_label.configure(
-                text=f"подписчиков  ({tracker.fmt_delta(d)})",
-                foreground=color)
-
-        self.extra_label.configure(
-            text=f"подписки: {tracker.fmt(profile['following'])}   "
-                 f"посты: {tracker.fmt(profile['posts'])}")
-
-    def show_last_record(self, username: str):
-        records = tracker.load_history(username)
-        if records:
-            prev = records[-2]["followers"] if len(records) > 1 else None
-            self.render_profile(records[-1], prev)
-            self.set_status("Показаны данные последней проверки. "
-                            "Нажмите «Проверить», чтобы обновить.", MUTED)
-
-    def show_history(self, username: str):
-        records = tracker.load_history(username)
-        self.history_text.configure(state="normal")
-        self.history_text.delete("1.0", "end")
-        if not records:
-            self.history_text.insert("end", "Проверок ещё не было.", "muted")
-        recent = records[-50:]
-        for idx in range(len(recent) - 1, -1, -1):
-            r = recent[idx]
-            when = r["checked_at"].replace("T", " ")[:16]
-            line = f"{when}  {tracker.fmt(r['followers']):>14}"
-            self.history_text.insert("end", line)
-            if idx > 0:
-                d = r["followers"] - recent[idx - 1]["followers"]
-                if d:
-                    tag = "up" if d > 0 else "down"
-                    self.history_text.insert("end",
-                                             f"  {tracker.fmt_delta(d)}", tag)
-            self.history_text.insert("end", "\n")
-        self.history_text.configure(state="disabled")
-
-    def set_status(self, text: str, color: str):
-        self.status_label.configure(text=text, foreground=color)
+            self._send(404, b"not found", "text/plain")
 
 
 def main():
-    root = tk.Tk()
-    App(root)
-    root.mainloop()
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    url = f"http://127.0.0.1:{server.server_address[1]}/"
+    print()
+    print("  Трекер подписчиков Instagram запущен!")
+    print(f"  Страница открылась в браузере: {url}")
+    print()
+    print("  НЕ закрывайте это окно, пока пользуетесь трекером.")
+    print("  Чтобы выйти — просто закройте это окно.")
+    threading.Timer(0.5, webbrowser.open, args=(url,)).start()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
