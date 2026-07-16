@@ -12,6 +12,7 @@ import os
 import threading
 import tkinter as tk
 from tkinter import font as tkfont
+from tkinter import ttk
 
 import tracker
 
@@ -24,13 +25,11 @@ INTERVALS = {
     "каждые 6 часов": 6 * 60 * 60,
 }
 
-BG = "#0F0F23"
-CARD = "#1B1B3A"
-FG = "#FFFFFF"
-MUTED = "#9A9AC0"
-ACCENT = "#7877C6"
-GREEN = "#4CD97B"
-RED = "#FF6B81"
+# Цвета только для акцентов — фон и текст оставляем системными,
+# чтобы окно корректно выглядело на любой версии macOS.
+GREEN = "#1E8E3E"
+RED = "#D93025"
+MUTED = "#777777"
 
 
 def load_settings() -> dict:
@@ -54,92 +53,81 @@ class App:
         self.busy = False
 
         root.title("Подписчики Instagram")
-        root.configure(bg=BG)
-        root.geometry("420x640")
-        root.minsize(380, 560)
+        root.geometry("440x640")
+        root.minsize(400, 560)
 
         settings = load_settings()
 
-        self.big = tkfont.Font(family="Helvetica Neue", size=44, weight="bold")
-        h2 = tkfont.Font(family="Helvetica Neue", size=15, weight="bold")
-        body = tkfont.Font(family="Helvetica Neue", size=13)
-        small = tkfont.Font(family="Helvetica Neue", size=11)
-        mono = tkfont.Font(family="Menlo", size=11)
+        self.big = tkfont.Font(size=44, weight="bold")
+        body = tkfont.Font(size=13)
+        small = tkfont.Font(size=11)
+        mono = tkfont.Font(family="Menlo", size=12)
 
-        pad = {"padx": 24}
+        outer = ttk.Frame(root, padding=20)
+        outer.pack(fill="both", expand=True)
 
-        tk.Label(root, text="Аккаунт Instagram (без @):", bg=BG, fg=MUTED,
-                 font=small, anchor="w").pack(fill="x", pady=(20, 4), **pad)
+        ttk.Label(outer, text="Аккаунт Instagram (без @):",
+                  foreground=MUTED, font=small).pack(anchor="w")
 
-        row = tk.Frame(root, bg=BG)
-        row.pack(fill="x", **pad)
+        row = ttk.Frame(outer)
+        row.pack(fill="x", pady=(4, 0))
         self.username_var = tk.StringVar(value=settings.get("username", ""))
-        entry = tk.Entry(row, textvariable=self.username_var, font=body,
-                         bg=CARD, fg=FG, insertbackground=FG, relief="flat",
-                         highlightthickness=1, highlightbackground=CARD,
-                         highlightcolor=ACCENT)
-        entry.pack(side="left", fill="x", expand=True, ipady=8, ipadx=8)
+        entry = ttk.Entry(row, textvariable=self.username_var, font=body)
+        entry.pack(side="left", fill="x", expand=True, ipady=4)
         entry.bind("<Return>", lambda e: self.check())
 
-        self.check_btn = tk.Button(row, text="Проверить", command=self.check,
-                                   font=h2, bg=ACCENT, fg=FG,
-                                   activebackground=ACCENT, activeforeground=FG,
-                                   relief="flat", padx=14, pady=6, cursor="hand2")
+        self.check_btn = ttk.Button(row, text="Проверить", command=self.check)
         self.check_btn.pack(side="left", padx=(10, 0))
 
-        card = tk.Frame(root, bg=CARD)
-        card.pack(fill="x", pady=(20, 0), **pad)
+        self.name_label = ttk.Label(outer, text="—", foreground=MUTED,
+                                    font=body, anchor="center")
+        self.name_label.pack(fill="x", pady=(24, 0))
 
-        self.name_label = tk.Label(card, text="—", bg=CARD, fg=MUTED, font=body)
-        self.name_label.pack(pady=(18, 0))
+        self.count_label = ttk.Label(outer, text="· · ·", font=self.big,
+                                     anchor="center")
+        self.count_label.pack(fill="x")
 
-        self.count_label = tk.Label(card, text="· · ·", bg=CARD, fg=FG,
-                                    font=self.big)
-        self.count_label.pack()
+        self.delta_label = ttk.Label(outer, text="подписчиков",
+                                     foreground=MUTED, font=body,
+                                     anchor="center")
+        self.delta_label.pack(fill="x")
 
-        self.delta_label = tk.Label(card, text="подписчиков", bg=CARD,
-                                    fg=MUTED, font=body)
-        self.delta_label.pack()
+        self.extra_label = ttk.Label(outer, text="", foreground=MUTED,
+                                     font=small, anchor="center")
+        self.extra_label.pack(fill="x", pady=(4, 20))
 
-        self.extra_label = tk.Label(card, text="", bg=CARD, fg=MUTED, font=small)
-        self.extra_label.pack(pady=(6, 18))
-
-        auto_row = tk.Frame(root, bg=BG)
-        auto_row.pack(fill="x", pady=(16, 0), **pad)
-
+        auto_row = ttk.Frame(outer)
+        auto_row.pack(fill="x")
         self.auto_var = tk.BooleanVar(value=settings.get("auto", False))
-        tk.Checkbutton(auto_row, text="Обновлять автоматически",
-                       variable=self.auto_var, command=self.toggle_auto,
-                       bg=BG, fg=FG, font=body, selectcolor=CARD,
-                       activebackground=BG, activeforeground=FG
-                       ).pack(side="left")
-
+        ttk.Checkbutton(auto_row, text="Обновлять автоматически",
+                        variable=self.auto_var,
+                        command=self.toggle_auto).pack(side="left")
         self.interval_var = tk.StringVar(
             value=settings.get("interval", "каждый час"))
-        opt = tk.OptionMenu(auto_row, self.interval_var, *INTERVALS,
-                            command=lambda _: self.toggle_auto())
-        opt.configure(bg=CARD, fg=FG, font=small, relief="flat",
-                      highlightthickness=0, activebackground=CARD,
-                      activeforeground=FG)
-        opt.pack(side="left", padx=(8, 0))
+        combo = ttk.Combobox(auto_row, textvariable=self.interval_var,
+                             values=list(INTERVALS), state="readonly",
+                             width=16)
+        combo.bind("<<ComboboxSelected>>", lambda e: self.toggle_auto())
+        combo.pack(side="left", padx=(8, 0))
 
-        tk.Label(root, text="История проверок", bg=BG, fg=MUTED, font=small,
-                 anchor="w").pack(fill="x", pady=(18, 4), **pad)
+        ttk.Label(outer, text="История проверок", foreground=MUTED,
+                  font=small).pack(anchor="w", pady=(20, 4))
 
-        hist_frame = tk.Frame(root, bg=CARD)
-        hist_frame.pack(fill="both", expand=True, pady=(0, 8), **pad)
-        self.history_text = tk.Text(hist_frame, bg=CARD, fg=FG, font=mono,
-                                    relief="flat", height=8, state="disabled",
-                                    padx=12, pady=10, cursor="arrow",
-                                    wrap="none")
+        hist_frame = ttk.Frame(outer, borderwidth=1, relief="solid")
+        hist_frame.pack(fill="both", expand=True)
+        self.history_text = tk.Text(hist_frame, font=mono, relief="flat",
+                                    height=8, state="disabled", padx=10,
+                                    pady=8, cursor="arrow", wrap="none",
+                                    borderwidth=0, highlightthickness=0)
         self.history_text.tag_configure("up", foreground=GREEN)
         self.history_text.tag_configure("down", foreground=RED)
         self.history_text.tag_configure("muted", foreground=MUTED)
         self.history_text.pack(fill="both", expand=True)
 
-        self.status_label = tk.Label(root, text="", bg=BG, fg=MUTED,
-                                     font=small, wraplength=370, justify="left")
-        self.status_label.pack(fill="x", pady=(0, 14), **pad)
+        self.status_label = ttk.Label(outer, text="", foreground=MUTED,
+                                      font=small, wraplength=390,
+                                      justify="left")
+        self.status_label.pack(fill="x", pady=(10, 0))
 
         if self.username_var.get():
             self.show_history(self.username_var.get())
@@ -153,12 +141,14 @@ class App:
         username = self.username_var.get().lstrip("@").strip()
         if not username or self.busy:
             if not username:
-                self.set_status("Введите имя аккаунта — например, cristiano.", RED)
+                self.set_status("Введите имя аккаунта — например, cristiano.",
+                                RED)
             return
         self.busy = True
         self.check_btn.configure(state="disabled")
         self.set_status("Проверяю…", MUTED)
-        threading.Thread(target=self._fetch, args=(username,), daemon=True).start()
+        threading.Thread(target=self._fetch, args=(username,),
+                         daemon=True).start()
 
     def _fetch(self, username: str):
         try:
@@ -179,7 +169,8 @@ class App:
         self.render_profile(profile, prev)
         self.show_history(profile["username"])
         self.set_status(
-            "Обновлено " + profile["checked_at"].replace("T", " в ")[:19], MUTED)
+            "Обновлено " + profile["checked_at"].replace("T", " в ")[:19],
+            MUTED)
         save_settings({"username": self.username_var.get().strip(),
                        "auto": self.auto_var.get(),
                        "interval": self.interval_var.get()})
@@ -214,11 +205,12 @@ class App:
         if profile.get("full_name"):
             name += "  ·  " + profile["full_name"]
         self.name_label.configure(text=name)
+
         text = tracker.fmt(profile["followers"])
         # подгоняем размер шрифта, чтобы длинное число влезало в окно
         size = 44
-        max_width = max(self.root.winfo_width() - 90, 280)
-        probe = tkfont.Font(family="Helvetica Neue", size=size, weight="bold")
+        max_width = max(self.root.winfo_width() - 80, 300)
+        probe = tkfont.Font(size=size, weight="bold")
         while size > 18 and probe.measure(text) > max_width:
             size -= 2
             probe.configure(size=size)
@@ -226,12 +218,13 @@ class App:
         self.count_label.configure(text=text)
 
         if prev is None or profile["followers"] == prev:
-            self.delta_label.configure(text="подписчиков", fg=MUTED)
+            self.delta_label.configure(text="подписчиков", foreground=MUTED)
         else:
             d = profile["followers"] - prev
             color = GREEN if d > 0 else RED
             self.delta_label.configure(
-                text=f"подписчиков  ({tracker.fmt_delta(d)})", fg=color)
+                text=f"подписчиков  ({tracker.fmt_delta(d)})",
+                foreground=color)
 
         self.extra_label.configure(
             text=f"подписки: {tracker.fmt(profile['following'])}   "
@@ -251,21 +244,23 @@ class App:
         self.history_text.delete("1.0", "end")
         if not records:
             self.history_text.insert("end", "Проверок ещё не было.", "muted")
-        for i, r in enumerate(reversed(records[-50:])):
-            idx = len(records[-50:]) - 1 - i
+        recent = records[-50:]
+        for idx in range(len(recent) - 1, -1, -1):
+            r = recent[idx]
             when = r["checked_at"].replace("T", " ")[:16]
             line = f"{when}  {tracker.fmt(r['followers']):>14}"
             self.history_text.insert("end", line)
             if idx > 0:
-                d = r["followers"] - records[-50:][idx - 1]["followers"]
+                d = r["followers"] - recent[idx - 1]["followers"]
                 if d:
                     tag = "up" if d > 0 else "down"
-                    self.history_text.insert("end", f"  {tracker.fmt_delta(d)}", tag)
+                    self.history_text.insert("end",
+                                             f"  {tracker.fmt_delta(d)}", tag)
             self.history_text.insert("end", "\n")
         self.history_text.configure(state="disabled")
 
     def set_status(self, text: str, color: str):
-        self.status_label.configure(text=text, fg=color)
+        self.status_label.configure(text=text, foreground=color)
 
 
 def main():
