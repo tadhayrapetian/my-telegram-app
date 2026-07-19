@@ -6,13 +6,8 @@
 <title>Instagram-ի հրապարակումների գեներատոր</title>
 <style>
   :root {
-    --bg: #f2f2f7;
-    --panel: #ffffff;
-    --text: #1c1c1e;
-    --muted: #8e8e93;
-    --border: #d1d1d6;
-    --accent: #0a84ff;
-    --radius: 12px;
+    --bg: #f2f2f7; --panel: #ffffff; --text: #1c1c1e; --muted: #8e8e93;
+    --border: #d1d1d6; --accent: #0a84ff; --radius: 12px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -23,19 +18,16 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-    background: var(--bg); color: var(--text);
-    height: 100vh; overflow: hidden;
+    background: var(--bg); color: var(--text); height: 100vh; overflow: hidden;
   }
   .app { display: flex; height: 100vh; }
 
-  /* Ձախ վահանակ / left controls */
   .controls {
     width: 400px; min-width: 400px; height: 100vh; overflow-y: auto;
-    background: var(--panel); border-right: 1px solid var(--border);
-    padding: 22px;
+    background: var(--panel); border-right: 1px solid var(--border); padding: 22px;
   }
   h1 { font-size: 19px; font-weight: 700; margin-bottom: 14px; line-height: 1.3; }
-  .lang { display: flex; gap: 6px; margin-bottom: 22px;
+  .lang { display: flex; gap: 6px; margin-bottom: 20px;
     background: var(--bg); padding: 4px; border-radius: 10px; }
   .lang button {
     flex: 1; padding: 8px; border: 0; border-radius: 7px; cursor: pointer;
@@ -48,63 +40,68 @@
     font-size: 11px; font-weight: 700; letter-spacing: .06em;
     text-transform: uppercase; color: var(--muted); margin-bottom: 10px;
   }
+
+  /* Գեներացիայի բլոկ / generator block */
+  .gen-box { background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px; margin-bottom: 22px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+  .chip { padding: 7px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); cursor: pointer; font-size: 13px;
+    font-family: inherit; }
+  .chip.active { background: var(--accent); color: #fff; border-color: transparent; }
+
   label.field { display: block; margin-bottom: 12px; }
   label.field > span { display: block; font-size: 13px; margin-bottom: 5px; }
   input[type=text], textarea {
     width: 100%; padding: 9px 11px; font-size: 14px; font-family: inherit;
     border: 1px solid var(--border); border-radius: 8px;
-    background: var(--bg); color: var(--text); resize: vertical;
+    background: var(--panel); color: var(--text); resize: vertical;
   }
-  textarea { min-height: 60px; }
+  .gen-box input[type=text] { background: var(--panel); }
+  textarea { min-height: 60px; background: var(--bg); }
   input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
-
-  .themes { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
-  .swatch { height: 42px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; }
-  .swatch.active { border-color: var(--accent); }
-
-  .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .seg { display: flex; gap: 4px; background: var(--bg); padding: 3px; border-radius: 8px; }
-  .seg button {
-    padding: 6px 12px; border: 0; border-radius: 6px; cursor: pointer;
-    background: transparent; color: var(--text); font-size: 13px; font-family: inherit;
-  }
-  .seg button.active { background: var(--panel); box-shadow: 0 1px 2px rgba(0,0,0,.15); font-weight: 600; }
-
-  .formats { display: flex; flex-direction: column; gap: 8px; }
-  .formats button {
-    text-align: left; padding: 11px 13px; border: 1px solid var(--border);
-    border-radius: 9px; background: var(--bg); color: var(--text);
-    font-size: 14px; cursor: pointer; font-family: inherit;
-  }
-  .formats button.active { border-color: var(--accent); background: rgba(10,132,255,.08); font-weight: 600; }
-
-  input[type=range] { width: 100%; accent-color: var(--accent); }
-  input[type=color] { width: 44px; height: 30px; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
 
   button.btn {
     width: 100%; padding: 12px; border: 0; border-radius: 10px; cursor: pointer;
     font-size: 15px; font-weight: 600; font-family: inherit; margin-bottom: 10px;
   }
+  button.btn.generate {
+    background: linear-gradient(135deg, #8E2DE2, #4A00E0); color: #fff;
+    font-size: 16px; padding: 14px; margin-bottom: 0;
+    box-shadow: 0 4px 14px rgba(74,0,224,.35);
+  }
+  button.btn.generate:active { transform: scale(.99); }
   button.btn.primary { background: var(--accent); color: #fff; }
   button.btn.secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+
+  .themes { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+  .swatch { height: 42px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; }
+  .swatch.active { border-color: var(--accent); }
+  .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .seg { display: flex; gap: 4px; background: var(--bg); padding: 3px; border-radius: 8px; }
+  .seg button { padding: 6px 12px; border: 0; border-radius: 6px; cursor: pointer;
+    background: transparent; color: var(--text); font-size: 13px; font-family: inherit; }
+  .seg button.active { background: var(--panel); box-shadow: 0 1px 2px rgba(0,0,0,.15); font-weight: 600; }
+  .formats { display: flex; flex-direction: column; gap: 8px; }
+  .formats button { text-align: left; padding: 11px 13px; border: 1px solid var(--border);
+    border-radius: 9px; background: var(--bg); color: var(--text); font-size: 14px;
+    cursor: pointer; font-family: inherit; }
+  .formats button.active { border-color: var(--accent); background: rgba(10,132,255,.08); font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=color] { width: 44px; height: 30px; border: 1px solid var(--border);
+    border-radius: 6px; background: none; cursor: pointer; }
   .hint { font-size: 12px; color: var(--muted); line-height: 1.4; }
   .status { font-size: 14px; font-weight: 600; color: #34c759; margin-top: 8px; min-height: 18px; }
 
-  /* Աջ վահանակ / preview */
-  .preview {
-    flex: 1; height: 100vh; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; padding: 30px; gap: 14px;
-  }
+  .preview { flex: 1; height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 30px; gap: 14px; }
   .preview .label { font-size: 14px; font-weight: 600; color: var(--muted); }
-  #canvas {
-    max-width: 100%; max-height: calc(100vh - 90px);
-    border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,.25);
-  }
+  #canvas { max-width: 100%; max-height: calc(100vh - 90px);
+    border-radius: 16px; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- ՁԱԽ ՎԱՀԱՆԱԿ / CONTROLS -->
   <div class="controls">
     <h1 id="appTitle"></h1>
     <div class="lang">
@@ -112,18 +109,26 @@
       <button id="langEn" onclick="setLang('en')">🇬🇧 English</button>
     </div>
 
-    <!-- Բովանդակություն -->
+    <!-- ✨ ԳԵՆԵՐԱՑԻԱ / GENERATOR -->
+    <div class="gen-box">
+      <div class="title" data-t="generator" style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px"></div>
+      <label class="field" style="margin-bottom:8px"><span data-t="topic"></span>
+        <input type="text" id="topic" placeholder=""></label>
+      <div class="chips" id="chips"></div>
+      <button class="btn generate" id="genBtn" onclick="generatePost()"></button>
+    </div>
+
+    <!-- Արդյունք (խմբագրելի) / result (editable) -->
     <div class="section">
       <div class="title" data-t="content"></div>
       <label class="field"><span data-t="title"></span>
-        <input type="text" id="title" oldvalue oninput="draw()"></label>
+        <input type="text" id="title" oninput="draw()"></label>
       <label class="field"><span data-t="subtitle"></span>
         <input type="text" id="subtitle" oninput="draw()"></label>
       <label class="field"><span data-t="caption"></span>
         <textarea id="caption"></textarea></label>
     </div>
 
-    <!-- Ոճ -->
     <div class="section">
       <div class="title" data-t="style"></div>
       <label class="field"><span data-t="theme"></span></label>
@@ -143,21 +148,17 @@
         <input type="range" id="fontSize" min="40" max="160" step="2" value="88" oninput="draw()"></label>
     </div>
 
-    <!-- Ձևաչափ -->
     <div class="section">
       <div class="title" data-t="format"></div>
       <div class="formats" id="formats"></div>
     </div>
 
-    <!-- Հեշթեգներ -->
     <div class="section">
       <div class="title" data-t="hashtags"></div>
-      <button class="btn secondary" id="genHashBtn" onclick="genHashtags()"></button>
       <textarea id="hashtags" style="min-height:56px"></textarea>
       <button class="btn secondary" id="copyHashBtn" onclick="copyHashtags()" style="margin-top:8px"></button>
     </div>
 
-    <!-- Արտահանում -->
     <div class="section">
       <div class="title" data-t="export"></div>
       <button class="btn primary" id="downloadBtn" onclick="downloadPNG()"></button>
@@ -167,7 +168,6 @@
     </div>
   </div>
 
-  <!-- ԱՋ ՎԱՀԱՆԱԿ / PREVIEW -->
   <div class="preview">
     <div class="label" data-t="preview"></div>
     <canvas id="canvas" width="1080" height="1080"></canvas>
@@ -175,67 +175,202 @@
 </div>
 
 <script>
-// ==== Թարգմանություններ / Translations (hy = առաջին, en = երկրորդ) ====
+// ================== Թարգմանություններ / UI Translations ==================
 const T = {
-  appTitle:   {hy:"Instagram-ի հրապարակումների գեներատոր", en:"Instagram Post Generator"},
-  content:    {hy:"Բովանդակություն", en:"Content"},
-  title:      {hy:"Վերնագիր", en:"Title"},
-  subtitle:   {hy:"Ենթավերնագիր", en:"Subtitle"},
-  caption:    {hy:"Ուղեկցող տեքստ (caption)", en:"Caption"},
-  style:      {hy:"Ոճ", en:"Style"},
-  theme:      {hy:"Գունային թեմա", en:"Color theme"},
-  textColor:  {hy:"Տեքստի գույն", en:"Text color"},
-  alignment:  {hy:"Հավասարեցում", en:"Alignment"},
-  alignLeft:  {hy:"Ձախ", en:"Left"},
-  alignCenter:{hy:"Կենտրոն", en:"Center"},
-  alignRight: {hy:"Աջ", en:"Right"},
-  fontSize:   {hy:"Տառաչափ", en:"Font size"},
-  format:     {hy:"Ձևաչափ", en:"Format"},
-  square:     {hy:"Քառակուսի • 1080×1080", en:"Square • 1080×1080"},
-  portrait:   {hy:"Ուղղահայաց • 1080×1350", en:"Portrait • 1080×1350"},
-  story:      {hy:"Story • 1080×1920", en:"Story • 1080×1920"},
-  hashtags:   {hy:"Հեշթեգներ", en:"Hashtags"},
-  genHash:    {hy:"Առաջարկել հեշթեգներ", en:"Suggest hashtags"},
-  copyHash:   {hy:"Պատճենել հեշթեգները", en:"Copy hashtags"},
-  export:     {hy:"Արտահանում", en:"Export"},
-  download:   {hy:"Ներբեռնել որպես PNG", en:"Download as PNG"},
-  copyCap:    {hy:"Պատճենել տեքստը", en:"Copy caption"},
-  exportHint: {hy:"Պատկերը պահվում է ամբողջական չափով՝ պատրաստ Instagram-ի համար։", en:"The image is saved at full resolution, ready for Instagram."},
-  preview:    {hy:"Նախադիտում", en:"Preview"},
-  copied:     {hy:"Պատճենվեց ✓", en:"Copied ✓"},
-  saved:      {hy:"Ներբեռնվեց ✓", en:"Downloaded ✓"},
+  appTitle:  {hy:"Instagram-ի հրապարակումների գեներատոր", en:"Instagram Post Generator"},
+  generator: {hy:"Ավտոմատ գեներացիա", en:"Auto generator"},
+  topic:     {hy:"Ի՞նչ մասին է գրառումը (կամ թող դատարկ)", en:"What is the post about (or leave empty)"},
+  topicPh:   {hy:"օր.՝ սուրճի նոր տեսականի", en:"e.g. new coffee selection"},
+  generate:  {hy:"✨ Գեներացնել գրառում", en:"✨ Generate post"},
+  content:   {hy:"Արդյունք (կարող ես խմբագրել)", en:"Result (you can edit)"},
+  title:     {hy:"Վերնագիր", en:"Title"},
+  subtitle:  {hy:"Ենթավերնագիր", en:"Subtitle"},
+  caption:   {hy:"Ուղեկցող տեքստ (caption)", en:"Caption"},
+  style:     {hy:"Ոճ", en:"Style"},
+  theme:     {hy:"Գունային թեմա", en:"Color theme"},
+  textColor: {hy:"Տեքստի գույն", en:"Text color"},
+  alignment: {hy:"Հավասարեցում", en:"Alignment"},
+  alignLeft: {hy:"Ձախ", en:"Left"}, alignCenter:{hy:"Կենտրոն", en:"Center"}, alignRight:{hy:"Աջ", en:"Right"},
+  fontSize:  {hy:"Տառաչափ", en:"Font size"},
+  format:    {hy:"Ձևաչափ", en:"Format"},
+  square:    {hy:"Քառակուսի • 1080×1080", en:"Square • 1080×1080"},
+  portrait:  {hy:"Ուղղահայաց • 1080×1350", en:"Portrait • 1080×1350"},
+  story:     {hy:"Story • 1080×1920", en:"Story • 1080×1920"},
+  hashtags:  {hy:"Հեշթեգներ", en:"Hashtags"},
+  copyHash:  {hy:"Պատճենել հեշթեգները", en:"Copy hashtags"},
+  export:    {hy:"Արտահանում", en:"Export"},
+  download:  {hy:"Ներբեռնել որպես PNG", en:"Download as PNG"},
+  copyCap:   {hy:"Պատճենել տեքստը", en:"Copy caption"},
+  exportHint:{hy:"Պատկերը պահվում է ամբողջական չափով՝ պատրաստ Instagram-ի համար։", en:"The image is saved at full resolution, ready for Instagram."},
+  preview:   {hy:"Նախադիտում", en:"Preview"},
+  copied:    {hy:"Պատճենվեց ✓", en:"Copied ✓"},
+  saved:     {hy:"Ներբեռնվեց ✓", en:"Downloaded ✓"},
 };
 
-// ==== Թեմաներ / Themes ====
+// ================== Գունային թեմաներ / Themes ==================
 const THEMES = [
-  {id:"ararat", c:["#2C3E50","#4CA1AF"]},
-  {id:"sunset", c:["#FF512F","#F09819"]},
-  {id:"grape",  c:["#8E2DE2","#4A00E0"]},
-  {id:"mint",   c:["#11998E","#38EF7D"]},
-  {id:"rose",   c:["#EC008C","#FC6767"]},
-  {id:"night",  c:["#0F2027","#2C5364"]},
-  {id:"gold",   c:["#F7971E","#FFD200"]},
-  {id:"ocean",  c:["#2193B0","#6DD5ED"]},
+  {id:"ararat", c:["#2C3E50","#4CA1AF"]}, {id:"sunset", c:["#FF512F","#F09819"]},
+  {id:"grape",  c:["#8E2DE2","#4A00E0"]}, {id:"mint",   c:["#11998E","#38EF7D"]},
+  {id:"rose",   c:["#EC008C","#FC6767"]}, {id:"night",  c:["#0F2027","#2C5364"]},
+  {id:"gold",   c:["#F7971E","#FFD200"]}, {id:"ocean",  c:["#2193B0","#6DD5ED"]},
 ];
+const FORMATS = { square:{w:1080,h:1080}, portrait:{w:1080,h:1350}, story:{w:1080,h:1920} };
 
-const FORMATS = {
-  square:   {w:1080, h:1080},
-  portrait: {w:1080, h:1350},
-  story:    {w:1080, h:1920},
+// ================== Բովանդակության գեներատոր / Content engine ==================
+// Յուրաքանչյուր կատեգորիա ունի հայերեն և անգլերեն ձևանմուշներ։
+const CATEGORIES = {
+  general: { emoji:"✨", name:{hy:"Ընդհանուր",en:"General"}, themes:["ararat","ocean","night"],
+    hy:{ titlesTopic:["{topic}","Նոր՝ {topic}","{topic} 🌟","Այսօր՝ {topic}"],
+      titlesNoTopic:["Բարև, Instagram 👋","Նոր օր, նոր գրառում","Ինչ-որ հատուկ բան","Մնա՛ մեզ հետ 🌟"],
+      subtitles:["Հետևի՛ր թարմացումներին","Ամենակարևորը՝ այստեղ","Քո ուշադրությանը","Պատրաստվի՛ր նորություններին"],
+      captions:["Այսօր ուզում ենք կիսվել կարևոր բանով 💬","Մենք միշտ աշխատում ենք քեզ համար լավագույնը ստեղծելու ուղղությամբ։","Շնորհակալ ենք, որ մեզ հետ ես 🙏","Հետևի՛ր էջին, որ ոչ մի նորություն բաց չթողնես։"],
+      cta:["Հետևի՛ր մեզ 👉","Պահպանի՛ր գրառումը 🔖","Կիսվի՛ր ընկերների հետ ♻️","Գրի՛ր մեկնաբանություն 💬"],
+      tags:["#հայաստան","#երևան","#instagram","#նորություն","#follow","#armenia","#yerevan","#post"] },
+    en:{ titlesTopic:["{topic}","New: {topic}","{topic} 🌟","Today: {topic}"],
+      titlesNoTopic:["Hello, Instagram 👋","New day, new post","Something special","Stay with us 🌟"],
+      subtitles:["Follow for updates","The important stuff, here","For your attention","Get ready for news"],
+      captions:["Today we want to share something important 💬","We always work to create the best for you.","Thanks for being here 🙏","Follow the page so you don't miss anything."],
+      cta:["Follow us 👉","Save this post 🔖","Share with friends ♻️","Drop a comment 💬"],
+      tags:["#instagram","#instagood","#newpost","#follow","#dailypost","#content","#explore","#trending"] } },
+
+  promo: { emoji:"🔥", name:{hy:"Ակցիա",en:"Promo"}, themes:["sunset","rose","gold"],
+    hy:{ titlesTopic:["Զեղչ՝ {topic}","{topic} — մինչև 50%","Ակցիա՝ {topic} 🔥"],
+      titlesNoTopic:["Մինչև 50% զեղչ 🔥","Մեծ ԶԵՂՉԵՐ","Ակցիա միայն այսօր","Սուպեր առաջարկ 🎉"],
+      subtitles:["Միայն այս շաբաթ","Քանակը սահմանափակ է","Մի՛ բաց թող պահը","Առաջարկը գործում է հիմա"],
+      captions:["Ժամանակն է գնումների 🛍️","Այսպիսի գներ վաղուց չեն եղել — օգտվի՛ր հենց հիմա։","Զեղչը գործում է սահմանափակ ժամանակով ⏰","Քո սիրելի ապրանքներն այժմ ավելի մատչելի են 💰"],
+      cta:["Պատվիրի՛ր հիմա 🛒","Գրի՛ր մեզ Direct 📩","Այցելի՛ր խանութ 🏬","Զանգահարի՛ր մեզ 📞"],
+      tags:["#զեղչ","#ակցիա","#sale","#շոպինգ","#առաջարկ","#հայաստան","#երևան","#discount"] },
+    en:{ titlesTopic:["Sale: {topic}","{topic} — up to 50%","Deal: {topic} 🔥"],
+      titlesNoTopic:["Up to 50% OFF 🔥","BIG SALE","Today only","Super offer 🎉"],
+      subtitles:["This week only","Limited quantity","Don't miss out","Offer live now"],
+      captions:["Time to shop 🛍️","Prices like these are rare — grab it now.","The discount is live for a limited time ⏰","Your favorites are now more affordable 💰"],
+      cta:["Order now 🛒","DM us 📩","Visit the store 🏬","Call us 📞"],
+      tags:["#sale","#discount","#deal","#shopping","#offer","#shopnow","#promo","#blackfriday"] } },
+
+  business: { emoji:"💼", name:{hy:"Բիզնес",en:"Business"}, themes:["ararat","night","ocean"],
+    hy:{ titlesTopic:["{topic}","Մեր ծառայությունը՝ {topic}","{topic} 💼"],
+      titlesNoTopic:["Մենք մեծանում ենք 📈","Քո վստահելի գործընկերը","Որակ, որին կարելի է վստահել","Աշխատում ենք քեզ համար"],
+      subtitles:["Պրոֆեսիոնալ մոտեցում","Փորձ և որակ","Արդյունք, որ երևում է","Քո հաջողությունը՝ մեր նպատակը"],
+      captions:["Մեր թիմը միշտ պատրաստ է օգնելու 🤝","Մենք կարևորում ենք յուրաքանչյուր հաճախորդի։","Տարիների փորձը մեր առավելությունն է 💡","Կապվի՛ր մեզ հետ և համոզվի՛ր որակի մեջ։"],
+      cta:["Կապվի՛ր մեզ հետ 📞","Իմացի՛ր ավելին 🔎","Ամրագրի՛ր հանդիպում 📅","Գրի՛ր մեզ 📩"],
+      tags:["#բիզնես","#ծառայություն","#հայաստան","#երևան","#business","#startup","#armenia","#quality"] },
+    en:{ titlesTopic:["{topic}","Our service: {topic}","{topic} 💼"],
+      titlesNoTopic:["We're growing 📈","Your trusted partner","Quality you can trust","Working for you"],
+      subtitles:["A professional approach","Experience and quality","Results you can see","Your success is our goal"],
+      captions:["Our team is always ready to help 🤝","We value every single client.","Years of experience are our advantage 💡","Get in touch and see the quality for yourself."],
+      cta:["Contact us 📞","Learn more 🔎","Book a meeting 📅","Message us 📩"],
+      tags:["#business","#service","#startup","#quality","#entrepreneur","#company","#b2b","#growth"] } },
+
+  food: { emoji:"🍽️", name:{hy:"Սնունդ",en:"Food"}, themes:["sunset","gold","rose"],
+    hy:{ titlesTopic:["{topic}","Համտեսի՛ր՝ {topic}","{topic} 🍽️"],
+      titlesNoTopic:["Համով է 😋","Թարմ ամեն օր","Քո սիրելի համը","Բարի ախորժակ 🍽️"],
+      subtitles:["Պատրաստված սիրով","Միայն թարմ բաղադրիչներ","Համը, որ հիշվում է","Արի՛ համտեսիր"],
+      captions:["Թարմ, համեղ և պատրաստված սիրով 🧡","Մեր խոհանոցում ամեն ինչ սկսվում է թարմ բաղադրիչներից։","Արի՛ և վայելի՛ր անմոռանալի համը 😋","Իդեալական ընտրություն ցանկացած պահի համար։"],
+      cta:["Ամրագրի՛ր սեղան 🍽️","Պատվիրի՛ր առաքում 🛵","Այցելի՛ր մեզ 📍","Տե՛ս մենյուն 📋"],
+      tags:["#սնունդ","#համով","#food","#foodie","#երևան","#ռեստորան","#yerevan","#tasty"] },
+    en:{ titlesTopic:["{topic}","Taste it: {topic}","{topic} 🍽️"],
+      titlesNoTopic:["So tasty 😋","Fresh every day","Your favorite flavor","Bon appétit 🍽️"],
+      subtitles:["Made with love","Only fresh ingredients","A taste to remember","Come and taste"],
+      captions:["Fresh, delicious and made with love 🧡","In our kitchen everything starts with fresh ingredients.","Come and enjoy an unforgettable taste 😋","The perfect choice for any moment."],
+      cta:["Book a table 🍽️","Order delivery 🛵","Visit us 📍","See the menu 📋"],
+      tags:["#food","#foodie","#tasty","#restaurant","#delicious","#yummy","#foodlover","#instafood"] } },
+
+  motivation: { emoji:"🚀", name:{hy:"Մոտիվացիա",en:"Motivation"}, themes:["grape","mint","ocean"],
+    hy:{ titlesTopic:["{topic}","{topic} 🚀","Հավատա՝ {topic}"],
+      titlesNoTopic:["Հավատա՛ քեզ 💪","Ամեն օր՝ քայլ առաջ","Երազի՛ր մեծ 🚀","Սկսի՛ր հենց հիմա"],
+      subtitles:["Դու կարող ես","Ոչ մի սահման","Քո ժամանակն է","Առաջ դեպի նպատակը"],
+      captions:["Ամեն մեծ ճանապարհ սկսվում է առաջին քայլից 👣","Մի՛ վախեցիր սխալվելուց — վախեցի՛ր չփորձելուց։","Հաջողությունը սիրում է հետևողականներին 💪","Այսօր լավագույն օրն է սկսելու համար 🌅"],
+      cta:["Պահպանի՛ր՝ որ չմոռանաս 🔖","Կիսվի՛ր ընկերոջ հետ ♻️","Գրի՛ր քո նպատակը 👇","Հետևի՛ր ոգեշնչման համար ✨"],
+      tags:["#մոտիվացիա","#ոգեշնչում","#հաջողություն","#motivation","#mindset","#success","#հայաստան","#goals"] },
+    en:{ titlesTopic:["{topic}","{topic} 🚀","Believe: {topic}"],
+      titlesNoTopic:["Believe in yourself 💪","One step forward, every day","Dream big 🚀","Start right now"],
+      subtitles:["You can do it","No limits","Your time is now","Onward to the goal"],
+      captions:["Every great journey starts with a first step 👣","Don't be afraid to fail — be afraid not to try.","Success loves the consistent 💪","Today is the best day to start 🌅"],
+      cta:["Save it so you remember 🔖","Share with a friend ♻️","Write your goal 👇","Follow for inspiration ✨"],
+      tags:["#motivation","#inspiration","#success","#mindset","#goals","#hustle","#growth","#believe"] } },
+
+  event: { emoji:"🎉", name:{hy:"Միջոցառում",en:"Event"}, themes:["grape","rose","sunset"],
+    hy:{ titlesTopic:["{topic}","Միջոցառում՝ {topic}","{topic} 🎉"],
+      titlesNoTopic:["Մի՛ բաց թող 🎉","Շուտով՝ մեծ իրադարձություն","Արի՛ միասին տոնենք","Հատուկ միջոցառում"],
+      subtitles:["Ամսաթիվը մոտենում է","Տեղերը սահմանափակ են","Գրանցումն արդեն բաց է","Սպասի՛ր մեզ"],
+      captions:["Պատրաստվում ենք ինչ-որ հատուկ բանի 🎊","Նշի՛ր ամսաթիվը օրացույցում 📅","Կլինի հետաքրքիր, երաշխավորում ենք 🎶","Բե՛ր ընկերներիդ և արի՛ միասին ✨"],
+      cta:["Գրանցվի՛ր հիմա 📝","Ամրագրի՛ր տեղդ 🎟️","Իմացի՛ր մանրամասները 🔎","Ուղարկի՛ր հրավերը ✉️"],
+      tags:["#միջոցառում","#event","#երևան","#տոն","#հայաստան","#party","#yerevan","#live"] },
+    en:{ titlesTopic:["{topic}","Event: {topic}","{topic} 🎉"],
+      titlesNoTopic:["Don't miss it 🎉","Something big is coming","Let's celebrate together","A special event"],
+      subtitles:["The date is coming","Limited spots","Registration is open","Wait for us"],
+      captions:["We're preparing something special 🎊","Mark the date on your calendar 📅","It'll be fun, we promise 🎶","Bring your friends and join us ✨"],
+      cta:["Register now 📝","Reserve your spot 🎟️","Learn the details 🔎","Send the invite ✉️"],
+      tags:["#event","#party","#live","#celebration","#happening","#festival","#nightout","#join"] } },
 };
 
-// ==== Վիճակ / State ====
-let lang = "hy";
-let theme = THEMES[0];
-let align = "center";
-let format = "square";
+// ================== Վիճակ / State ==================
+let lang = "hy", theme = THEMES[0], align = "center", format = "square", category = "general";
 
-// ==== Init UI ====
-function tr(key){ return T[key][lang]; }
+function tr(k){ return T[k][lang]; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function sample(arr, n){
+  const copy = arr.slice(); const out = [];
+  while (out.length < n && copy.length) out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]);
+  return out;
+}
 
-function buildThemes(){
-  const box = document.getElementById("themes");
+// ================== ✨ Հիմնական գեներացիա / MAIN GENERATION ==================
+function generatePost(){
+  const topic = document.getElementById("topic").value.trim();
+  const data = CATEGORIES[category][lang];
+
+  // Վերնագիր / title
+  let title;
+  if (topic) title = pick(data.titlesTopic).replace("{topic}", topic);
+  else title = pick(data.titlesNoTopic);
+
+  // Ենթավերնագիր / subtitle
+  const subtitle = pick(data.subtitles);
+
+  // Caption = 2 նախադասություն + կոչ գործողության
+  const caption = sample(data.captions, 2).join(" ") + "\n\n" + pick(data.cta);
+
+  // Հեշթեգներ = թեմայից բխող + կատեգորիայի
+  const topicTags = topic.toLowerCase()
+    .split(/[^a-zа-яё0-9ա-և]+/i)
+    .filter(w => w.length >= 3).slice(0, 3).map(w => "#"+w);
+  const seen = new Set(topicTags);
+  const tags = topicTags.slice();
+  for (const t of sample(data.tags, data.tags.length)) {
+    if (tags.length >= 10) break;
+    if (!seen.has(t)) { seen.add(t); tags.push(t); }
+  }
+
+  // Գույն ընտրվում է կատեգորիային համապատասխան / theme matched to category
+  const themeId = pick(CATEGORIES[category].themes);
+  theme = THEMES.find(t => t.id === themeId) || theme;
+
+  // Լրացնում ենք դաշտերը / fill fields
+  document.getElementById("title").value = title;
+  document.getElementById("subtitle").value = subtitle;
+  document.getElementById("caption").value = caption;
+  document.getElementById("hashtags").value = tags.join(" ");
+  buildThemes();
+  draw();
+  status("saved"); // կարճ բռնկում — «պատրաստ է»
+  document.getElementById("status").textContent = lang==="hy" ? "Գեներացվեց ✓" : "Generated ✓";
+}
+
+// ================== UI կառուցում / build ==================
+function buildChips(){
+  const box = document.getElementById("chips");
   box.innerHTML = "";
+  Object.keys(CATEGORIES).forEach(id => {
+    const c = document.createElement("button");
+    c.className = "chip" + (id===category ? " active":"");
+    c.textContent = CATEGORIES[id].emoji + " " + CATEGORIES[id].name[lang];
+    c.onclick = () => { category = id; buildChips(); };
+    box.appendChild(c);
+  });
+}
+function buildThemes(){
+  const box = document.getElementById("themes"); box.innerHTML = "";
   THEMES.forEach(th => {
     const d = document.createElement("div");
     d.className = "swatch" + (th.id===theme.id ? " active":"");
@@ -244,74 +379,61 @@ function buildThemes(){
     box.appendChild(d);
   });
 }
-
 function buildFormats(){
-  const box = document.getElementById("formats");
-  box.innerHTML = "";
+  const box = document.getElementById("formats"); box.innerHTML = "";
   Object.keys(FORMATS).forEach(id => {
     const b = document.createElement("button");
-    b.className = (id===format ? "active":"");
-    b.textContent = tr(id);
+    b.className = (id===format ? "active":""); b.textContent = tr(id);
     b.onclick = () => { format = id; buildFormats(); draw(); };
     box.appendChild(b);
   });
 }
-
 function applyLang(){
   document.documentElement.lang = lang;
   document.getElementById("appTitle").textContent = tr("appTitle");
-  document.querySelectorAll("[data-t]").forEach(el => {
-    el.textContent = tr(el.getAttribute("data-t"));
-  });
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = tr(el.getAttribute("data-t")));
   document.querySelectorAll("#alignSeg button").forEach(b => {
     const a = b.getAttribute("data-align");
     b.textContent = tr(a==="left"?"alignLeft":a==="center"?"alignCenter":"alignRight");
   });
-  document.getElementById("genHashBtn").textContent = tr("genHash");
+  document.getElementById("topic").placeholder = tr("topicPh");
+  document.getElementById("genBtn").textContent = tr("generate");
   document.getElementById("copyHashBtn").textContent = tr("copyHash");
   document.getElementById("downloadBtn").textContent = tr("download");
   document.getElementById("copyCapBtn").textContent = tr("copyCap");
-  updateFontLabel();
-  buildFormats();
+  updateFontLabel(); buildChips(); buildFormats();
 }
-
 function setLang(l){
   lang = l;
   document.getElementById("langHy").classList.toggle("active", l==="hy");
   document.getElementById("langEn").classList.toggle("active", l==="en");
   applyLang();
 }
-
 function setAlign(a){
   align = a;
   document.querySelectorAll("#alignSeg button").forEach(b =>
     b.classList.toggle("active", b.getAttribute("data-align")===a));
   draw();
 }
-
 function updateFontLabel(){
-  const v = document.getElementById("fontSize").value;
-  document.getElementById("fontSizeLabel").textContent = tr("fontSize") + ": " + v;
+  document.getElementById("fontSizeLabel").textContent =
+    tr("fontSize") + ": " + document.getElementById("fontSize").value;
 }
 
-// ==== Տեքստի փաթեթավորում / word wrap ====
+// ================== Նկարում / draw ==================
 function wrapText(ctx, text, maxWidth){
   const lines = [];
-  text.split("\n").forEach(paragraph => {
-    const words = paragraph.split(" ");
-    let line = "";
+  text.split("\n").forEach(par => {
+    const words = par.split(" "); let line = "";
     words.forEach(w => {
       const test = line ? line + " " + w : w;
-      if (ctx.measureText(test).width > maxWidth && line) {
-        lines.push(line); line = w;
-      } else { line = test; }
+      if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+      else line = test;
     });
     lines.push(line);
   });
   return lines;
 }
-
-// ==== Նկարում / draw to canvas ====
 function draw(){
   updateFontLabel();
   const {w, h} = FORMATS[format];
@@ -319,20 +441,15 @@ function draw(){
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d");
 
-  // Ֆոն / gradient
   const g = ctx.createLinearGradient(0, 0, w, h);
-  g.addColorStop(0, theme.c[0]);
-  g.addColorStop(1, theme.c[1]);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, w, h);
+  g.addColorStop(0, theme.c[0]); g.addColorStop(1, theme.c[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 
-  // Դեկորատիվ շրջաններ / circles
   ctx.fillStyle = "rgba(255,255,255,0.08)";
   ctx.beginPath(); ctx.arc(w*0.95, h*0.05, w*0.30, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = "rgba(255,255,255,0.06)";
   ctx.beginPath(); ctx.arc(w*0.05, h*0.92, w*0.20, 0, Math.PI*2); ctx.fill();
 
-  // Տեքստ / text
   const pad = w * 0.09;
   const color = document.getElementById("textColor").value;
   const titleSize = parseInt(document.getElementById("fontSize").value, 10);
@@ -346,85 +463,58 @@ function draw(){
   ctx.textAlign = align;
   const x = align==="left" ? pad : align==="right" ? w - pad : w/2;
 
-  // Չափում / measure lines
   ctx.font = `700 ${titleSize}px ${fontStack}`;
   const titleLines = title ? wrapText(ctx, title, maxW) : [];
   ctx.font = `500 ${subSize}px ${fontStack}`;
   const subLines = subtitle ? wrapText(ctx, subtitle, maxW) : [];
 
-  const titleLH = titleSize * 1.15;
-  const subLH = subSize * 1.25;
+  const titleLH = titleSize * 1.15, subLH = subSize * 1.25;
   const gap = titleLines.length && subLines.length ? titleSize * 0.4 : 0;
   const totalH = titleLines.length*titleLH + gap + subLines.length*subLH;
   let y = (h - totalH) / 2;
 
-  // Վերնագիր / title
   ctx.font = `700 ${titleSize}px ${fontStack}`;
   ctx.fillStyle = color;
-  ctx.shadowColor = "rgba(0,0,0,0.25)";
-  ctx.shadowBlur = w*0.012; ctx.shadowOffsetY = w*0.005;
+  ctx.shadowColor = "rgba(0,0,0,0.25)"; ctx.shadowBlur = w*0.012; ctx.shadowOffsetY = w*0.005;
   titleLines.forEach(line => { ctx.fillText(line, x, y); y += titleLH; });
   y += gap;
 
-  // Ենթավերնագիր / subtitle
   ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   ctx.font = `500 ${subSize}px ${fontStack}`;
   ctx.fillStyle = hexWithAlpha(color, 0.9);
   subLines.forEach(line => { ctx.fillText(line, x, y); y += subLH; });
 }
-
 function hexWithAlpha(hex, a){
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
 }
 
-// ==== Գործողություններ / actions ====
+// ================== Գործողություններ / actions ==================
 function status(key){
   const s = document.getElementById("status");
-  s.textContent = tr(key);
-  setTimeout(() => { if (s.textContent === tr(key)) s.textContent = ""; }, 2000);
+  const msg = tr(key); s.textContent = msg;
+  setTimeout(() => { if (s.textContent === msg) s.textContent = ""; }, 2500);
 }
-
 function downloadPNG(){
   draw();
   const link = document.createElement("a");
   link.download = "instagram-post.png";
   link.href = document.getElementById("canvas").toDataURL("image/png");
-  link.click();
-  status("saved");
+  link.click(); status("saved");
 }
-
-function genHashtags(){
-  const src = (document.getElementById("title").value + " " +
-               document.getElementById("subtitle").value + " " +
-               document.getElementById("caption").value).toLowerCase();
-  const popular = ["#instagram","#instagood","#reels","#հայաստան","#երևան",
-                   "#armenia","#yerevan","#viral","#trending","#love"];
-  const words = src.split(/[^a-zа-яё0-9԰-֏]+/i).filter(x => x.length >= 3);
-  const seen = new Set(); const tags = [];
-  words.forEach(wd => { const t = "#"+wd; if (!seen.has(t) && tags.length < 6){ seen.add(t); tags.push(t);} });
-  popular.forEach(t => { if (!seen.has(t) && tags.length < 12){ seen.add(t); tags.push(t);} });
-  document.getElementById("hashtags").value = tags.join(" ");
-}
-
 function copyHashtags(){
-  navigator.clipboard.writeText(document.getElementById("hashtags").value);
-  status("copied");
+  navigator.clipboard.writeText(document.getElementById("hashtags").value); status("copied");
 }
-
 function copyCaption(){
   const cap = document.getElementById("caption").value;
   const hash = document.getElementById("hashtags").value;
-  navigator.clipboard.writeText(cap + (hash ? "\n\n"+hash : ""));
-  status("copied");
+  navigator.clipboard.writeText(cap + (hash ? "\n\n"+hash : "")); status("copied");
 }
 
-// ==== Start ====
-document.getElementById("title").value = "Բարի գալուստ";
-document.getElementById("subtitle").value = "Ստեղծիր քո առաջին հրապարակումը";
-buildThemes();
+// ================== Start ==================
 applyLang();
-draw();
+buildThemes();
+generatePost(); // Ծրագիրն ինքն է ստեղծում առաջին գրառումը / the app generates the first post itself
 </script>
 </body>
 </html>
