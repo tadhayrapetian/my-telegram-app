@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>EnglishSphere — эко-сфера учителя английского</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0d1f">
+<title>EnglishSphere</title>
+<meta name="apple-mobile-web-app-title" content="EnglishSphere">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+CjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzdjNmNmZiIvPjxzdG9wIG9mZnNldD0iLjU1IiBzdG9wLWNvbG9yPSIjYTQ1Y2ZmIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZmY2ZWM3Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDIiIGZpbGw9InVybCgjZykiLz4KPGNpcmNsZSBjeD0iODIiIGN5PSI4NCIgcj0iNDUiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI2Ii8+CjxlbGxpcHNlIGN4PSI4MiIgY3k9Ijg0IiByeD0iMTkiIHJ5PSI0NSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjUiLz4KPGxpbmUgeDE9IjM3IiB5MT0iODQiIHgyPSIxMjciIHkyPSI4NCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjUiLz4KPHBhdGggZD0iTTQ2IDYyIEgxMTgiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI0IiBvcGFjaXR5PSIuODUiLz4KPHBhdGggZD0iTTQ2IDEwNiBIMTE4IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjg1Ii8+CjxnPjxyZWN0IHg9IjEwNCIgeT0iMTA0IiB3aWR0aD0iNTQiIGhlaWdodD0iNDIiIHJ4PSIxMyIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0xMTYgMTQ2IHYxNSBsMTcgLTE1IHoiIGZpbGw9IiNmZmYiLz48dGV4dCB4PSIxMzEiIHk9IjEzNSIgZm9udC1mYW1pbHk9IkFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzEiIGZvbnQtd2VpZ2h0PSI4MDAiIGZpbGw9IiNhNDVjZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkE8L3RleHQ+PC9nPgo8L3N2Zz4K">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -51,7 +57,7 @@ input,textarea,select{font-family:inherit;font-size:15px}
   border-right:1px solid var(--line);display:flex;flex-direction:column;
   transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:50;
 }
-.brand{padding:20px 20px 14px;display:flex;align-items:center;gap:11px}
+.brand{padding:max(20px,env(safe-area-inset-top)) 20px 14px;display:flex;align-items:center;gap:11px}
 .brand-logo{
   width:40px;height:40px;border-radius:12px;background:var(--grad);
   display:grid;place-items:center;font-size:20px;box-shadow:0 6px 18px rgba(124,108,255,.45);
@@ -72,7 +78,8 @@ input,textarea,select{font-family:inherit;font-size:15px}
 
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 .topbar{
-  display:flex;align-items:center;gap:14px;padding:14px 22px;
+  display:flex;align-items:center;gap:14px;
+  padding:max(14px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) 14px max(22px,env(safe-area-inset-left));
   border-bottom:1px solid var(--line);backdrop-filter:blur(10px);flex-shrink:0;
 }
 .burger{display:none;font-size:22px;width:38px;height:38px;border-radius:10px;background:var(--card)}
@@ -212,7 +219,27 @@ label.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--muted);marg
    EnglishSphere — единая эко-сфера учителя английского
    Всё хранится локально (localStorage). Один файл, без сервера.
    ========================================================= */
-const tg = window.Telegram?.WebApp; try{tg?.ready();tg?.expand();}catch(e){}
+const tg = window.Telegram?.WebApp;
+try{tg?.ready();tg?.expand();tg?.disableVerticalSwipes?.();}catch(e){}
+// Haptic feedback helper (safe no-op outside Telegram)
+function haptic(type='light'){try{
+  if(type==='success'||type==='error'||type==='warning')tg?.HapticFeedback?.notificationOccurred(type);
+  else tg?.HapticFeedback?.impactOccurred(type);
+}catch(e){}}
+// Telegram BackButton: on any page except dashboard it returns to dashboard
+function syncBackButton(){try{
+  if(!tg?.BackButton)return;
+  if(route==='dashboard'){tg.BackButton.hide()}
+  else{tg.BackButton.show()}
+}catch(e){}}
+try{tg?.BackButton?.onClick(()=>{if(route!=='dashboard'){haptic('light');go('dashboard')}});}catch(e){}
+// Sync Telegram header/background color with the current theme
+function syncTgColors(){try{
+  const dark=(S.profile.theme||'dark')!=='light';
+  const bg=dark?'#0d0d1f':'#eef0f7';
+  tg?.setHeaderColor?.(bg); tg?.setBackgroundColor?.(bg);
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content',bg);
+}catch(e){}}
 
 /* ---------- STORE ---------- */
 const KEY='englishSphere_v1';
@@ -232,7 +259,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const todayISO=()=>new Date().toISOString().slice(0,10);
 
 /* ---------- UI helpers ---------- */
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);haptic(/✓|✅|скачан|успеш|Добавлено|сохран/i.test(msg)?'success':'light')}
 function toggleSidebar(open){document.getElementById('sidebar').classList.toggle('open',open);document.getElementById('backdrop').classList.toggle('show',open)}
 function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show')}
 function closeModal(){document.getElementById('modalBg').classList.remove('show')}
@@ -284,7 +311,7 @@ function go(id){route=id;const n=NAV.find(x=>x.id===id);
   document.getElementById('pageTitle').textContent=n.t;
   document.getElementById('pageSub').textContent=n.s;
   document.getElementById('topActions').innerHTML='';
-  toggleSidebar(false);renderNav();
+  toggleSidebar(false);renderNav();syncBackButton();haptic('light');
   window.scrollTo(0,0);document.querySelector('.content').scrollTop=0;
   VIEWS[id]();}
 function setActions(html){document.getElementById('topActions').innerHTML=html}
@@ -933,7 +960,7 @@ VIEWS.settings=()=>{
   <div class="empty small" style="padding:24px 0 8px">EnglishSphere · твоя эко-сфера · всё в одном</div>`;
 };
 function saveProfile(){S.profile.name=val('pName');save();document.getElementById('brandSub').textContent=S.profile.name?esc(S.profile.name):'эко-сфера учителя';toast('Профиль сохранён ✓')}
-function setTheme(t){S.profile.theme=t;document.documentElement.setAttribute('data-theme',t);save();VIEWS.settings()}
+function setTheme(t){S.profile.theme=t;document.documentElement.setAttribute('data-theme',t);save();syncTgColors();haptic('success');VIEWS.settings()}
 function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='englishsphere-backup-'+todayISO()+'.json';a.click();toast('Бэкап скачан ✓')}
 function importData(file){if(!file)return;const r=new FileReader();
@@ -946,13 +973,14 @@ function modalShell(title,body,footBtn){return `
   <div class="modal-head"><h3>${title}</h3><button class="x-close" onclick="closeModal()">×</button></div>
   <div class="modal-body">${body}</div>
   ${footBtn?`<div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button>${footBtn}</div>`:''}`}
-function applyTheme(){document.documentElement.setAttribute('data-theme',S.profile.theme||'dark')}
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.profile.theme||'dark');syncTgColors()}
 
 /* ---------- INIT ---------- */
 applyTheme();
 if(S.profile.name)document.getElementById('brandSub').textContent=esc(S.profile.name);
 renderNav();
 go('dashboard');
+syncBackButton();
 </script>
 </body>
 </html>
