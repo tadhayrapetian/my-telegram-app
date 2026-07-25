@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EnglishSphere — эко-сфера учителя английского</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root{
+  --bg:#0d0d1f; --bg2:#14142b;
+  --card:rgba(255,255,255,.06); --card-hover:rgba(255,255,255,.1);
+  --line:rgba(255,255,255,.12); --line2:rgba(255,255,255,.2);
+  --text:#f2f2f7; --muted:#9a9ab5; --muted2:#6d6d8a;
+  --accent:#7c6cff; --accent2:#ff6ec7; --accent3:#43e6c4; --accent4:#ffb84d;
+  --danger:#ff5c78; --ok:#43e6a0;
+  --radius:18px; --radius-sm:12px;
+  --grad:linear-gradient(135deg,#7c6cff 0%,#ff6ec7 100%);
+}
+[data-theme="light"]{
+  --bg:#eef0f7; --bg2:#e3e6f2;
+  --card:rgba(255,255,255,.75); --card-hover:rgba(255,255,255,.95);
+  --line:rgba(20,20,50,.1); --line2:rgba(20,20,50,.18);
+  --text:#1a1a2e; --muted:#5a5a78; --muted2:#8a8aa5;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg); color:var(--text); overflow:hidden;
+  min-height:100vh; min-height:100dvh;
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:-1; opacity:.9;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(124,108,255,.28) 0%, transparent 45%),
+    radial-gradient(circle at 88% 12%, rgba(255,110,199,.22) 0%, transparent 45%),
+    radial-gradient(circle at 75% 88%, rgba(67,230,196,.18) 0%, transparent 45%),
+    var(--bg);
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:8px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:15px}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
+.sidebar{
+  width:250px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--line);display:flex;flex-direction:column;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:50;
+}
+.brand{padding:20px 20px 14px;display:flex;align-items:center;gap:11px}
+.brand-logo{
+  width:40px;height:40px;border-radius:12px;background:var(--grad);
+  display:grid;place-items:center;font-size:20px;box-shadow:0 6px 18px rgba(124,108,255,.45);
+}
+.brand-name{font-weight:800;font-size:17px;letter-spacing:-.3px;line-height:1.1}
+.brand-sub{font-size:11px;color:var(--muted);font-weight:500}
+.nav{flex:1;overflow-y:auto;padding:6px 12px 20px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:10px 12px;border-radius:12px;color:var(--muted);font-weight:500;
+  font-size:14.5px;margin-bottom:2px;transition:.15s;
+}
+.nav-item .ic{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--grad);color:#fff;box-shadow:0 6px 16px rgba(124,108,255,.4)}
+.nav-badge{margin-left:auto;font-size:11px;background:var(--line2);padding:1px 7px;border-radius:20px;font-weight:600}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.25)}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:14px 22px;
+  border-bottom:1px solid var(--line);backdrop-filter:blur(10px);flex-shrink:0;
+}
+.burger{display:none;font-size:22px;width:38px;height:38px;border-radius:10px;background:var(--card)}
+.page-title{font-size:20px;font-weight:700;letter-spacing:-.4px}
+.page-sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content{flex:1;overflow-y:auto;padding:22px;scroll-behavior:smooth}
+.view{max-width:1100px;margin:0 auto;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===== COMPONENTS ===== */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:11px;
+  background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;
+  color:var(--text);transition:.15s;
+}
+.btn:hover{background:var(--card-hover);border-color:var(--line2)}
+.btn.primary{background:var(--grad);border:none;color:#fff;box-shadow:0 6px 16px rgba(124,108,255,.35)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--danger);border-color:rgba(255,92,120,.3)}
+.btn.sm{padding:6px 12px;font-size:13px;border-radius:9px}
+.btn.icon{padding:9px;width:38px;height:38px;justify-content:center}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;
+  background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:500;color:var(--muted);
+  transition:.15s;
+}
+.chip.active{background:var(--grad);color:#fff;border-color:transparent}
+.chip:hover{color:var(--text)}
+.field{width:100%;padding:11px 14px;border-radius:11px;background:var(--card);
+  border:1px solid var(--line);color:var(--text);outline:none;transition:.15s}
+.field:focus{border-color:var(--accent);background:var(--card-hover)}
+.field::placeholder{color:var(--muted2)}
+textarea.field{resize:vertical;min-height:90px;line-height:1.5}
+label.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g-auto{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .ei{font-size:48px;margin-bottom:12px;opacity:.7}
+.tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:20px;
+  background:var(--line);color:var(--muted);font-weight:600;margin:2px 3px 0 0}
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.section-head h2{font-size:16px;font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+
+/* stat tiles */
+.stat{padding:16px 18px;border-radius:var(--radius);background:var(--card);border:1px solid var(--line);position:relative;overflow:hidden}
+.stat .val{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.stat .lab{font-size:12.5px;color:var(--muted);margin-top:6px;font-weight:500}
+.stat .em{position:absolute;top:14px;right:16px;font-size:22px;opacity:.85}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(5,5,15,.6);backdrop-filter:blur(6px);
+  z-index:100;display:none;align-items:center;justify-content:center;padding:18px}
+.modal-bg.show{display:flex;animation:fade .2s}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:20px;
+  width:100%;max-width:520px;max-height:88vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--bg2);z-index:2}
+.modal-head h3{font-size:17px;font-weight:700}
+.modal-body{padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--bg2)}
+.x-close{margin-left:auto;font-size:22px;color:var(--muted);width:32px;height:32px;border-radius:8px}
+.x-close:hover{background:var(--card);color:var(--text)}
+
+/* toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);
+  background:var(--bg2);border:1px solid var(--line2);padding:12px 20px;border-radius:14px;
+  font-weight:600;font-size:14px;z-index:200;box-shadow:0 14px 40px rgba(0,0,0,.4);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;transition:.15s}
+.item:hover{background:var(--card-hover)}
+.item-title{font-weight:600;font-size:15px}
+.mini-btn{color:var(--muted);padding:5px;border-radius:8px;font-size:15px;transition:.15s}
+.mini-btn:hover{background:var(--line);color:var(--text)}
+.mini-btn.del:hover{color:var(--danger)}
+
+.progress{height:8px;border-radius:20px;background:var(--line);overflow:hidden}
+.progress>i{display:block;height:100%;background:var(--grad);border-radius:20px;transition:width .4s}
+
+.backdrop{display:none}
+@media(max-width:860px){
+  .sidebar{position:fixed;inset:0 auto 0 0;transform:translateX(-100%);box-shadow:0 0 60px rgba(0,0,0,.5)}
+  .sidebar.open{transform:translateX(0)}
+  .burger{display:grid;place-items:center}
+  .backdrop.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .content{padding:16px}
+  .g4.stats-grid{grid-template-columns:1fr 1fr}
+}
+.hide{display:none!important}
+.flash-card-3d{perspective:1200px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">🌐</div>
+      <div>
+        <div class="brand-name">EnglishSphere</div>
+        <div class="brand-sub" id="brandSub">эко-сфера учителя</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div class="backdrop" id="backdrop" onclick="toggleSidebar(false)"></div>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar">
+      <button class="burger" onclick="toggleSidebar(true)">☰</button>
+      <div>
+        <div class="page-title" id="pageTitle">Дашборд</div>
+        <div class="page-sub" id="pageSub"></div>
+      </div>
+      <div class="topbar-actions" id="topActions"></div>
+    </header>
+    <div class="content"><div class="view" id="view"></div></div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   EnglishSphere — единая эко-сфера учителя английского
+   Всё хранится локально (localStorage). Один файл, без сервера.
+   ========================================================= */
+const tg = window.Telegram?.WebApp; try{tg?.ready();tg?.expand();}catch(e){}
+
+/* ---------- STORE ---------- */
+const KEY='englishSphere_v1';
+const DEFAULT={
+  profile:{name:'',theme:'dark'},
+  library:[], notes:[], students:[], lessons:[], tasks:[],
+  decks:[], quizzes:[], vocab:[], music:[], bookmarks:[],
+  attendance:{}, // "studentId|date": grade/present
+  verbStats:{correct:0,wrong:0},
+  wordDate:'', wordToday:null
+};
+let S = load();
+function load(){try{return Object.assign(structuredClone(DEFAULT),JSON.parse(localStorage.getItem(KEY))||{})}catch(e){return structuredClone(DEFAULT)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(S))}
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const todayISO=()=>new Date().toISOString().slice(0,10);
+
+/* ---------- UI helpers ---------- */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
+function toggleSidebar(open){document.getElementById('sidebar').classList.toggle('open',open);document.getElementById('backdrop').classList.toggle('show',open)}
+function openModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalBg').classList.add('show')}
+function closeModal(){document.getElementById('modalBg').classList.remove('show')}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal()});
+function val(id){const e=document.getElementById(id);return e?e.value.trim():''}
+function confirmDel(msg,fn){openModal(`<div class="modal-body" style="text-align:center;padding:28px 22px">
+  <div style="font-size:40px;margin-bottom:10px">🗑️</div>
+  <div style="font-weight:700;font-size:16px;margin-bottom:6px">Удалить?</div>
+  <div class="muted small" style="margin-bottom:20px">${esc(msg)}</div>
+  <div class="row" style="justify-content:center">
+    <button class="btn" onclick="closeModal()">Отмена</button>
+    <button class="btn danger" id="cfd">Удалить</button>
+  </div></div>`);
+  document.getElementById('cfd').onclick=()=>{fn();closeModal()}}
+
+/* ---------- ROUTER ---------- */
+const NAV=[
+  {id:'dashboard',ic:'🏠',t:'Дашборд',s:'Обзор твоего пространства'},
+  {id:'library',ic:'📚',t:'Библиотека',s:'Материалы, учебники, ссылки'},
+  {id:'notes',ic:'📝',t:'Заметки',s:'Идеи, планы, мысли'},
+  {id:'flashcards',ic:'🎴',t:'Карточки',s:'Тренажёр словарного запаса'},
+  {id:'quizzes',ic:'❓',t:'Квизы',s:'Тесты с автопроверкой'},
+  {id:'verbs',ic:'🔤',t:'Глаголы',s:'Неправильные глаголы'},
+  {id:'vocab',ic:'💡',t:'Слово дня',s:'Личный словарь'},
+  {id:'students',ic:'👩‍🎓',t:'Ученики',s:'Группы и профили'},
+  {id:'journal',ic:'📊',t:'Журнал',s:'Посещаемость и оценки'},
+  {id:'schedule',ic:'📅',t:'Расписание',s:'Уроки по дням'},
+  {id:'tasks',ic:'✅',t:'Задачи',s:'To-do список'},
+  {id:'timer',ic:'⏱️',t:'Таймер',s:'Фокус и Pomodoro'},
+  {id:'music',ic:'🎵',t:'Музыка',s:'Плеер для фона урока'},
+  {id:'online',ic:'📺',t:'Онлайн',s:'Видео и сайты внутри'},
+  {id:'settings',ic:'⚙️',t:'Настройки',s:'Профиль, тема, данные'},
+];
+let route='dashboard';
+function counts(id){switch(id){
+  case'library':return S.library.length; case'notes':return S.notes.length;
+  case'students':return S.students.length; case'flashcards':return S.decks.length;
+  case'quizzes':return S.quizzes.length; case'tasks':return S.tasks.filter(t=>!t.done).length;
+  case'vocab':return S.vocab.length; case'schedule':return S.lessons.length;
+  default:return 0}}
+function renderNav(){
+  document.getElementById('nav').innerHTML=NAV.map(n=>{
+    const c=counts(n.id);
+    return `<button class="nav-item ${n.id===route?'active':''}" onclick="go('${n.id}')">
+      <span class="ic">${n.ic}</span><span>${n.t}</span>
+      ${c?`<span class="nav-badge">${c}</span>`:''}</button>`}).join('');
+}
+function go(id){route=id;const n=NAV.find(x=>x.id===id);
+  document.getElementById('pageTitle').textContent=n.t;
+  document.getElementById('pageSub').textContent=n.s;
+  document.getElementById('topActions').innerHTML='';
+  toggleSidebar(false);renderNav();
+  window.scrollTo(0,0);document.querySelector('.content').scrollTop=0;
+  VIEWS[id]();}
+function setActions(html){document.getElementById('topActions').innerHTML=html}
+
+/* =========================================================
+   VIEWS
+   ========================================================= */
+const V=id=>document.getElementById('view');
+const VIEWS={};
+
+/* ---------- 1. DASHBOARD ---------- */
+VIEWS.dashboard=()=>{
+  ensureWord();
+  const doneTasks=S.tasks.filter(t=>t.done).length;
+  const dow=new Date().getDay();
+  const todayLessons=S.lessons.filter(l=>l.day==dow).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const name=S.profile.name?`, ${esc(S.profile.name)}`:'';
+  const hr=new Date().getHours();
+  const greet=hr<6?'Доброй ночи':hr<12?'Доброе утро':hr<18?'Добрый день':'Добрый вечер';
+  V().innerHTML=`
+  <div class="card" style="background:var(--grad);border:none;margin-bottom:18px;color:#fff">
+    <div style="font-size:22px;font-weight:800">${greet}${name}! 👋</div>
+    <div style="opacity:.9;margin-top:4px">Твоя эко-сфера готова к работе. Всё под рукой.</div>
+  </div>
+  <div class="grid g4 stats-grid" style="margin-bottom:18px">
+    ${statTile(S.students.length,'учеников','👩‍🎓','students')}
+    ${statTile(S.library.length,'материалов','📚','library')}
+    ${statTile(S.vocab.length,'слов в словаре','💡','vocab')}
+    ${statTile(S.tasks.filter(t=>!t.done).length,'активных задач','✅','tasks')}
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <div class="section-head"><h2>📅 Уроки сегодня</h2><div class="spacer"></div>
+        <button class="btn sm" onclick="go('schedule')">Всё</button></div>
+      ${todayLessons.length?todayLessons.map(l=>`<div class="item" style="margin-bottom:8px">
+        <div class="row"><b>${esc(l.time||'—')}</b><span>${esc(l.title)}</span>
+        <span class="spacer"></span><span class="tag">${esc(l.group||'')}</span></div></div>`).join(''):
+        `<div class="muted small">Сегодня уроков нет 🎉</div>`}
+    </div>
+    <div class="card">
+      <div class="section-head"><h2>💡 Слово дня</h2><div class="spacer"></div>
+        <button class="btn sm" onclick="go('vocab')">Словарь</button></div>
+      ${S.wordToday?`<div style="font-size:26px;font-weight:800">${esc(S.wordToday.w)}</div>
+        <div class="muted" style="margin:2px 0 8px">${esc(S.wordToday.t)}</div>
+        <div class="small">${esc(S.wordToday.ex)}</div>`:'<div class="muted small">—</div>'}
+    </div>
+    <div class="card">
+      <div class="section-head"><h2>✅ Быстрые задачи</h2><div class="spacer"></div>
+        <button class="btn sm" onclick="go('tasks')">Всё</button></div>
+      ${S.tasks.filter(t=>!t.done).slice(0,5).map(t=>`<label class="row" style="padding:6px 0;cursor:pointer">
+        <input type="checkbox" onchange="toggleTask('${t.id}');VIEWS.dashboard()"> <span>${esc(t.text)}</span></label>`).join('')
+        ||'<div class="muted small">Задач нет. Отдыхай 😌</div>'}
+    </div>
+    <div class="card">
+      <div class="section-head"><h2>⚡ Быстрый старт</h2></div>
+      <div class="grid g2" style="gap:10px">
+        <button class="btn" onclick="go('flashcards')">🎴 Карточки</button>
+        <button class="btn" onclick="go('verbs')">🔤 Глаголы</button>
+        <button class="btn" onclick="go('notes')">📝 Заметка</button>
+        <button class="btn" onclick="go('timer')">⏱️ Таймер</button>
+        <button class="btn" onclick="go('music')">🎵 Музыка</button>
+        <button class="btn" onclick="go('online')">📺 Онлайн</button>
+      </div>
+    </div>
+  </div>`;
+};
+function statTile(v,l,em,link){return `<div class="stat" style="cursor:pointer" onclick="go('${link}')">
+  <div class="val">${v}</div><div class="lab">${l}</div><div class="em">${em}</div></div>`}
+
+/* ---------- 2. LIBRARY ---------- */
+let libFilter='all',libSearch='';
+VIEWS.library=()=>{
+  setActions(`<button class="btn primary" onclick="editLib()">＋ Материал</button>`);
+  const types=['all','Учебник','Видео','Аудио','Статья','Упражнение','Ссылка'];
+  let items=S.library.filter(x=>libFilter==='all'||x.type===libFilter)
+    .filter(x=>!libSearch||(x.title+ x.tags+x.note).toLowerCase().includes(libSearch.toLowerCase()));
+  V().innerHTML=`
+  <div class="row" style="margin-bottom:14px">
+    <input class="field" style="max-width:300px" placeholder="🔍 Поиск..." value="${esc(libSearch)}"
+      oninput="libSearch=this.value;renderLibList()">
+  </div>
+  <div class="row" id="libChips" style="margin-bottom:16px">
+    ${types.map(t=>`<button class="chip ${libFilter===t?'active':''}" onclick="libFilter='${t}';VIEWS.library()">${t==='all'?'Все':t}</button>`).join('')}
+  </div>
+  <div id="libList"></div>`;
+  renderLibList();
+};
+function renderLibList(){
+  let items=S.library.filter(x=>libFilter==='all'||x.type===libFilter)
+    .filter(x=>!libSearch||(x.title+x.tags+x.note).toLowerCase().includes(libSearch.toLowerCase()))
+    .sort((a,b)=>b.created-a.created);
+  const el=document.getElementById('libList');if(!el)return;
+  if(!items.length){el.innerHTML=emptyState('📚','Библиотека пуста','Добавь первый учебник, видео или ссылку');return}
+  const icons={'Учебник':'📗','Видео':'🎬','Аудио':'🎧','Статья':'📰','Упражнение':'✏️','Ссылка':'🔗'};
+  el.innerHTML=`<div class="grid g-auto">`+items.map(x=>`
+    <div class="card" style="display:flex;flex-direction:column;gap:8px">
+      <div class="row"><span style="font-size:22px">${icons[x.type]||'📄'}</span>
+        <span class="tag">${esc(x.type)}</span><span class="spacer"></span>
+        <button class="mini-btn" onclick="editLib('${x.id}')">✏️</button>
+        <button class="mini-btn del" onclick="delLib('${x.id}')">🗑️</button></div>
+      <div class="item-title">${esc(x.title)}</div>
+      ${x.note?`<div class="muted small">${esc(x.note)}</div>`:''}
+      ${x.url?`<a class="btn sm" href="${esc(x.url)}" target="_blank" rel="noopener">Открыть ↗</a>`:''}
+      <div>${(x.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</div>
+    </div>`).join('')+`</div>`;
+}
+function editLib(id){const x=S.library.find(i=>i.id===id)||{type:'Учебник'};
+  openModal(modalShell(id?'Редактировать материал':'Новый материал',`
+    <label class="lbl">Название</label><input id="lTitle" class="field" value="${esc(x.title||'')}" placeholder="English Grammar in Use">
+    <label class="lbl" style="margin-top:12px">Тип</label>
+    <select id="lType" class="field">${['Учебник','Видео','Аудио','Статья','Упражнение','Ссылка'].map(t=>`<option ${x.type===t?'selected':''}>${t}</option>`).join('')}</select>
+    <label class="lbl" style="margin-top:12px">Ссылка (необязательно)</label><input id="lUrl" class="field" value="${esc(x.url||'')}" placeholder="https://...">
+    <label class="lbl" style="margin-top:12px">Теги через запятую</label><input id="lTags" class="field" value="${esc(x.tags||'')}" placeholder="B2, grammar, present perfect">
+    <label class="lbl" style="margin-top:12px">Заметка</label><textarea id="lNote" class="field" placeholder="Для чего этот материал...">${esc(x.note||'')}</textarea>
+  `,`<button class="btn primary" onclick="saveLib('${id||''}')">Сохранить</button>`));
+}
+function saveLib(id){const t=val('lTitle');if(!t)return toast('Введите название');
+  const o={title:t,type:val('lType'),url:val('lUrl'),tags:val('lTags'),note:val('lNote')};
+  if(id){Object.assign(S.library.find(i=>i.id===id),o)}else{S.library.unshift({id:uid(),created:Date.now(),...o})}
+  save();closeModal();VIEWS.library();renderNav();toast('Сохранено ✓')}
+function delLib(id){confirmDel('Материал будет удалён',()=>{S.library=S.library.filter(i=>i.id!==id);save();VIEWS.library();renderNav()})}
+
+/* ---------- 3. NOTES ---------- */
+let noteSearch='';
+VIEWS.notes=()=>{
+  setActions(`<button class="btn primary" onclick="editNote()">＋ Заметка</button>`);
+  V().innerHTML=`<div class="row" style="margin-bottom:16px">
+    <input class="field" style="max-width:320px" placeholder="🔍 Поиск по заметкам..." value="${esc(noteSearch)}" oninput="noteSearch=this.value;renderNotes()">
+    </div><div id="noteList"></div>`;
+  renderNotes();
+};
+function renderNotes(){
+  let items=S.notes.filter(n=>!noteSearch||(n.title+n.body).toLowerCase().includes(noteSearch.toLowerCase()))
+    .sort((a,b)=>(b.pin-a.pin)||b.updated-a.updated);
+  const el=document.getElementById('noteList');if(!el)return;
+  if(!items.length){el.innerHTML=emptyState('📝','Заметок пока нет','Записывай идеи для уроков и планы');return}
+  el.innerHTML=`<div class="grid g-auto">`+items.map(n=>`
+    <div class="card" style="cursor:pointer;border-left:3px solid ${n.color||'var(--accent)'}" onclick="editNote('${n.id}')">
+      <div class="row" style="margin-bottom:6px">
+        ${n.pin?'<span title="Закреплено">📌</span>':''}
+        <div class="item-title" style="flex:1">${esc(n.title||'Без названия')}</div>
+        <button class="mini-btn del" onclick="event.stopPropagation();delNote('${n.id}')">🗑️</button></div>
+      <div class="muted small" style="white-space:pre-wrap;max-height:120px;overflow:hidden">${esc(n.body||'')}</div>
+      <div class="small muted" style="margin-top:10px">${new Date(n.updated).toLocaleDateString('ru')}</div>
+    </div>`).join('')+`</div>`;
+}
+function editNote(id){const n=S.notes.find(i=>i.id===id)||{color:'#7c6cff'};
+  const colors=['#7c6cff','#ff6ec7','#43e6c4','#ffb84d','#ff5c78','#43e6a0'];
+  openModal(modalShell(id?'Заметка':'Новая заметка',`
+    <input id="nTitle" class="field" value="${esc(n.title||'')}" placeholder="Заголовок" style="font-weight:700;font-size:16px">
+    <textarea id="nBody" class="field" style="min-height:180px;margin-top:10px" placeholder="Текст заметки...">${esc(n.body||'')}</textarea>
+    <label class="lbl" style="margin-top:12px">Цвет</label>
+    <div class="row" id="colorRow">${colors.map(c=>`<button onclick="pickColor('${c}')" data-c="${c}" class="ncol" style="width:30px;height:30px;border-radius:50%;background:${c};border:2px solid ${n.color===c?'#fff':'transparent'}"></button>`).join('')}</div>
+    <label class="row" style="margin-top:14px;cursor:pointer"><input type="checkbox" id="nPin" ${n.pin?'checked':''}> <span>📌 Закрепить</span></label>
+  `,`<button class="btn primary" onclick="saveNote('${id||''}')">Сохранить</button>`));
+  window._noteColor=n.color||'#7c6cff';
+}
+function pickColor(c){window._noteColor=c;document.querySelectorAll('.ncol').forEach(b=>b.style.border='2px solid '+(b.dataset.c===c?'#fff':'transparent'))}
+function saveNote(id){const o={title:val('nTitle'),body:val('nBody'),color:window._noteColor,pin:document.getElementById('nPin').checked,updated:Date.now()};
+  if(!o.title&&!o.body)return toast('Пустая заметка');
+  if(id){Object.assign(S.notes.find(i=>i.id===id),o)}else{S.notes.unshift({id:uid(),...o})}
+  save();closeModal();VIEWS.notes();renderNav();toast('Сохранено ✓')}
+function delNote(id){confirmDel('Заметка будет удалена',()=>{S.notes=S.notes.filter(i=>i.id!==id);save();VIEWS.notes();renderNav()})}
+
+/* ---------- 4. FLASHCARDS ---------- */
+VIEWS.flashcards=()=>{
+  setActions(`<button class="btn primary" onclick="editDeck()">＋ Колода</button>`);
+  if(!S.decks.length){V().innerHTML=emptyState('🎴','Нет колод','Создай колоду карточек «слово → перевод»');return}
+  V().innerHTML=`<div class="grid g-auto">`+S.decks.map(d=>`
+    <div class="card">
+      <div class="row"><span style="font-size:22px">🎴</span><div class="item-title" style="flex:1">${esc(d.name)}</div>
+        <button class="mini-btn" onclick="editDeck('${d.id}')">✏️</button>
+        <button class="mini-btn del" onclick="delDeck('${d.id}')">🗑️</button></div>
+      <div class="muted small" style="margin:8px 0 12px">${d.cards.length} карточек</div>
+      <div class="row"><button class="btn primary sm" onclick="studyDeck('${d.id}')" ${d.cards.length?'':'disabled'}>▶ Учить</button>
+        <button class="btn sm" onclick="editDeck('${d.id}')">Карточки</button></div>
+    </div>`).join('')+`</div>`;
+};
+function editDeck(id){const d=S.decks.find(x=>x.id===id)||{name:'',cards:[]};
+  openModal(modalShell(id?'Колода':'Новая колода',`
+    <label class="lbl">Название колоды</label><input id="dName" class="field" value="${esc(d.name)}" placeholder="Phrasal verbs B2">
+    <div id="cardEditor" style="margin-top:16px">${id?cardRows(d):''}</div>
+    ${id?`<button class="btn sm" style="margin-top:10px" onclick="addCardRow()">＋ Добавить карточку</button>`:'<div class="muted small" style="margin-top:10px">Карточки добавишь после создания.</div>'}
+  `,`<button class="btn primary" onclick="saveDeck('${id||''}')">Сохранить</button>`));
+}
+function cardRows(d){return `<label class="lbl">Карточки (слово / перевод)</label>`+d.cards.map((c,i)=>cardRow(c.f,c.b)).join('')}
+function cardRow(f='',b=''){return `<div class="row cardrow" style="margin-bottom:8px">
+  <input class="field cf" style="flex:1" placeholder="word" value="${esc(f)}">
+  <input class="field cb" style="flex:1" placeholder="перевод" value="${esc(b)}">
+  <button class="mini-btn del" onclick="this.parentElement.remove()">✕</button></div>`}
+function addCardRow(){document.getElementById('cardEditor').insertAdjacentHTML('beforeend',cardRow())}
+function saveDeck(id){const name=val('dName');if(!name)return toast('Название колоды?');
+  const cards=[...document.querySelectorAll('.cardrow')].map(r=>({f:r.querySelector('.cf').value.trim(),b:r.querySelector('.cb').value.trim()})).filter(c=>c.f||c.b);
+  if(id){const d=S.decks.find(x=>x.id===id);d.name=name;d.cards=cards}
+  else{S.decks.unshift({id:uid(),name,cards:[]})}
+  save();closeModal();VIEWS.flashcards();renderNav();toast('Сохранено ✓')}
+function delDeck(id){confirmDel('Колода будет удалена',()=>{S.decks=S.decks.filter(x=>x.id!==id);save();VIEWS.flashcards();renderNav()})}
+let study={deck:null,order:[],i:0,flip:false,know:0};
+function studyDeck(id){const d=S.decks.find(x=>x.id===id);
+  study={deck:d,order:d.cards.map((_,i)=>i).sort(()=>Math.random()-.5),i:0,flip:false,know:0};renderStudy()}
+function renderStudy(){const d=study.deck;
+  if(study.i>=study.order.length){
+    V().innerHTML=`<div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:52px">🎉</div><h2 style="margin:12px 0">Готово!</h2>
+      <div class="muted">Знаешь: <b style="color:var(--ok)">${study.know}</b> из ${study.order.length}</div>
+      <div class="progress" style="margin:18px auto;max-width:300px"><i style="width:${Math.round(study.know/study.order.length*100)}%"></i></div>
+      <div class="row" style="justify-content:center;margin-top:16px">
+        <button class="btn" onclick="VIEWS.flashcards()">← К колодам</button>
+        <button class="btn primary" onclick="studyDeck('${d.id}')">↻ Заново</button></div></div>`;return}
+  const c=d.cards[study.order[study.i]];
+  V().innerHTML=`<div style="max-width:520px;margin:0 auto">
+    <div class="row" style="margin-bottom:14px"><button class="btn sm" onclick="VIEWS.flashcards()">← Выход</button>
+      <span class="spacer"></span><span class="muted">${study.i+1} / ${study.order.length}</span></div>
+    <div class="progress" style="margin-bottom:18px"><i style="width:${study.i/study.order.length*100}%"></i></div>
+    <div class="card flash-card-3d" onclick="study.flip=!study.flip;renderStudy()" style="min-height:230px;display:grid;place-items:center;text-align:center;cursor:pointer;padding:30px">
+      <div>
+        <div class="muted small" style="margin-bottom:10px">${study.flip?'ПЕРЕВОД':'СЛОВО'} · нажми чтобы перевернуть</div>
+        <div style="font-size:32px;font-weight:800">${esc(study.flip?c.b:c.f)}</div>
+      </div></div>
+    <div class="row" style="margin-top:18px;justify-content:center">
+      <button class="btn danger" onclick="gradeCard(false)">✕ Не знаю</button>
+      <button class="btn" onclick="study.flip=!study.flip;renderStudy()">↻ Перевернуть</button>
+      <button class="btn primary" onclick="gradeCard(true)">✓ Знаю</button>
+    </div></div>`;
+}
+function gradeCard(k){if(k)study.know++;study.i++;study.flip=false;renderStudy()}
+
+/* ---------- 5. QUIZZES ---------- */
+VIEWS.quizzes=()=>{
+  setActions(`<button class="btn primary" onclick="editQuiz()">＋ Квиз</button>`);
+  if(!S.quizzes.length){V().innerHTML=emptyState('❓','Квизов нет','Создай тест с вариантами ответов');return}
+  V().innerHTML=`<div class="grid g-auto">`+S.quizzes.map(q=>`
+    <div class="card">
+      <div class="row"><span style="font-size:22px">❓</span><div class="item-title" style="flex:1">${esc(q.name)}</div>
+        <button class="mini-btn" onclick="editQuiz('${q.id}')">✏️</button>
+        <button class="mini-btn del" onclick="delQuiz('${q.id}')">🗑️</button></div>
+      <div class="muted small" style="margin:8px 0 12px">${q.questions.length} вопросов${q.best!=null?` · рекорд ${q.best}%`:''}</div>
+      <button class="btn primary sm" onclick="playQuiz('${q.id}')" ${q.questions.length?'':'disabled'}>▶ Пройти</button>
+    </div>`).join('')+`</div>`;
+};
+function editQuiz(id){const q=S.quizzes.find(x=>x.id===id)||{name:'',questions:[]};
+  openModal(modalShell(id?'Квиз':'Новый квиз',`
+    <label class="lbl">Название квиза</label><input id="qName" class="field" value="${esc(q.name)}" placeholder="Present Perfect Test">
+    <div id="qEditor" style="margin-top:14px">${q.questions.map(qq=>qBlock(qq)).join('')}</div>
+    <button class="btn sm" style="margin-top:10px" onclick="addQBlock()">＋ Вопрос</button>
+  `,`<button class="btn primary" onclick="saveQuiz('${id||''}')">Сохранить</button>`));
+}
+function qBlock(qq={q:'',opts:['','',''],correct:0}){
+  const opts=qq.opts.length?qq.opts:['','',''];
+  return `<div class="qblock card" style="margin-bottom:12px;padding:14px">
+    <input class="field qtext" placeholder="Вопрос" value="${esc(qq.q)}">
+    <div class="qopts" style="margin-top:8px">${opts.map((o,i)=>`
+      <label class="row" style="margin-bottom:6px">
+        <input type="radio" name="c_${Math.random().toString(36).slice(2,7)}" class="qcorrect" ${qq.correct===i?'checked':''}>
+        <input class="field qopt" style="flex:1" placeholder="Вариант ${i+1}" value="${esc(o)}"></label>`).join('')}</div>
+    <button class="mini-btn del" onclick="this.closest('.qblock').remove()">✕ Удалить вопрос</button></div>`;
+}
+function addQBlock(){document.getElementById('qEditor').insertAdjacentHTML('beforeend',qBlock())}
+function saveQuiz(id){const name=val('qName');if(!name)return toast('Название квиза?');
+  const questions=[...document.querySelectorAll('.qblock')].map(b=>{
+    const q=b.querySelector('.qtext').value.trim();
+    const opts=[...b.querySelectorAll('.qopt')].map(o=>o.value.trim());
+    const radios=[...b.querySelectorAll('.qcorrect')];
+    const correct=radios.findIndex(r=>r.checked);
+    return {q,opts:opts.filter(Boolean),correct:Math.max(0,correct)};
+  }).filter(x=>x.q&&x.opts.length>=2);
+  if(id){const o=S.quizzes.find(x=>x.id===id);o.name=name;o.questions=questions}
+  else{S.quizzes.unshift({id:uid(),name,questions,best:null})}
+  save();closeModal();VIEWS.quizzes();renderNav();toast('Сохранено ✓')}
+function delQuiz(id){confirmDel('Квиз будет удалён',()=>{S.quizzes=S.quizzes.filter(x=>x.id!==id);save();VIEWS.quizzes();renderNav()})}
+let quizRun={};
+function playQuiz(id){const q=S.quizzes.find(x=>x.id===id);quizRun={q,i:0,score:0,ans:null};renderQuizRun()}
+function renderQuizRun(){const {q,i}=quizRun;
+  if(i>=q.questions.length){const pct=Math.round(quizRun.score/q.questions.length*100);
+    if(q.best==null||pct>q.best){q.best=pct;save()}
+    V().innerHTML=`<div class="card" style="text-align:center;padding:40px;max-width:480px;margin:0 auto">
+      <div style="font-size:54px">${pct>=80?'🏆':pct>=50?'👍':'📚'}</div>
+      <h2 style="margin:12px 0">${pct}%</h2>
+      <div class="muted">Правильно ${quizRun.score} из ${q.questions.length}</div>
+      <div class="row" style="justify-content:center;margin-top:18px">
+        <button class="btn" onclick="VIEWS.quizzes()">← К квизам</button>
+        <button class="btn primary" onclick="playQuiz('${q.id}')">↻ Заново</button></div></div>`;return}
+  const qq=q.questions[i];
+  V().innerHTML=`<div style="max-width:560px;margin:0 auto">
+    <div class="row" style="margin-bottom:12px"><button class="btn sm" onclick="VIEWS.quizzes()">← Выход</button>
+      <span class="spacer"></span><span class="muted">${i+1}/${q.questions.length} · очки ${quizRun.score}</span></div>
+    <div class="progress" style="margin-bottom:18px"><i style="width:${i/q.questions.length*100}%"></i></div>
+    <div class="card"><div style="font-size:19px;font-weight:700;margin-bottom:16px">${esc(qq.q)}</div>
+      <div id="opts">${qq.opts.map((o,oi)=>`<button class="btn" style="width:100%;justify-content:flex-start;margin-bottom:9px;padding:13px 16px" onclick="answerQuiz(${oi})">${esc(o)}</button>`).join('')}</div>
+    </div></div>`;
+}
+function answerQuiz(oi){const {q,i}=quizRun;const qq=q.questions[i];const correct=qq.correct;
+  const btns=document.querySelectorAll('#opts button');
+  btns.forEach((b,bi)=>{b.disabled=true;
+    if(bi===correct){b.style.background='rgba(67,230,160,.2)';b.style.borderColor='var(--ok)'}
+    else if(bi===oi){b.style.background='rgba(255,92,120,.2)';b.style.borderColor='var(--danger)'}});
+  if(oi===correct)quizRun.score++;
+  setTimeout(()=>{quizRun.i++;renderQuizRun()},850);
+}
+
+/* ---------- 6. IRREGULAR VERBS ---------- */
+const VERBS=[["be","was/were","been","быть"],["begin","began","begun","начинать"],["break","broke","broken","ломать"],["bring","brought","brought","приносить"],["build","built","built","строить"],["buy","bought","bought","покупать"],["catch","caught","caught","ловить"],["choose","chose","chosen","выбирать"],["come","came","come","приходить"],["do","did","done","делать"],["drink","drank","drunk","пить"],["drive","drove","driven","водить"],["eat","ate","eaten","есть"],["fall","fell","fallen","падать"],["feel","felt","felt","чувствовать"],["find","found","found","находить"],["fly","flew","flown","летать"],["forget","forgot","forgotten","забывать"],["get","got","gotten","получать"],["give","gave","given","давать"],["go","went","gone","идти"],["have","had","had","иметь"],["hear","heard","heard","слышать"],["keep","kept","kept","хранить"],["know","knew","known","знать"],["leave","left","left","покидать"],["make","made","made","делать"],["meet","met","met","встречать"],["pay","paid","paid","платить"],["read","read","read","читать"],["run","ran","run","бежать"],["say","said","said","говорить"],["see","saw","seen","видеть"],["sell","sold","sold","продавать"],["send","sent","sent","отправлять"],["sing","sang","sung","петь"],["sit","sat","sat","сидеть"],["sleep","slept","slept","спать"],["speak","spoke","spoken","говорить"],["swim","swam","swum","плавать"],["take","took","taken","брать"],["teach","taught","taught","учить"],["tell","told","told","рассказывать"],["think","thought","thought","думать"],["understand","understood","understood","понимать"],["wake","woke","woken","просыпаться"],["wear","wore","worn","носить"],["win","won","won","побеждать"],["write","wrote","written","писать"]];
+let vb={q:null,mode:'quiz'};
+VIEWS.verbs=()=>{
+  const acc=S.verbStats.correct+S.verbStats.wrong;
+  const pct=acc?Math.round(S.verbStats.correct/acc*100):0;
+  setActions(`<button class="btn sm" onclick="showVerbTable()">📋 Таблица</button>`);
+  nextVerb();
+  const [inf,,,tr]=vb.q;
+  V().innerHTML=`<div style="max-width:520px;margin:0 auto">
+    <div class="grid g3" style="margin-bottom:18px">
+      <div class="stat"><div class="val" style="color:var(--ok)">${S.verbStats.correct}</div><div class="lab">верно</div></div>
+      <div class="stat"><div class="val" style="color:var(--danger)">${S.verbStats.wrong}</div><div class="lab">ошибок</div></div>
+      <div class="stat"><div class="val">${pct}%</div><div class="lab">точность</div></div>
+    </div>
+    <div class="card" style="text-align:center;padding:28px">
+      <div class="muted small">Напиши Past Simple и Past Participle</div>
+      <div style="font-size:34px;font-weight:800;margin:10px 0 4px">${esc(inf)}</div>
+      <div class="muted" style="margin-bottom:20px">${esc(tr)}</div>
+      <input id="vPast" class="field" placeholder="Past Simple (V2)" autocomplete="off" style="text-align:center;margin-bottom:10px" onkeydown="if(event.key==='Enter')document.getElementById('vPart').focus()">
+      <input id="vPart" class="field" placeholder="Past Participle (V3)" autocomplete="off" style="text-align:center" onkeydown="if(event.key==='Enter')checkVerb()">
+      <div id="vResult" style="min-height:26px;margin-top:14px;font-weight:600"></div>
+      <button class="btn primary" style="margin-top:6px;width:100%" onclick="checkVerb()">Проверить</button>
+    </div></div>`;
+  setTimeout(()=>document.getElementById('vPast')?.focus(),50);
+};
+function nextVerb(){vb.q=VERBS[Math.floor(Math.random()*VERBS.length)];vb.checked=false}
+function checkVerb(){if(vb.checked){VIEWS.verbs();return}
+  const [inf,p2,p3,tr]=vb.q;
+  const a2=val('vPast').toLowerCase(),a3=val('vPart').toLowerCase();
+  const ok2=p2.split('/').some(x=>x.trim()===a2), ok3=p3.split('/').some(x=>x.trim()===a3);
+  const ok=ok2&&ok3;const res=document.getElementById('vResult');
+  if(ok){S.verbStats.correct++;res.innerHTML=`<span style="color:var(--ok)">✓ Верно! ${inf} — ${p2} — ${p3}</span>`}
+  else{S.verbStats.wrong++;res.innerHTML=`<span style="color:var(--danger)">✗ Правильно: ${p2} — ${p3}</span>`}
+  save();vb.checked=true;
+  const btn=document.querySelector('#view .btn.primary');if(btn)btn.textContent='Следующий →';
+}
+function showVerbTable(){openModal(modalShell('Таблица глаголов',`
+  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px">
+  <tr style="color:var(--muted);text-align:left"><th style="padding:6px">Infinitive</th><th>Past</th><th>Participle</th><th>Перевод</th></tr>
+  ${VERBS.map(v=>`<tr style="border-top:1px solid var(--line)"><td style="padding:7px 6px"><b>${v[0]}</b></td><td>${v[1]}</td><td>${v[2]}</td><td class="muted">${v[3]}</td></tr>`).join('')}
+  </table></div>`,''))}
+
+/* ---------- 7. VOCAB / WORD OF DAY ---------- */
+const WORD_POOL=[["serendipity","приятная случайность","It was pure serendipity that we met."],["eloquent","красноречивый","She gave an eloquent speech."],["resilient","жизнестойкий","Children are remarkably resilient."],["ubiquitous","вездесущий","Smartphones are now ubiquitous."],["meticulous","дотошный","He is meticulous about details."],["procrastinate","откладывать","Stop procrastinating and start now."],["ambiguous","двусмысленный","The ending was ambiguous."],["diligent","прилежный","A diligent student always prepares."],["nostalgia","ностальгия","The song filled her with nostalgia."],["candid","откровенный","Let me be candid with you."],["vivid","яркий","She has a vivid imagination."],["profound","глубокий","A profound impact on society."]];
+function ensureWord(){if(S.wordDate!==todayISO()){const w=WORD_POOL[Math.floor(Math.random()*WORD_POOL.length)];S.wordToday={w:w[0],t:w[1],ex:w[2]};S.wordDate=todayISO();save()}}
+let vocSearch='';
+VIEWS.vocab=()=>{
+  ensureWord();
+  setActions(`<button class="btn primary" onclick="editWord()">＋ Слово</button>`);
+  V().innerHTML=`
+  <div class="card" style="background:var(--grad);border:none;color:#fff;margin-bottom:18px">
+    <div class="row"><div style="flex:1"><div style="opacity:.85;font-size:13px">💡 Слово дня</div>
+      <div style="font-size:30px;font-weight:800;margin-top:2px">${esc(S.wordToday.w)}</div>
+      <div style="opacity:.9">${esc(S.wordToday.t)}</div>
+      <div style="opacity:.8;font-style:italic;margin-top:6px">“${esc(S.wordToday.ex)}”</div></div>
+      <button class="btn sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="addWordOfDay()">＋ В словарь</button>
+    </div></div>
+  <div class="row" style="margin-bottom:14px">
+    <input class="field" style="max-width:300px" placeholder="🔍 Поиск слова..." value="${esc(vocSearch)}" oninput="vocSearch=this.value;renderVocab()"></div>
+  <div id="vocList"></div>`;
+  renderVocab();
+};
+function addWordOfDay(){const w=S.wordToday;if(S.vocab.some(v=>v.w===w.w))return toast('Уже в словаре');
+  S.vocab.unshift({id:uid(),w:w.w,t:w.t,ex:w.ex,learned:false});save();renderVocab();renderNav();toast('Добавлено в словарь ✓')}
+function renderVocab(){let items=S.vocab.filter(v=>!vocSearch||(v.w+v.t).toLowerCase().includes(vocSearch.toLowerCase()));
+  const el=document.getElementById('vocList');if(!el)return;
+  if(!items.length){el.innerHTML=emptyState('💡','Словарь пуст','Добавляй новые слова, которые изучаешь');return}
+  el.innerHTML=`<div class="grid g-auto">`+items.map(v=>`
+    <div class="card" style="${v.learned?'opacity:.6':''}">
+      <div class="row"><div style="flex:1"><div class="item-title">${esc(v.w)}</div>
+        <div class="muted small">${esc(v.t)}</div></div>
+        <button class="mini-btn" onclick="toggleLearned('${v.id}')" title="Выучено">${v.learned?'✅':'⬜'}</button>
+        <button class="mini-btn del" onclick="delWord('${v.id}')">🗑️</button></div>
+      ${v.ex?`<div class="small" style="margin-top:8px;font-style:italic;color:var(--muted)">“${esc(v.ex)}”</div>`:''}
+    </div>`).join('')+`</div>`;
+}
+function toggleLearned(id){const v=S.vocab.find(x=>x.id===id);v.learned=!v.learned;save();renderVocab()}
+function editWord(){openModal(modalShell('Новое слово',`
+  <label class="lbl">Слово (English)</label><input id="wW" class="field" placeholder="word">
+  <label class="lbl" style="margin-top:12px">Перевод</label><input id="wT" class="field" placeholder="перевод">
+  <label class="lbl" style="margin-top:12px">Пример (необязательно)</label><input id="wE" class="field" placeholder="Example sentence">
+`,`<button class="btn primary" onclick="saveWord()">Добавить</button>`))}
+function saveWord(){const w=val('wW');if(!w)return toast('Введите слово');
+  S.vocab.unshift({id:uid(),w,t:val('wT'),ex:val('wE'),learned:false});save();closeModal();VIEWS.vocab();renderNav();toast('Добавлено ✓')}
+function delWord(id){S.vocab=S.vocab.filter(x=>x.id!==id);save();renderVocab();renderNav()}
+
+/* ---------- 8. STUDENTS ---------- */
+VIEWS.students=()=>{
+  setActions(`<button class="btn primary" onclick="editStudent()">＋ Ученик</button>`);
+  if(!S.students.length){V().innerHTML=emptyState('👩‍🎓','Учеников нет','Добавь учеников или группы');return}
+  V().innerHTML=`<div class="grid g-auto">`+S.students.map(st=>`
+    <div class="card">
+      <div class="row"><div style="width:44px;height:44px;border-radius:50%;background:var(--grad);display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff">${esc((st.name||'?')[0].toUpperCase())}</div>
+        <div style="flex:1"><div class="item-title">${esc(st.name)}</div>
+          <div class="muted small">${esc(st.level||'—')} ${st.group?'· '+esc(st.group):''}</div></div>
+        <button class="mini-btn" onclick="editStudent('${st.id}')">✏️</button>
+        <button class="mini-btn del" onclick="delStudent('${st.id}')">🗑️</button></div>
+      ${st.contact?`<div class="small muted" style="margin-top:8px">📞 ${esc(st.contact)}</div>`:''}
+      ${st.note?`<div class="small" style="margin-top:6px">${esc(st.note)}</div>`:''}
+    </div>`).join('')+`</div>`;
+};
+function editStudent(id){const st=S.students.find(x=>x.id===id)||{level:'A2'};
+  openModal(modalShell(id?'Ученик':'Новый ученик',`
+    <label class="lbl">Имя</label><input id="sName" class="field" value="${esc(st.name||'')}" placeholder="Анна Петрова">
+    <div class="grid g2" style="margin-top:12px">
+      <div><label class="lbl">Уровень</label><select id="sLevel" class="field">${['A1','A2','B1','B2','C1','C2'].map(l=>`<option ${st.level===l?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div><label class="lbl">Группа</label><input id="sGroup" class="field" value="${esc(st.group||'')}" placeholder="Группа A"></div></div>
+    <label class="lbl" style="margin-top:12px">Контакт</label><input id="sContact" class="field" value="${esc(st.contact||'')}" placeholder="@telegram / телефон">
+    <label class="lbl" style="margin-top:12px">Заметка</label><textarea id="sNote" class="field" placeholder="Цели, особенности...">${esc(st.note||'')}</textarea>
+  `,`<button class="btn primary" onclick="saveStudent('${id||''}')">Сохранить</button>`));
+}
+function saveStudent(id){const name=val('sName');if(!name)return toast('Введите имя');
+  const o={name,level:val('sLevel'),group:val('sGroup'),contact:val('sContact'),note:val('sNote')};
+  if(id){Object.assign(S.students.find(x=>x.id===id),o)}else{S.students.unshift({id:uid(),...o})}
+  save();closeModal();VIEWS.students();renderNav();toast('Сохранено ✓')}
+function delStudent(id){confirmDel('Ученик и его записи будут удалены',()=>{S.students=S.students.filter(x=>x.id!==id);save();VIEWS.students();renderNav()})}
+
+/* ---------- 9. JOURNAL (attendance & grades) ---------- */
+let jDate=todayISO();
+VIEWS.journal=()=>{
+  if(!S.students.length){V().innerHTML=emptyState('📊','Сначала добавь учеников','Журнал работает по списку учеников');return}
+  V().innerHTML=`
+  <div class="row" style="margin-bottom:16px">
+    <label class="lbl" style="margin:0">Дата занятия:</label>
+    <input type="date" class="field" style="max-width:180px" value="${jDate}" onchange="jDate=this.value;VIEWS.journal()"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    ${S.students.map(st=>{const k=st.id+'|'+jDate;const rec=S.attendance[k]||{};
+      return `<div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)">
+        <div style="flex:1"><b>${esc(st.name)}</b> <span class="muted small">${esc(st.level||'')}</span></div>
+        <button class="chip ${rec.present==='y'?'active':''}" onclick="setAtt('${k}','present','y')">✓ был</button>
+        <button class="chip ${rec.present==='n'?'active':''}" onclick="setAtt('${k}','present','n')">✕ нет</button>
+        <select class="field" style="max-width:90px" onchange="setAtt('${k}','grade',this.value)">
+          <option value="">Оценка</option>${[5,4,3,2].map(g=>`<option ${rec.grade==g?'selected':''}>${g}</option>`).join('')}</select>
+      </div>`}).join('')}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="section-head"><h2>📈 Статистика посещаемости</h2></div>
+    ${S.students.map(st=>{const recs=Object.entries(S.attendance).filter(([k])=>k.startsWith(st.id+'|')).map(([,v])=>v);
+      const total=recs.filter(r=>r.present).length;const pres=recs.filter(r=>r.present==='y').length;
+      const grades=recs.map(r=>+r.grade).filter(Boolean);const avg=grades.length?(grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(1):'—';
+      const pct=total?Math.round(pres/total*100):0;
+      return `<div style="margin-bottom:12px"><div class="row"><span style="flex:1">${esc(st.name)}</span>
+        <span class="muted small">посещ. ${pct}% · ср.балл ${avg}</span></div>
+        <div class="progress" style="margin-top:5px"><i style="width:${pct}%"></i></div></div>`}).join('')}
+  </div>`;
+};
+function setAtt(k,f,v){S.attendance[k]=S.attendance[k]||{};
+  if(f==='present'&&S.attendance[k].present===v)v='';S.attendance[k][f]=v;save();
+  if(f==='present')VIEWS.journal()}
+
+/* ---------- 10. SCHEDULE ---------- */
+const DAYS=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+VIEWS.schedule=()=>{
+  setActions(`<button class="btn primary" onclick="editLesson()">＋ Урок</button>`);
+  V().innerHTML=`<div class="grid" style="gap:14px">`+[1,2,3,4,5,6,0].map(d=>{
+    const ls=S.lessons.filter(l=>l.day==d).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const today=new Date().getDay()==d;
+    return `<div class="card" ${today?'style="border-color:var(--accent)"':''}>
+      <div class="section-head"><h2>${DAYS[d]} ${today?'<span class="tag" style="background:var(--accent);color:#fff">сегодня</span>':''}</h2></div>
+      ${ls.length?ls.map(l=>`<div class="item" style="margin-bottom:8px"><div class="row">
+        <b style="min-width:52px">${esc(l.time||'—')}</b><span style="flex:1">${esc(l.title)}</span>
+        <span class="tag">${esc(l.group||'')}</span>
+        <button class="mini-btn" onclick="editLesson('${l.id}')">✏️</button>
+        <button class="mini-btn del" onclick="delLesson('${l.id}')">🗑️</button></div></div>`).join(''):
+        `<div class="muted small">Нет уроков</div>`}
+    </div>`}).join('')+`</div>`;
+};
+function editLesson(id){const l=S.lessons.find(x=>x.id===id)||{day:1};
+  openModal(modalShell(id?'Урок':'Новый урок',`
+    <label class="lbl">Название / тема</label><input id="lsTitle" class="field" value="${esc(l.title||'')}" placeholder="Speaking club B1">
+    <div class="grid g2" style="margin-top:12px">
+      <div><label class="lbl">День</label><select id="lsDay" class="field">${[1,2,3,4,5,6,0].map(d=>`<option value="${d}" ${l.day==d?'selected':''}>${DAYS[d]}</option>`).join('')}</select></div>
+      <div><label class="lbl">Время</label><input id="lsTime" type="time" class="field" value="${esc(l.time||'')}"></div></div>
+    <label class="lbl" style="margin-top:12px">Группа / ученик</label><input id="lsGroup" class="field" value="${esc(l.group||'')}" placeholder="Группа A">
+  `,`<button class="btn primary" onclick="saveLesson('${id||''}')">Сохранить</button>`));
+}
+function saveLesson(id){const title=val('lsTitle');if(!title)return toast('Введите тему');
+  const o={title,day:+val('lsDay'),time:val('lsTime'),group:val('lsGroup')};
+  if(id){Object.assign(S.lessons.find(x=>x.id===id),o)}else{S.lessons.unshift({id:uid(),...o})}
+  save();closeModal();VIEWS.schedule();renderNav();toast('Сохранено ✓')}
+function delLesson(id){S.lessons=S.lessons.filter(x=>x.id!==id);save();VIEWS.schedule();renderNav()}
+
+/* ---------- 11. TASKS ---------- */
+VIEWS.tasks=()=>{
+  V().innerHTML=`
+  <div class="card" style="margin-bottom:16px"><div class="row">
+    <input id="taskInput" class="field" style="flex:1" placeholder="Что нужно сделать?" onkeydown="if(event.key==='Enter')addTask()">
+    <button class="btn primary" onclick="addTask()">＋ Добавить</button></div></div>
+  <div id="taskList"></div>`;
+  renderTasks();
+};
+function renderTasks(){const active=S.tasks.filter(t=>!t.done),done=S.tasks.filter(t=>t.done);
+  const el=document.getElementById('taskList');
+  if(!S.tasks.length){el.innerHTML=emptyState('✅','Задач нет','Добавь первую задачу выше');return}
+  el.innerHTML=`
+    ${active.map(taskRow).join('')}
+    ${done.length?`<div class="muted small" style="margin:18px 0 8px">Выполнено (${done.length})</div>`+done.map(taskRow).join(''):''}`;
+}
+function taskRow(t){return `<label class="item" style="display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;${t.done?'opacity:.55':''}">
+  <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}');renderTasks();renderNav()">
+  <span style="flex:1;${t.done?'text-decoration:line-through':''}">${esc(t.text)}</span>
+  <button class="mini-btn del" onclick="event.preventDefault();delTask('${t.id}')">🗑️</button></label>`}
+function addTask(){const el=document.getElementById('taskInput');const v=el.value.trim();if(!v)return;
+  S.tasks.unshift({id:uid(),text:v,done:false});save();el.value='';renderTasks();renderNav()}
+function toggleTask(id){const t=S.tasks.find(x=>x.id===id);if(t){t.done=!t.done;save()}}
+function delTask(id){S.tasks=S.tasks.filter(x=>x.id!==id);save();renderTasks();renderNav()}
+
+/* ---------- 12. TIMER ---------- */
+let timer={remain:25*60,dur:25*60,running:false,int:null,mode:'Фокус'};
+VIEWS.timer=()=>{
+  V().innerHTML=`<div style="max-width:420px;margin:0 auto;text-align:center">
+    <div class="row" style="justify-content:center;margin-bottom:20px">
+      ${[['Фокус',25],['Короткий',5],['Длинный',15],['Урок',45]].map(([n,m])=>`<button class="chip ${timer.mode===n?'active':''}" onclick="setTimer('${n}',${m})">${n} ${m}м</button>`).join('')}
+    </div>
+    <div class="card" style="padding:36px">
+      <svg width="220" height="220" viewBox="0 0 220 220" style="transform:rotate(-90deg)">
+        <circle cx="110" cy="110" r="100" fill="none" stroke="var(--line)" stroke-width="12"/>
+        <circle id="timerRing" cx="110" cy="110" r="100" fill="none" stroke="url(#tg)" stroke-width="12" stroke-linecap="round"
+          stroke-dasharray="628" stroke-dashoffset="${628*(1-timer.remain/timer.dur)}"/>
+        <defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#ff6ec7"/></linearGradient></defs>
+      </svg>
+      <div style="margin-top:-140px;margin-bottom:100px">
+        <div id="timerText" style="font-size:46px;font-weight:800;letter-spacing:-1px">${fmtTime(timer.remain)}</div>
+        <div class="muted small">${timer.mode}</div>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:20px">
+        <button class="btn primary" id="timerBtn" onclick="toggleTimer()" style="min-width:120px">${timer.running?'⏸ Пауза':'▶ Старт'}</button>
+        <button class="btn" onclick="resetTimer()">↻ Сброс</button>
+      </div>
+    </div></div>`;
+};
+function fmtTime(s){return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+function setTimer(n,m){timer.mode=n;timer.dur=m*60;timer.remain=m*60;timer.running=false;clearInterval(timer.int);VIEWS.timer()}
+function toggleTimer(){if(timer.running){clearInterval(timer.int);timer.running=false}
+  else{timer.running=true;timer.int=setInterval(tick,1000)}
+  const b=document.getElementById('timerBtn');if(b)b.textContent=timer.running?'⏸ Пауза':'▶ Старт'}
+function tick(){if(timer.remain<=0){clearInterval(timer.int);timer.running=false;toast('⏰ Время вышло!');
+    try{new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play()}catch(e){}
+    if(route==='timer')VIEWS.timer();return}
+  timer.remain--;const t=document.getElementById('timerText'),r=document.getElementById('timerRing');
+  if(t)t.textContent=fmtTime(timer.remain);
+  if(r)r.setAttribute('stroke-dashoffset',628*(1-timer.remain/timer.dur))}
+function resetTimer(){clearInterval(timer.int);timer.running=false;timer.remain=timer.dur;VIEWS.timer()}
+
+/* ---------- 13. MUSIC ---------- */
+let audioEl=null,curTrack=-1;
+VIEWS.music=()=>{
+  setActions(`<button class="btn primary" onclick="addTrack()">＋ Трек</button>`);
+  V().innerHTML=`
+  <div class="card" style="margin-bottom:16px">
+    <div class="row"><div style="width:56px;height:56px;border-radius:14px;background:var(--grad);display:grid;place-items:center;font-size:26px">🎵</div>
+      <div style="flex:1"><div id="npTitle" class="item-title">${curTrack>=0?esc(S.music[curTrack]?.name||''):'Ничего не играет'}</div>
+        <div class="muted small">Фоновая музыка для урока</div></div></div>
+    <audio id="player" style="width:100%;margin-top:14px" controls></audio>
+  </div>
+  <div class="muted small" style="margin-bottom:12px">💡 Добавь прямые ссылки на .mp3 файлы (например с облака). Плейлист сохраняется.</div>
+  <div id="trackList"></div>`;
+  audioEl=document.getElementById('player');
+  if(curTrack>=0&&S.music[curTrack]){audioEl.src=S.music[curTrack].url}
+  audioEl.onended=()=>{if(curTrack<S.music.length-1)playTrack(curTrack+1)};
+  renderTracks();
+};
+function renderTracks(){const el=document.getElementById('trackList');
+  if(!S.music.length){el.innerHTML=emptyState('🎵','Плейлист пуст','Добавь ссылки на музыку для фона');return}
+  el.innerHTML=S.music.map((t,i)=>`<div class="item" style="margin-bottom:8px;display:flex;align-items:center;gap:12px;${i===curTrack?'border-color:var(--accent)':''}">
+    <button class="btn icon sm" onclick="playTrack(${i})">${i===curTrack?'♪':'▶'}</button>
+    <div style="flex:1"><div style="font-weight:600">${esc(t.name)}</div><div class="muted small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:400px">${esc(t.url)}</div></div>
+    <button class="mini-btn del" onclick="delTrack(${i})">🗑️</button></div>`).join('')}
+function playTrack(i){curTrack=i;const t=S.music[i];if(!audioEl)return;audioEl.src=t.url;audioEl.play().catch(()=>toast('Не удалось воспроизвести ссылку'));
+  document.getElementById('npTitle').textContent=t.name;renderTracks()}
+function addTrack(){openModal(modalShell('Добавить трек',`
+  <label class="lbl">Название</label><input id="mName" class="field" placeholder="Lo-fi для чтения">
+  <label class="lbl" style="margin-top:12px">Ссылка на аудио (.mp3)</label><input id="mUrl" class="field" placeholder="https://.../track.mp3">
+`,`<button class="btn primary" onclick="saveTrack()">Добавить</button>`))}
+function saveTrack(){const url=val('mUrl');if(!url)return toast('Нужна ссылка');
+  S.music.push({name:val('mName')||'Без названия',url});save();closeModal();VIEWS.music();toast('Добавлено ✓')}
+function delTrack(i){S.music.splice(i,1);if(curTrack===i)curTrack=-1;save();VIEWS.music()}
+
+/* ---------- 14. ONLINE (embed viewer) ---------- */
+VIEWS.online=()=>{
+  setActions(`<button class="btn primary" onclick="addBookmark()">＋ Закладка</button>`);
+  V().innerHTML=`
+  <div class="card" style="margin-bottom:16px"><div class="row">
+    <input id="urlBar" class="field" style="flex:1" placeholder="Вставь ссылку (YouTube, сайт, статья)..." onkeydown="if(event.key==='Enter')loadUrl()">
+    <button class="btn primary" onclick="loadUrl()">Открыть</button></div>
+    <div class="muted small" style="margin-top:8px">💡 Некоторые сайты запрещают встраивание — тогда открой в новой вкладке кнопкой ↗</div>
+  </div>
+  <div id="bookmarks" class="row" style="margin-bottom:16px"></div>
+  <div class="card" style="padding:0;overflow:hidden;height:520px">
+    <iframe id="frame" style="width:100%;height:100%;border:none;background:#000" allowfullscreen></iframe>
+  </div>`;
+  renderBookmarks();
+};
+function ytEmbed(url){const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{11})/);
+  return m?`https://www.youtube.com/embed/${m[1]}`:url}
+function loadUrl(){let u=val('urlBar');if(!u)return;if(!/^https?:\/\//.test(u))u='https://'+u;
+  document.getElementById('frame').src=ytEmbed(u);
+  setActions(`<a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">Открыть в новой вкладке ↗</a><button class="btn primary" onclick="addBookmark('${esc(u)}')">＋ Закладка</button>`)}
+function renderBookmarks(){const el=document.getElementById('bookmarks');
+  el.innerHTML=S.bookmarks.map((b,i)=>`<span class="chip" onclick="document.getElementById('urlBar').value='${esc(b.url)}';loadUrl()">
+    ${esc(b.name)} <span class="mini-btn del" onclick="event.stopPropagation();delBookmark(${i})" style="padding:0 2px">✕</span></span>`).join('')
+    ||'<span class="muted small">Нет закладок</span>'}
+function addBookmark(u){const url=u||val('urlBar');if(!url)return toast('Введите ссылку');
+  const name=prompt('Название закладки:',url.replace(/^https?:\/\//,'').slice(0,30));if(name===null)return;
+  S.bookmarks.push({name:name||url,url:/^https?:\/\//.test(url)?url:'https://'+url});save();renderBookmarks();toast('Закладка добавлена ✓')}
+function delBookmark(i){S.bookmarks.splice(i,1);save();renderBookmarks()}
+
+/* ---------- 15. SETTINGS ---------- */
+VIEWS.settings=()=>{
+  V().innerHTML=`
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-head"><h2>👤 Профиль</h2></div>
+    <label class="lbl">Твоё имя</label>
+    <div class="row"><input id="pName" class="field" style="flex:1" value="${esc(S.profile.name||'')}" placeholder="Как тебя зовут?">
+      <button class="btn primary" onclick="saveProfile()">Сохранить</button></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-head"><h2>🎨 Тема</h2></div>
+    <div class="row">
+      <button class="chip ${S.profile.theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 Тёмная</button>
+      <button class="chip ${S.profile.theme==='light'?'active':''}" onclick="setTheme('light')">☀️ Светлая</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-head"><h2>💾 Данные</h2></div>
+    <div class="muted small" style="margin-bottom:12px">Все данные хранятся только в этом браузере. Делай бэкапы!</div>
+    <div class="row">
+      <button class="btn" onclick="exportData()">⬇ Экспорт (backup)</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">⬆ Импорт</button>
+      <input type="file" id="importFile" accept=".json" class="hide" onchange="importData(this.files[0])">
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-head"><h2>📊 Статистика</h2></div>
+    <div class="grid g3">
+      <div class="stat"><div class="val">${S.library.length}</div><div class="lab">материалов</div></div>
+      <div class="stat"><div class="val">${S.notes.length}</div><div class="lab">заметок</div></div>
+      <div class="stat"><div class="val">${S.students.length}</div><div class="lab">учеников</div></div>
+      <div class="stat"><div class="val">${S.vocab.length}</div><div class="lab">слов</div></div>
+      <div class="stat"><div class="val">${S.decks.reduce((a,d)=>a+d.cards.length,0)}</div><div class="lab">карточек</div></div>
+      <div class="stat"><div class="val">${S.verbStats.correct}</div><div class="lab">глаголов верно</div></div>
+    </div>
+    <button class="btn danger" style="margin-top:16px" onclick="resetAll()">🗑️ Стереть все данные</button>
+  </div>
+  <div class="empty small" style="padding:24px 0 8px">EnglishSphere · твоя эко-сфера · всё в одном</div>`;
+};
+function saveProfile(){S.profile.name=val('pName');save();document.getElementById('brandSub').textContent=S.profile.name?esc(S.profile.name):'эко-сфера учителя';toast('Профиль сохранён ✓')}
+function setTheme(t){S.profile.theme=t;document.documentElement.setAttribute('data-theme',t);save();VIEWS.settings()}
+function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='englishsphere-backup-'+todayISO()+'.json';a.click();toast('Бэкап скачан ✓')}
+function importData(file){if(!file)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);S=Object.assign(structuredClone(DEFAULT),d);save();applyTheme();renderNav();go('dashboard');toast('Импорт успешен ✓')}catch(e){toast('Ошибка файла')}};r.readAsText(file)}
+function resetAll(){confirmDel('ВСЕ данные будут стёрты без возможности восстановления!',()=>{localStorage.removeItem(KEY);S=load();applyTheme();renderNav();go('dashboard');toast('Данные стёрты')})}
+
+/* ---------- shared ---------- */
+function emptyState(ic,t,s){return `<div class="empty"><div class="ei">${ic}</div><div style="font-weight:700;font-size:16px;color:var(--text)">${t}</div><div class="small" style="margin-top:6px">${s}</div></div>`}
+function modalShell(title,body,footBtn){return `
+  <div class="modal-head"><h3>${title}</h3><button class="x-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body">${body}</div>
+  ${footBtn?`<div class="modal-foot"><button class="btn" onclick="closeModal()">Отмена</button>${footBtn}</div>`:''}`}
+function applyTheme(){document.documentElement.setAttribute('data-theme',S.profile.theme||'dark')}
+
+/* ---------- INIT ---------- */
+applyTheme();
+if(S.profile.name)document.getElementById('brandSub').textContent=esc(S.profile.name);
+renderNav();
+go('dashboard');
+</script>
+</body>
+</html>
