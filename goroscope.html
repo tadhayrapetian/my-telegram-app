@@ -699,6 +699,8 @@
         <button class="btn-export" onclick="exportCurrent()">⬇ Сохранить / поделиться слайдом</button>
         <button class="btn-export-all" onclick="exportAll()">⬇ Сохранить / поделиться всеми</button>
     </div>
+
+    <button class="btn-sm" style="width:100%;margin-top:10px;opacity:0.75" onclick="if(confirm('Заблокировать доступ на этом устройстве? В следующий раз снова спросит код.')){try{localStorage.removeItem('pc_unlocked_v1');}catch(e){} location.reload();}">🔒 Заблокировать доступ</button>
 </div>
 
 <div class="preview-area">
