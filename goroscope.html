@@ -11,6 +11,38 @@
 <style>*{box-sizing:border-box}html,body{margin:0;padding:0}img{max-width:100%}</style>
 </head>
 <body>
+
+<div id="pinGate" style="position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,#feda75,#fa7e1e,#d62976,#962fbf,#4f5bd5);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif">
+  <div style="width:min(90vw,340px);background:rgba(20,16,30,0.55);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.25);border-radius:24px;padding:34px 28px;text-align:center;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,0.35)">
+    <div style="font-size:44px;margin-bottom:8px">🔒</div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:4px">Конструктор постов</div>
+    <div style="font-size:14px;opacity:0.8;margin-bottom:20px">Введите код доступа</div>
+    <input id="pinInput" type="password" inputmode="numeric" autocomplete="off" placeholder="••••" style="width:100%;padding:14px;font-size:22px;text-align:center;letter-spacing:8px;border:none;border-radius:14px;background:rgba(255,255,255,0.92);color:#141413;outline:none;margin-bottom:16px">
+    <button id="pinBtn" style="width:100%;padding:14px;font-size:16px;font-weight:600;border:none;border-radius:14px;background:#fff;color:#962fbf;cursor:pointer">Войти</button>
+    <div id="pinErr" style="min-height:18px;margin-top:10px;font-size:13px;color:#ffdada"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var HASH="5a02ef00b4ef9b912733ec4441febeb3a4a57122ae5fcc57bd079b26e07215cf", KEY="pc_unlocked_v1";
+  var gate=document.getElementById('pinGate'),inp=document.getElementById('pinInput'),btn=document.getElementById('pinBtn'),err=document.getElementById('pinErr');
+  function unlock(){ try{localStorage.setItem(KEY,'1');}catch(e){} document.documentElement.style.overflow=''; if(gate&&gate.parentNode)gate.parentNode.removeChild(gate); }
+  try{ if(localStorage.getItem(KEY)==='1'){ unlock(); return; } }catch(e){}
+  document.documentElement.style.overflow='hidden';
+  function toHex(buf){ return Array.prototype.map.call(new Uint8Array(buf),function(x){return('0'+x.toString(16)).slice(-2);}).join(''); }
+  async function check(){
+    var v=(inp.value||'').trim(); if(!v)return; err.textContent='';
+    try{
+      var data=new TextEncoder().encode(v);
+      var digest=await crypto.subtle.digest('SHA-256',data);
+      if(toHex(digest)===HASH){ unlock(); } else { err.textContent='Неверный код'; inp.value=''; inp.focus(); }
+    }catch(e){ err.textContent='Ошибка проверки (нужен https)'; }
+  }
+  btn.addEventListener('click',check);
+  inp.addEventListener('keydown',function(e){ if(e.key==='Enter')check(); });
+  setTimeout(function(){ try{inp.focus();}catch(e){} },120);
+})();
+</script>
 <style>
     @font-face {
         font-family: 'Playfair Display';
