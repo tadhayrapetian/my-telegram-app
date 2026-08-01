@@ -8,6 +8,10 @@
 <meta name="apple-mobile-web-app-title" content="Post Builder">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMjQiIHkxPSIxNTgiIHgyPSIxNTgiIHkyPSIyNCI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZlZGE3NSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjAuMjUiIHN0b3AtY29sb3I9IiNmYTdlMWUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjUiIHN0b3AtY29sb3I9IiNkNjI5NzYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIwLjc4IiBzdG9wLWNvbG9yPSIjOTYyZmJmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzRmNWJkNSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxODAiIHJ4PSI0MiIgZmlsbD0idXJsKCNnKSIvPgogIDxyZWN0IHg9IjY3IiB5PSI0NyIgd2lkdGg9IjM4IiBoZWlnaHQ9IjIzIiByeD0iOSIgZmlsbD0iI2ZmZiIvPgogIDxyZWN0IHg9IjM3IiB5PSI2MSIgd2lkdGg9IjEwNiIgaGVpZ2h0PSI3NiIgcng9IjI0IiBmaWxsPSIjZmZmIi8+CiAgPGNpcmNsZSBjeD0iOTAiIGN5PSI5OSIgcj0iMjciIGZpbGw9InVybCgjZykiLz4KICA8Y2lyY2xlIGN4PSI5MCIgY3k9Ijk5IiByPSIxMi41IiBmaWxsPSIjZmZmIi8+CiAgPGNpcmNsZSBjeD0iMTE5IiBjeT0iNzkiIHI9IjYuNSIgZmlsbD0idXJsKCNnKSIvPgo8L3N2Zz4K">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+<!-- TELEGRAM WEB APP SCRIPT -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>*{box-sizing:border-box}html,body{margin:0;padding:0}img{max-width:100%}</style>
 </head>
 <body>
@@ -65,13 +69,16 @@
         --glass: rgba(255, 255, 255, 0.48);
         --glass-border: rgba(255, 255, 255, 0.65);
         --ring: rgba(184, 92, 55, 0.22);
+        /* Высота окна. В Telegram подменяется на стабильную высоту вьюпорта — там 100vh врёт. */
+        --app-h: 100vh;
+        --tg-top: 0px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
         font-family: 'Inter', -apple-system, 'Helvetica Neue', Arial, sans-serif;
         display: flex;
-        height: 100vh;
+        height: var(--app-h);
         color: var(--text-dark);
         overflow: hidden;
         padding: 14px;
@@ -309,7 +316,7 @@
         box-shadow: 0 14px 44px rgba(31, 38, 60, 0.12), inset 0 1px 0 rgba(255,255,255,0.6);
     }
     #previewCanvas {
-        width: min(540px, calc(100vw - 590px), calc((100vh - 160px) * 0.8));
+        width: min(540px, calc(100vw - 590px), calc((var(--app-h) - 160px) * 0.8));
         height: auto;
         border-radius: 16px;
         box-shadow: 0 18px 50px rgba(31, 38, 60, 0.28);
@@ -395,15 +402,24 @@
     }
     @media (max-width: 820px), (pointer: coarse) and (orientation: portrait) {
         html, body { height: auto; }
-        body { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; padding: 10px; gap: 10px; }
+        body { flex-direction: column; height: auto; min-height: var(--app-h); overflow: auto; padding: 10px; gap: 10px; }
         .controls-panel { width: 100%; min-width: 0; height: auto; max-height: none; overflow: visible; order: 2; }
         .preview-area { width: 100%; order: 1; padding: 12px; }
         #previewCanvas { width: min(90vw, 52vh); }
         .export-actions { position: static; bottom: auto; }
     }
     @media (pointer: coarse) and (orientation: landscape) {
-        body { flex-direction: row; height: 100vh; overflow: hidden; }
+        body { flex-direction: row; height: var(--app-h); overflow: hidden; }
         .controls-panel { width: 430px; min-width: 430px; height: 100%; overflow-y: auto; }
+    }
+
+    /* ---------- Telegram Mini App ---------- */
+    /* Класс вешается только когда страница реально открыта внутри Telegram. */
+    html.tg-app body {
+        padding-top: calc(14px + var(--tg-top));
+    }
+    @media (max-width: 820px), (pointer: coarse) and (orientation: portrait) {
+        html.tg-app body { padding-top: calc(10px + var(--tg-top)); }
     }
 </style>
 <div class="controls-panel">
@@ -2215,6 +2231,41 @@ previewCanvas.addEventListener("wheel", e => {
 // ================= Экспорт =================
 function isNative() { return !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.bridge); }
 
+// ================= Telegram Mini App =================
+const TG = (window.Telegram && window.Telegram.WebApp) || null;
+
+// Скрипт telegram-web-app.js отдаёт объект WebApp в любом браузере, поэтому одного
+// его наличия мало — платформа "unknown" означает, что мы вне Telegram.
+function isTelegram() { return !!(TG && TG.platform && TG.platform !== "unknown"); }
+
+function setupTelegram() {
+    if (!isTelegram()) return;
+    document.documentElement.classList.add("tg-app");
+
+    const call = (fn, ...args) => { try { return fn && fn.apply(TG, args); } catch (e) { /* старая версия клиента */ } };
+
+    call(TG.ready);
+    call(TG.expand);
+    // Свайп вниз внутри редактора закрывал бы мини-апп посреди работы.
+    call(TG.disableVerticalSwipes);
+    call(TG.setHeaderColor, "#f1efec");
+    call(TG.setBackgroundColor, "#f1efec");
+
+    function syncViewport() {
+        const h = TG.viewportStableHeight || TG.viewportHeight;
+        if (h) document.documentElement.style.setProperty("--app-h", h + "px");
+        const inset = (TG.safeAreaInset && TG.safeAreaInset.top) || 0;
+        const content = (TG.contentSafeAreaInset && TG.contentSafeAreaInset.top) || 0;
+        document.documentElement.style.setProperty("--tg-top", (inset + content) + "px");
+    }
+    syncViewport();
+    call(TG.onEvent, "viewportChanged", syncViewport);
+    call(TG.onEvent, "safeAreaChanged", syncViewport);
+    call(TG.onEvent, "contentSafeAreaChanged", syncViewport);
+    // Пересчёт после поворота: Telegram присылает размеры с задержкой.
+    window.addEventListener("orientationchange", () => setTimeout(syncViewport, 250));
+}
+
 function dataURLToBlob(dataURL) {
     const parts = dataURL.split(",");
     const mime = (parts[0].match(/:(.*?);/) || [null, "application/octet-stream"])[1];
@@ -2506,6 +2557,7 @@ new MutationObserver(forceSectionsOpen).observe(document.getElementById("dynamic
 
 // ================= Инициализация =================
 (function init() {
+    setupTelegram();
     forceSectionsOpen();
     try {
         const saved = localStorage.getItem("proj45_autosave");
