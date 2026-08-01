@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Автосубтитры для сторис — армянский, русский, английский</title>
+<meta name="description" content="Автоматические субтитры для вертикальных видео: армянский с переключением на русский и английский, пословные таймкоды и полная настройка стиля.">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="subtitles/styles.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Автосубтитры · Ինքնաշխատ ենթագրեր</h1>
+    <div class="sub">Армянский + русский + английский в одном ролике — каждое слово так, как оно звучит</div>
+  </div>
+  <div class="spacer"></div>
+  <button id="helpBtn" class="ghost">? Как пользоваться</button>
+</header>
+
+<main class="layout">
+
+  <!-- ================= Сцена ================= -->
+  <section class="stage">
+    <div class="player empty" id="player">
+      <video id="video" playsinline preload="metadata"></video>
+      <canvas id="overlay"></canvas>
+      <div class="drop" id="drop">
+        <div style="font-size:34px">🎬</div>
+        <div><b>Перетащите видео сюда</b><br>или нажмите, чтобы выбрать файл</div>
+        <div style="font-size:11.5px;opacity:.7">MP4, MOV, WebM, а также аудио: m4a, mp3, wav</div>
+      </div>
+    </div>
+
+    <div class="transport">
+      <button id="playBtn">▶</button>
+      <input type="range" id="seek" min="0" max="0" step="0.01" value="0">
+      <span class="time" id="timeLabel">0:00 / 0:00</span>
+    </div>
+
+    <div class="card">
+      <div class="row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <b style="font-size:14px">Реплики</b>
+        <span class="hint" id="cueCount"></span>
+        <span style="flex:1"></span>
+        <button class="mini" id="addCue">+ реплика</button>
+        <button class="mini danger" id="clearCues">Очистить</button>
+      </div>
+      <div class="cues" id="cueList"></div>
+      <div class="hint" style="margin-top:8px">
+        Клик по реплике — перемотка к ней. <b>⇤ / ⇥</b> — поставить начало/конец по текущему кадру,
+        <b>✂</b> — разделить, <b>⇓</b> — склеить со следующей. Пробел — пауза, ← → — шаг на 0,1 с (с Shift — на 1 с).
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Панель ================= -->
+  <aside class="panel-wrap">
+    <nav class="tabs">
+      <button data-tab="source" class="active">Видео</button>
+      <button data-tab="asr">Распознавание</button>
+      <button data-tab="seg">Разбивка</button>
+      <button data-tab="style">Стиль</button>
+      <button data-tab="export">Экспорт</button>
+    </nav>
+
+    <!-- ---- Видео ---- -->
+    <div class="tabpane active" id="pane-source">
+      <div class="card stack">
+        <label>Файл видео или аудио</label>
+        <input type="file" id="fileInput" accept="video/*,audio/*">
+        <div class="hint" id="videoInfo">Файл не выбран</div>
+        <div class="ctrl inline">
+          <label for="guides">Показывать безопасную зону сторис</label>
+          <span class="switch"><input type="checkbox" id="guides"><span></span></span>
+        </div>
+      </div>
+
+      <div class="card stack" style="margin-top:12px">
+        <b style="font-size:13px">Свой шрифт</b>
+        <div class="hint">Подключите любой .ttf/.otf с армянскими буквами — он появится в стиле как «Свой шрифт».</div>
+        <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2">
+      </div>
+
+      <div class="card stack" style="margin-top:12px">
+        <b style="font-size:13px">Проект</b>
+        <div class="hint">Сохраняйте проект (реплики + стиль) в JSON, чтобы вернуться к нему позже.</div>
+        <label>Загрузить проект .json</label>
+        <input type="file" id="importJson" accept=".json">
+        <label style="margin-top:6px">Импорт готовых субтитров .srt / .vtt</label>
+        <input type="file" id="importSub" accept=".srt,.vtt,.txt">
+      </div>
+    </div>
+
+    <!-- ---- Распознавание ---- -->
+    <div class="tabpane" id="pane-asr">
+      <div class="card stack">
+        <div class="ctrl">
+          <label for="asrProvider">Движок распознавания</label>
+          <select id="asrProvider">
+            <option value="elevenlabs">ElevenLabs Scribe — лучше всего понимает армянский</option>
+            <option value="openai">OpenAI Whisper</option>
+          </select>
+        </div>
+
+        <div id="elevenFields" class="stack">
+          <div class="ctrl">
+            <label for="elevenKey">Ключ ElevenLabs (xi-api-key)</label>
+            <input type="password" id="elevenKey" placeholder="sk_..." spellcheck="false">
+          </div>
+          <div class="ctrl">
+            <label for="elevenModel">Модель</label>
+            <input type="text" id="elevenModel" spellcheck="false">
+          </div>
+        </div>
+
+        <div id="openaiFields" class="stack" style="display:none">
+          <div class="ctrl">
+            <label for="openaiKey">Ключ OpenAI</label>
+            <input type="password" id="openaiKey" placeholder="sk-..." spellcheck="false">
+          </div>
+          <div class="ctrl">
+            <label for="openaiModel">Модель (пословные таймкоды даёт whisper-1)</label>
+            <input type="text" id="openaiModel" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="ctrl">
+          <label for="asrLang">Язык</label>
+          <select id="asrLang">
+            <option value="">Авто — смешанная речь (рекомендуется)</option>
+            <option value="hy">Только армянский (hy)</option>
+            <option value="ru">Только русский (ru)</option>
+            <option value="en">Только английский (en)</option>
+          </select>
+          <div class="hint">
+            Если в ролике вы переключаетесь между языками — оставьте <b>Авто</b>.
+            Жёсткий выбор языка заставит движок «переводить» чужие слова в один алфавит.
+          </div>
+        </div>
+
+        <div class="ctrl">
+          <label for="asrPrompt">Подсказка: имена, названия, термины</label>
+          <textarea id="asrPrompt" placeholder="Երևան, Гюмри, Tadeh, Instagram…"></textarea>
+          <div class="hint">Помогает правильно писать имена собственные (работает у Whisper).</div>
+        </div>
+
+        <button class="primary" id="transcribeBtn">🎙 Распознать речь</button>
+        <div class="hint">
+          Звук извлекается прямо в браузере и отправляется только в выбранный сервис.
+          Ключ хранится в этом браузере и никуда больше не уходит.
+        </div>
+      </div>
+
+      <div class="card stack" style="margin-top:12px">
+        <b style="font-size:13px">Словарь автозамен</b>
+        <div class="hint">Правит повторяющиеся ошибки распознавания: слева — как распознаёт, справа — как надо.</div>
+        <div id="dictList" class="stack"></div>
+        <button class="mini" id="addDict">+ правило</button>
+      </div>
+
+      <details class="group" style="margin-top:12px">
+        <summary>⚙️ Продвинутые настройки</summary>
+        <div class="body">
+          <div class="ctrl">
+            <label for="chunkSec">Длина куска при распознавании, сек</label>
+            <input type="number" id="chunkSec" min="30" max="3600" step="30">
+            <div class="hint">Длинное видео режется по тишине на части, таймкоды потом склеиваются.</div>
+          </div>
+          <div class="ctrl">
+            <label for="endpointEleven">Адрес API ElevenLabs</label>
+            <input type="text" id="endpointEleven" spellcheck="false">
+          </div>
+          <div class="ctrl">
+            <label for="endpointOpenai">Адрес API OpenAI</label>
+            <input type="text" id="endpointOpenai" spellcheck="false">
+          </div>
+          <div class="hint">Здесь можно указать свой прокси, если прямые запросы блокируются.</div>
+        </div>
+      </details>
+    </div>
+
+    <!-- ---- Разбивка ---- -->
+    <div class="tabpane" id="pane-seg">
+      <div class="card stack" style="margin-bottom:12px">
+        <div class="ctrl inline">
+          <label for="autoRebuild">Пересобирать реплики автоматически</label>
+          <span class="switch"><input type="checkbox" id="autoRebuild" checked><span></span></span>
+        </div>
+        <div class="row2">
+          <button id="rebuildBtn">↻ Пересобрать</button>
+          <button id="resetSeg" class="ghost">Сбросить</button>
+        </div>
+        <div class="hint">Пересборка берёт распознанные слова заново, поэтому ручные правки текста потеряются.</div>
+      </div>
+      <div id="segControls"></div>
+    </div>
+
+    <!-- ---- Стиль ---- -->
+    <div class="tabpane" id="pane-style">
+      <div class="card stack" style="margin-bottom:12px">
+        <label for="presetSelect">Пресеты оформления</label>
+        <select id="presetSelect"></select>
+        <div class="row3">
+          <button class="mini" id="savePresetBtn">Сохранить</button>
+          <button class="mini" id="delPresetBtn">Удалить</button>
+          <button class="mini ghost" id="resetStyle">Сбросить</button>
+        </div>
+      </div>
+      <div id="styleControls"></div>
+    </div>
+
+    <!-- ---- Экспорт ---- -->
+    <div class="tabpane" id="pane-export">
+      <div class="card stack">
+        <b style="font-size:13px">Файлы субтитров</b>
+        <div class="row2">
+          <button id="expSrt">SRT</button>
+          <button id="expVtt">VTT</button>
+        </div>
+        <button id="expAss">ASS — со стилем, цветом и караоке</button>
+        <button id="expJson" class="ghost">Проект .json</button>
+        <div class="hint">
+          <b>ASS</b> сохраняет шрифт, цвета, обводку, плашку и подсветку слов — его понимают
+          CapCut (desktop), Premiere, DaVinci, VLC и ffmpeg.
+          <b>SRT</b> — простой текст для Telegram, YouTube и Instagram.
+        </div>
+      </div>
+
+      <div class="card stack" style="margin-top:12px">
+        <b style="font-size:13px">Вшить субтитры в видео</b>
+        <div class="ctrl">
+          <label for="burnScale">Разрешение</label>
+          <select id="burnScale">
+            <option value="1">Как в оригинале</option>
+            <option value="0.75">75%</option>
+            <option value="0.5">50%</option>
+          </select>
+        </div>
+        <div class="row2">
+          <div class="ctrl">
+            <label for="burnFps">Кадры/с</label>
+            <input type="number" id="burnFps" value="30" min="15" max="60" step="1">
+          </div>
+          <div class="ctrl">
+            <label for="burnBitrate">Битрейт, Мбит/с</label>
+            <input type="number" id="burnBitrate" value="12" min="2" max="40" step="1">
+          </div>
+        </div>
+        <button class="good" id="burnBtn">🔥 Записать видео с субтитрами</button>
+        <div class="hint" id="burnInfo"></div>
+        <div class="hint">
+          Запись идёт в реальном времени и со звуком: ролик на 30 секунд пишется 30 секунд.
+          Не сворачивайте вкладку во время записи. Для максимального качества лучше
+          экспортировать ASS и вшить его в монтажной программе.
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-box">
+    <div id="progressTitle">Обработка…</div>
+    <div class="bar"><i id="progressBar"></i></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<dialog id="helpDialog">
+  <h3>Как сделать субтитры</h3>
+  <ol>
+    <li><b>Загрузите видео</b> — перетащите файл в окно превью.</li>
+    <li><b>Вставьте API-ключ</b> во вкладке «Распознавание». Для армянского лучше всего работает
+      ElevenLabs Scribe (ключ берётся в личном кабинете elevenlabs.io), запасной вариант — OpenAI Whisper.
+      Ключ сохраняется только в вашем браузере.</li>
+    <li>Оставьте язык <b>Авто</b> — тогда армянские, русские и английские слова запишутся каждое своим
+      алфавитом, ровно так, как вы их произнесли.</li>
+    <li>Нажмите <b>«Распознать речь»</b>. Программа сама вытащит звук, порежет длинное видео по паузам
+      и соберёт реплики с пословными таймкодами.</li>
+    <li>Во вкладке <b>«Разбивка»</b> настройте, по сколько слов показывать реплику и как её рвать по паузам.</li>
+    <li>Во вкладке <b>«Стиль»</b> настраивается всё: шрифт, размер, цвет, обводка, тень, плашка, положение,
+      анимация появления и подсветка слов «караоке».</li>
+    <li>Поправьте текст в списке реплик, если что-то распозналось не так, и добавьте частые ошибки
+      в <b>словарь автозамен</b>.</li>
+    <li><b>Экспорт:</b> ASS (со всем оформлением), SRT/VTT (простой текст) или запись готового видео
+      с вшитыми субтитрами прямо из браузера.</li>
+  </ol>
+  <p><b>Совет по вшиванию через ffmpeg:</b><br>
+    <code>ffmpeg -i video.mp4 -vf "ass=subs.ass" -c:a copy out.mp4</code></p>
+  <p style="margin-top:10px"><b>Если распознавание ошибается на именах</b> — впишите их в поле «Подсказка»
+    и в словарь автозамен, качество заметно вырастет.</p>
+  <div style="text-align:right;margin-top:14px"><button id="helpClose" class="primary">Понятно</button></div>
+</dialog>
+
+<script type="module" src="subtitles/js/app.js"></script>
+</body>
+</html>
