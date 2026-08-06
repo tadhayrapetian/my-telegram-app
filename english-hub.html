@@ -248,6 +248,7 @@ const DEFAULT={
   library:[], notes:[], students:[], lessons:[], tasks:[],
   decks:[], quizzes:[], vocab:[], music:[], bookmarks:[],
   attendance:{}, // "studentId|date": grade/present
+  grammarProgress:{},
   verbStats:{correct:0,wrong:0},
   wordDate:'', wordToday:null
 };
@@ -283,6 +284,7 @@ const NAV=[
   {id:'flashcards',ic:'🎴',t:'Карточки',s:'Тренажёр словарного запаса'},
   {id:'quizzes',ic:'❓',t:'Квизы',s:'Тесты с автопроверкой'},
   {id:'verbs',ic:'🔤',t:'Глаголы',s:'Неправильные глаголы'},
+  {id:'grammar',ic:'📖',t:'Грамматика',s:'100 тем C1 + упражнения'},
   {id:'vocab',ic:'💡',t:'Слово дня',s:'Личный словарь'},
   {id:'students',ic:'👩‍🎓',t:'Ученики',s:'Группы и профили'},
   {id:'journal',ic:'📊',t:'Журнал',s:'Посещаемость и оценки'},
@@ -299,6 +301,7 @@ function counts(id){switch(id){
   case'students':return S.students.length; case'flashcards':return S.decks.length;
   case'quizzes':return S.quizzes.length; case'tasks':return S.tasks.filter(t=>!t.done).length;
   case'vocab':return S.vocab.length; case'schedule':return S.lessons.length;
+  case'grammar':return (typeof gAuthored==='function'?gAuthored().a:0);
   default:return 0}}
 function renderNav(){
   document.getElementById('nav').innerHTML=NAV.map(n=>{
@@ -966,6 +969,486 @@ function exportData(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'appl
 function importData(file){if(!file)return;const r=new FileReader();
   r.onload=()=>{try{const d=JSON.parse(r.result);S=Object.assign(structuredClone(DEFAULT),d);save();applyTheme();renderNav();go('dashboard');toast('Импорт успешен ✓')}catch(e){toast('Ошибка файла')}};r.readAsText(file)}
 function resetAll(){confirmDel('ВСЕ данные будут стёрты без возможности восстановления!',()=>{localStorage.removeItem(KEY);S=load();applyTheme();renderNav();go('dashboard');toast('Данные стёрты')})}
+
+/* ============ GRAMMAR C1 (Advanced Grammar in Use — 100 units) ============
+   Оригинальные упражнения под каждую тему. Раздел «Времена» (1–8) заполнен,
+   остальные добавляются партиями. Форматы: gap (вписать) и choice (выбор). */
+const GRAMMAR=[
+{sec:'Времена · Tenses',u:[
+  {n:1,t:'Present continuous and present simple 1',ex:[
+    {d:'Раскройте скобки: present simple или present continuous.',items:[
+      {q:'Water ___ (boil) at 100 degrees.',a:'boils'},
+      {q:'Look! The bus ___ (come).',a:'is coming'},
+      {q:"I ___ (not / understand) this question.",a:"do not understand/don't understand"},
+      {q:'She ___ (work) as a nurse at the city hospital.',a:'works'},
+      {q:'Why ___ you ___ (laugh)?',a:['are','laughing']},
+      {q:'We ___ (have) dinner at seven every evening.',a:'have'},
+      {q:'Listen! Someone ___ (sing) next door.',a:'is singing'},
+      {q:"He ___ (not / drink) coffee, only tea.",a:"does not drink/doesn't drink"},
+      {q:'The Earth ___ (go) round the Sun.',a:'goes'},
+      {q:'At the moment I ___ (read) a wonderful novel.',a:'am reading'}]},
+    {d:'Выберите правильную форму.',items:[
+      {q:'This soup ___ delicious.',opts:['is tasting','tastes'],c:1},
+      {q:"I ___ you're right about that.",opts:['am thinking','think'],c:1},
+      {q:'Be quiet! The baby ___.',opts:['sleeps','is sleeping'],c:1},
+      {q:'My father ___ three languages fluently.',opts:['is speaking','speaks'],c:1},
+      {q:'What ___ tonight?',opts:['do you do','are you doing'],c:1},
+      {q:'This flower ___ lovely.',opts:['is smelling','smells'],c:1},
+      {q:'She ___ to the gym twice a week.',opts:['goes','is going'],c:0},
+      {q:'Right now they ___ television.',opts:['watch','are watching'],c:1},
+      {q:'I ___ what you mean now.',opts:['see','am seeing'],c:0},
+      {q:'He ___ a shower, so he can call you back.',opts:['has','is having'],c:1}]},
+    {d:'Вставьте глагол в present simple или present continuous (описание изменений и текущих ситуаций).',items:[
+      {q:'These days more and more people ___ (work) from home.',a:'are working'},
+      {q:'Prices ___ (rise) all the time at the moment.',a:'are rising'},
+      {q:'Normally I ___ (start) work at nine.',a:'start'},
+      {q:'"Where’s Tom?" "He ___ (talk) to the manager."',a:'is talking'},
+      {q:'I ___ (think) of changing my job.',a:'am thinking'},
+      {q:'What ___ this word ___ (mean)?',a:['does','mean']},
+      {q:'The population of the city ___ (grow) rapidly.',a:'is growing'},
+      {q:'She always ___ (forget) where she puts her keys.',a:'forgets'},
+      {q:'I ___ (see) the dentist tomorrow morning.',a:'am seeing'},
+      {q:'Nowadays children ___ (spend) more and more time online.',a:'are spending'}]}]},
+  {n:2,t:'Present continuous and present simple 2',ex:[
+    {d:'Present simple или present continuous? (постоянные и временные ситуации, always + continuous).',items:[
+      {q:'This year I ___ (study) French, but usually I ___ (study) alone.',a:['am studying','study']},
+      {q:'He ___ (always / interrupt) me when I speak!',a:'is always interrupting'},
+      {q:'Water ___ (freeze) when the temperature falls below zero.',a:'freezes'},
+      {q:'They ___ (stay) with friends until their new flat is ready.',a:'are staying'},
+      {q:'My grandmother ___ (live) in a village in the mountains.',a:'lives'},
+      {q:'You ___ (constantly / complain) about your job.',a:'are constantly complaining'},
+      {q:'The company ___ (do) very well these days.',a:'is doing'},
+      {q:'Light ___ (travel) faster than sound.',a:'travels'},
+      {q:'I ___ (not / usually / eat) meat.',a:"do not usually eat/don't usually eat"},
+      {q:'Why ___ you ___ (wear) a coat? It’s warm today.',a:['are','wearing']}]},
+    {d:'Выберите верный вариант.',items:[
+      {q:'The kettle ___. Can you turn it off?',opts:['boils','is boiling'],c:1},
+      {q:'He ___ complaining about something.',opts:['is always','always is'],c:0},
+      {q:'Generally, I ___ well.',opts:['am sleeping','sleep'],c:1},
+      {q:'She ___ better now after the operation.',opts:['feels','is feeling'],c:1},
+      {q:'The train ___ at 6 a.m. every day.',opts:['leaves','is leaving'],c:0},
+      {q:'They ___ a new bridge across the river.',opts:['build','are building'],c:1},
+      {q:'I ___ that you are making a mistake.',opts:['am believing','believe'],c:1},
+      {q:'This week we ___ on a big project.',opts:['work','are working'],c:1},
+      {q:'Ice ___ if you heat it.',opts:['melts','is melting'],c:0},
+      {q:'You ___ very tired today. Are you OK?',opts:['look','are looking'],c:0}]},
+    {d:'Впишите глагол в правильном времени.',items:[
+      {q:'It ___ (rain) a lot in this region in spring.',a:'rains'},
+      {q:'Look out of the window — it ___ (rain)!',a:'is raining'},
+      {q:'These shoes ___ (not / fit) me anymore.',a:"do not fit/don't fit"},
+      {q:'I ___ (get) better at chess these days.',a:'am getting'},
+      {q:'A vegetarian ___ (not / eat) meat.',a:"does not eat/doesn't eat"},
+      {q:'Sam ___ (take) driving lessons this month.',a:'is taking'},
+      {q:'Our teacher ___ (know) a lot about history.',a:'knows'},
+      {q:'Prices ___ (go) up every year.',a:'go'},
+      {q:'She ___ (appear) in a new play this season.',a:'is appearing'},
+      {q:'The sun ___ (rise) in the east.',a:'rises'}]}]},
+  {n:3,t:'Past simple and present perfect',ex:[
+    {d:'Past simple или present perfect?',items:[
+      {q:'I ___ (live) in Paris for three years, but now I live in Rome.',a:'lived'},
+      {q:'She ___ (just / finish) her homework.',a:'has just finished'},
+      {q:'We ___ (see) that film last weekend.',a:'saw'},
+      {q:'___ you ever ___ (be) to Japan?',a:['Have','been']},
+      {q:'He ___ (not / call) me yesterday.',a:"did not call/didn't call"},
+      {q:'They ___ (already / leave) by the time I arrived.',a:'had already left'},
+      {q:'I ___ (know) her since 2010.',a:'have known'},
+      {q:'When ___ you ___ (start) learning English?',a:['did','start']},
+      {q:'The price of petrol ___ (rise) sharply this month.',a:'has risen'},
+      {q:'My parents ___ (get) married in 1995.',a:'got'}]},
+    {d:'Выберите правильную форму.',items:[
+      {q:'I ___ my keys. I can’t find them anywhere.',opts:['lost','have lost'],c:1},
+      {q:'Shakespeare ___ many famous plays.',opts:['wrote','has written'],c:0},
+      {q:'___ your lunch yet?',opts:['Did you have','Have you had'],c:1},
+      {q:'We ___ to that restaurant last Friday.',opts:['went','have gone'],c:0},
+      {q:'She ___ in three different countries so far.',opts:['worked','has worked'],c:1},
+      {q:'He ___ his leg while he was skiing.',opts:['broke','has broken'],c:0},
+      {q:'I ___ this book three times. It’s brilliant.',opts:['read','have read'],c:1},
+      {q:'They ___ the house in 2018.',opts:['bought','have bought'],c:0},
+      {q:'"Where’s Anna?" "She ___ out."',opts:['went','has gone'],c:1},
+      {q:'Scientists ___ a cure for the disease recently.',opts:['found','have found'],c:1}]},
+    {d:'Впишите глагол: past simple или present perfect. Обратите внимание на маркеры времени.',items:[
+      {q:'I ___ (not / see) John today.',a:"have not seen/haven't seen"},
+      {q:'We ___ (meet) at a party two years ago.',a:'met'},
+      {q:'This is the best coffee I ___ (ever / drink).',a:'have ever drunk'},
+      {q:'She ___ (win) the competition last year.',a:'won'},
+      {q:'How long ___ you ___ (have) this car?',a:['have','had']},
+      {q:'He ___ (leave) the office an hour ago.',a:'left'},
+      {q:'They ___ (not / visit) us since Christmas.',a:"have not visited/haven't visited"},
+      {q:'I ___ (finish) the report and sent it yesterday.',a:'finished'},
+      {q:'The team ___ (improve) a lot this season.',a:'has improved'},
+      {q:'What time ___ you ___ (wake) up this morning?',a:['did','wake']}]}]},
+  {n:4,t:'Past continuous and past simple',ex:[
+    {d:'Past simple или past continuous?',items:[
+      {q:'While I ___ (walk) home, it started to rain.',a:'was walking'},
+      {q:'When the phone rang, she ___ (cook) dinner.',a:'was cooking'},
+      {q:'I ___ (break) my arm while I was playing football.',a:'broke'},
+      {q:'They ___ (watch) TV when the lights went out.',a:'were watching'},
+      {q:'He ___ (see) the accident as he was crossing the road.',a:'saw'},
+      {q:'What ___ you ___ (do) at 8 o’clock last night?',a:['were','doing']},
+      {q:'The sun ___ (shine) and the birds were singing.',a:'was shining'},
+      {q:'She fell asleep while she ___ (read).',a:'was reading'},
+      {q:'We ___ (not / expect) you so early.',a:"were not expecting/weren't expecting"},
+      {q:'As soon as I ___ (arrive), everyone stood up.',a:'arrived'}]},
+    {d:'Выберите правильный вариант.',items:[
+      {q:'I ___ TV when you called.',opts:['watched','was watching'],c:1},
+      {q:'She ___ the door and went out.',opts:['opened','was opening'],c:0},
+      {q:'While they ___, a stranger appeared.',opts:['talked','were talking'],c:1},
+      {q:'He ___ his keys and couldn’t open the door.',opts:['lost','was losing'],c:0},
+      {q:'The children ___ in the garden all afternoon.',opts:['played','were playing'],c:1},
+      {q:'When I saw her, she ___ a red dress.',opts:['wore','was wearing'],c:1},
+      {q:'We ___ dinner and then watched a film.',opts:['had','were having'],c:0},
+      {q:'It ___ heavily when we left the house.',opts:['snowed','was snowing'],c:1},
+      {q:'I ___ my leg while I was running.',opts:['hurt','was hurting'],c:0},
+      {q:'What ___ when the fire alarm went off?',opts:['did you do','were you doing'],c:1}]},
+    {d:'Впишите нужную форму глагола.',items:[
+      {q:'I ___ (drive) to work when I heard the news on the radio.',a:'was driving'},
+      {q:'She ___ (not / listen), so she missed the instructions.',a:"was not listening/wasn't listening"},
+      {q:'They ___ (arrive) just as we ___ (leave).',a:['arrived','were leaving']},
+      {q:'The baby ___ (cry) all night.',a:'was crying'},
+      {q:'He ___ (fall) off his bike and ___ (hurt) his knee.',a:['fell','hurt']},
+      {q:'While the teacher ___ (explain) the rule, I took notes.',a:'was explaining'},
+      {q:'We first met while we ___ (study) at university.',a:'were studying'},
+      {q:'I ___ (wait) for the bus when I saw an old friend.',a:'was waiting'},
+      {q:'The dog barked while we ___ (have) breakfast.',a:'were having'},
+      {q:'She ___ (finish) her coffee and left in a hurry.',a:'finished'}]}]},
+  {n:5,t:'Past perfect and past simple',ex:[
+    {d:'Past perfect или past simple?',items:[
+      {q:'By the time we arrived, the film ___ (already / start).',a:'had already started'},
+      {q:'She ___ (never / see) the sea before that trip.',a:'had never seen'},
+      {q:'After he ___ (finish) work, he went home.',a:'had finished'},
+      {q:'I ___ (not / recognise) him because he had grown a beard.',a:"did not recognise/didn't recognise"},
+      {q:'They ___ (eat) everything before we got there.',a:'had eaten'},
+      {q:'When I looked for my phone, I realised I ___ (leave) it at home.',a:'had left'},
+      {q:'He passed the exam because he ___ (study) hard.',a:'had studied'},
+      {q:'The train ___ (leave) when we reached the station.',a:'had left'},
+      {q:'She told me she ___ (see) that film twice.',a:'had seen'},
+      {q:'We ___ (be) very tired, so we went to bed early.',a:'were'}]},
+    {d:'Выберите правильную форму.',items:[
+      {q:'The room was a mess. Someone ___ a party.',opts:['had','had had'],c:1},
+      {q:'When I got up, my sister ___ already ___ .',opts:['had / left','has / left'],c:0},
+      {q:'He ___ me the truth, and I believed him.',opts:['told','had told'],c:0},
+      {q:'They couldn’t get in because they ___ their keys.',opts:['forgot','had forgotten'],c:1},
+      {q:'After she ___ the letter, she burst into tears.',opts:['read','had read'],c:1},
+      {q:'I ___ hungry because I hadn’t eaten all day.',opts:['was','had been'],c:0},
+      {q:'The ground was wet because it ___ .',opts:['rained','had rained'],c:1},
+      {q:'We ___ the museum and then had lunch.',opts:['visited','had visited'],c:0},
+      {q:'By 2020 he ___ three novels.',opts:['wrote','had written'],c:1},
+      {q:'She was nervous because she ___ never ___ a plane before.',opts:['had / flown','has / flown'],c:0}]},
+    {d:'Впишите глагол: past perfect или past simple.',items:[
+      {q:'I ___ (recognise) her at once, although we ___ (not / meet) for years.',a:['recognised',"had not met/hadn't met"]},
+      {q:'When we ___ (get) to the party, most guests ___ (already / go) home.',a:['got','had already gone']},
+      {q:'He ___ (tell) me that he ___ (lose) his job.',a:['told','had lost']},
+      {q:'After the sun ___ (set), it quickly got cold.',a:'had set'},
+      {q:'She ___ (feel) sick because she ___ (eat) too much.',a:['felt','had eaten']},
+      {q:'The letter ___ (arrive) after I ___ (leave).',a:['arrived','had left']},
+      {q:'They ___ (move) to a house they ___ (buy) the year before.',a:['moved','had bought']},
+      {q:'I ___ (know) at once that I ___ (make) a mistake.',a:['knew','had made']},
+      {q:'By the time the police ___ (come), the thief ___ (disappear).',a:['came','had disappeared']},
+      {q:'We ___ (be) glad that we ___ (book) the tickets in advance.',a:['were','had booked']}]}]},
+  {n:6,t:'Present perfect continuous and present perfect',ex:[
+    {d:'Present perfect continuous или present perfect simple?',items:[
+      {q:'I ___ (wait) for over an hour and I’m getting angry.',a:'have been waiting'},
+      {q:'She ___ (write) three emails so far this morning.',a:'has written'},
+      {q:'How long ___ you ___ (learn) English?',a:['have','been learning']},
+      {q:"He's tired because he ___ (work) all day.",a:'has been working'},
+      {q:'We ___ (visit) this city several times.',a:'have visited'},
+      {q:'My hands are dirty because I ___ (repair) the car.',a:'have been repairing'},
+      {q:'They ___ (live) here since 2015.',a:'have lived/have been living'},
+      {q:'I ___ (read) that book, so you can borrow it.',a:'have read'},
+      {q:"It ___ (rain) all day and it still hasn't stopped.",a:'has been raining'},
+      {q:'She ___ (lose) her passport, so she can’t travel.',a:'has lost'}]},
+    {d:'Выберите правильный вариант.',items:[
+      {q:'You look exhausted. What ___ ?',opts:['have you done','have you been doing'],c:1},
+      {q:'I ___ this crossword and I finally finished it.',opts:['have done','have been doing'],c:0},
+      {q:'How many pages ___ so far?',opts:['have you read','have you been reading'],c:0},
+      {q:'She ___ tennis since she was six.',opts:['has played','has been playing'],c:1},
+      {q:'Sorry I’m late — ___ long?',opts:['have you waited','have you been waiting'],c:1},
+      {q:'We ___ each other for twenty years.',opts:['have known','have been knowing'],c:0},
+      {q:'He ___ five cups of coffee today.',opts:['has drunk','has been drinking'],c:0},
+      {q:'The children ___ football in the garden all afternoon.',opts:['have played','have been playing'],c:1},
+      {q:'I ___ this problem and I think I’ve solved it.',opts:['have thought about','have been thinking about'],c:1},
+      {q:'She ___ her keys and can’t get in.',opts:['has lost','has been losing'],c:0}]},
+    {d:'Впишите глагол в нужной форме перфекта.',items:[
+      {q:'I ___ (try) to call you all morning!',a:'have been trying'},
+      {q:'They ___ (build) the new station; it opens next week.',a:'have built'},
+      {q:'Your eyes are red. ___ you ___ (cry)?',a:['Have','been crying']},
+      {q:'We ___ (never / eat) at this restaurant before.',a:'have never eaten'},
+      {q:'She ___ (teach) at this school for ten years.',a:'has taught/has been teaching'},
+      {q:'The number of tourists ___ (increase) recently.',a:'has increased'},
+      {q:'I ___ (feel) unwell all week.',a:'have been feeling'},
+      {q:'He ___ (already / spend) all his salary.',a:'has already spent'},
+      {q:'How long ___ it ___ (snow)?',a:['has','been snowing']},
+      {q:'They ___ (sell) their old flat at last.',a:'have sold'}]}]},
+  {n:7,t:'Past perfect continuous, past perfect and past continuous',ex:[
+    {d:'Выберите: past perfect continuous, past perfect или past continuous.',items:[
+      {q:'She was out of breath because she ___ (run).',a:'had been running'},
+      {q:'When I arrived, they ___ (wait) for two hours.',a:'had been waiting'},
+      {q:'The ground was wet; it ___ (rain) during the night.',a:'had been raining'},
+      {q:'At 9 p.m. yesterday we ___ (drive) home.',a:'were driving'},
+      {q:'He ___ (work) in that firm before he moved abroad.',a:'had worked/had been working'},
+      {q:'I was tired because I ___ (study) all night.',a:'had been studying'},
+      {q:'While she ___ (sleep), someone knocked at the door.',a:'was sleeping'},
+      {q:'They ___ (already / eat) when we invited them out.',a:'had already eaten'},
+      {q:'His clothes were covered in paint; he ___ (paint) the fence.',a:'had been painting'},
+      {q:'The children ___ (play) quietly when I looked in.',a:'were playing'}]},
+    {d:'Выберите правильную форму.',items:[
+      {q:'Her eyes were red; she ___ .',opts:['had cried','had been crying'],c:1},
+      {q:'By midnight, I ___ for six hours.',opts:['had driven','had been driving'],c:1},
+      {q:'When the guests arrived, she ___ the meal.',opts:['had prepared','had been preparing'],c:0},
+      {q:'At that moment the sun ___ .',opts:['shone','was shining'],c:1},
+      {q:'He was exhausted because he ___ all day.',opts:['had worked','had been working'],c:1},
+      {q:'We ___ dinner when the phone rang.',opts:['had','were having'],c:1},
+      {q:'They ___ the project before the deadline.',opts:['had finished','had been finishing'],c:0},
+      {q:'I ___ about you just before you called.',opts:['had thought','had been thinking'],c:1},
+      {q:'She ___ for the same company for years before she retired.',opts:['had worked','was working'],c:0},
+      {q:'While he ___ , he burned the toast.',opts:['had cooked','was cooking'],c:1}]},
+    {d:'Впишите глагол в правильном прошедшем времени.',items:[
+      {q:'The road was blocked because a lorry ___ (break) down.',a:'had broken'},
+      {q:'I ___ (wait) for ages when the bus finally came.',a:'had been waiting'},
+      {q:'They looked happy — they ___ (laugh) at a joke.',a:'had been laughing'},
+      {q:'When the film started, we ___ (sit) in the front row.',a:'were sitting'},
+      {q:'He ___ (not / sleep) well, so he was in a bad mood.',a:"had not been sleeping/hadn't been sleeping"},
+      {q:'She ___ (finish) the letter before the post arrived.',a:'had finished'},
+      {q:'At noon they ___ (still / travel) through the desert.',a:'were still travelling'},
+      {q:'My feet hurt because I ___ (walk) all day.',a:'had been walking'},
+      {q:'The engine ___ (make) a strange noise while we drove.',a:'was making'},
+      {q:'By the time help came, the storm ___ (pass).',a:'had passed'}]}]},
+  {n:8,t:'Present and past time: review',ex:[
+    {d:'Итоговое: выберите верную форму.',items:[
+      {q:'I ___ here since last summer.',opts:['work','have worked'],c:1},
+      {q:'Look! It ___ .',opts:['snows','is snowing'],c:1},
+      {q:'When I was a child, we ___ by the sea.',opts:['lived','have lived'],c:0},
+      {q:'She ___ the news when the phone rang.',opts:['read','was reading'],c:1},
+      {q:'By the time we arrived, they ___ .',opts:['left','had left'],c:1},
+      {q:'Water ___ at zero degrees.',opts:['freezes','is freezing'],c:0},
+      {q:'I’m tired because I ___ all day.',opts:['worked','have been working'],c:1},
+      {q:'He ___ his homework yet.',opts:["didn't finish","hasn't finished"],c:1},
+      {q:'While she ___ , the doorbell rang.',opts:['cooked','was cooking'],c:1},
+      {q:'They ___ each other since school.',opts:['know','have known'],c:1}]},
+    {d:'Впишите глагол в правильном времени.',items:[
+      {q:'I ___ (not / see) her since Monday.',a:"have not seen/haven't seen"},
+      {q:'What ___ you ___ (do) when I called you last night?',a:['were','doing']},
+      {q:'The Sun ___ (rise) in the east every morning.',a:'rises'},
+      {q:'By the age of 20 he ___ (travel) to ten countries.',a:'had travelled'},
+      {q:'Listen! The neighbours ___ (argue) again.',a:'are arguing'},
+      {q:'We ___ (meet) for the first time in 2010.',a:'met'},
+      {q:'She ___ (learn) Spanish for three years now.',a:'has been learning/has learned'},
+      {q:'When I got home, my dinner ___ (get) cold.',a:'had got/had gone'},
+      {q:'He usually ___ (walk) to work, but today he ___ (take) the bus.',a:['walks','is taking']},
+      {q:'I ___ (just / finish) reading a fascinating article.',a:'have just finished'}]},
+    {d:'Выберите правильный вариант (смешанные времена).',items:[
+      {q:'This time last year we ___ on a beach in Spain.',opts:['lay','were lying'],c:1},
+      {q:'I ___ my glasses. Have you seen them?',opts:['lost','have lost'],c:1},
+      {q:'She ___ to music while she was jogging.',opts:['listened','was listening'],c:1},
+      {q:'The train already ___ when I got to the platform.',opts:['left','had left'],c:1},
+      {q:'How long ___ you ___ your best friend?',opts:['have / known','are / knowing'],c:0},
+      {q:'He ___ television every evening after dinner.',opts:['watches','is watching'],c:0},
+      {q:'We ___ for the bus for ages before it came.',opts:['had been waiting','have been waiting'],c:0},
+      {q:'I can’t come now — I ___ dinner.',opts:['have','am having'],c:1},
+      {q:'They ___ their exams last week.',opts:['took','have taken'],c:0},
+      {q:'The kettle ___ — shall I make tea?',opts:['boils','has boiled'],c:1}]}]}
+]},
+{sec:'Будущее · The future',u:[
+  {n:9,t:'Will and be going to',ex:[]},
+  {n:10,t:'Present simple and present continuous for the future',ex:[]},
+  {n:11,t:'Future continuous and future perfect (continuous)',ex:[]},
+  {n:12,t:'Be to + infinitive; be about to + infinitive',ex:[]},
+  {n:13,t:'Other ways of talking about the future',ex:[]},
+  {n:14,t:'The future seen from the past',ex:[]}]},
+{sec:'Модальные глаголы · Modals and semi-modals',u:[
+  {n:15,t:'Can, could, be able to and be allowed to',ex:[]},
+  {n:16,t:'Will, would and used to',ex:[]},
+  {n:17,t:'May and might',ex:[]},
+  {n:18,t:'Must and have (got) to',ex:[]},
+  {n:19,t:"Need(n't), don't need to and don't have to",ex:[]},
+  {n:20,t:'Should, ought to and had better',ex:[]}]},
+{sec:'Связочные глаголы, пассив, вопросы · Linking verbs, passives, questions',u:[
+  {n:21,t:'Linking verbs: be, appear, seem; become, get, etc.',ex:[]},
+  {n:22,t:'Forming passive sentences 1',ex:[]},
+  {n:23,t:'Forming passive sentences 2: verb + -ing or to-infinitive',ex:[]},
+  {n:24,t:'Using passives',ex:[]},
+  {n:25,t:'Reporting with passives; It is said that ...',ex:[]},
+  {n:26,t:'Wh-questions with who, whom, which, how and whose',ex:[]},
+  {n:27,t:'Negative questions; echo questions; questions with that-clauses',ex:[]}]},
+{sec:'Дополнения глагола · Verb complementation',u:[
+  {n:28,t:'Verbs, objects and complements',ex:[]},
+  {n:29,t:'Verb + two objects',ex:[]},
+  {n:30,t:'Verb + -ing forms and infinitives 1',ex:[]},
+  {n:31,t:'Verb + -ing forms and infinitives 2',ex:[]}]},
+{sec:'Косвенная речь · Reporting',u:[
+  {n:32,t:"Reporting people's words and thoughts",ex:[]},
+  {n:33,t:'Reporting statements: that-clauses',ex:[]},
+  {n:34,t:'Verb + wh-clause',ex:[]},
+  {n:35,t:'Tense choice in reporting',ex:[]},
+  {n:36,t:'Reporting offers, suggestions, orders, intentions, etc.',ex:[]},
+  {n:37,t:'Modal verbs in reporting',ex:[]},
+  {n:38,t:'Reporting what people say using nouns and adjectives',ex:[]},
+  {n:39,t:'Should in that-clauses; the present subjunctive',ex:[]}]},
+{sec:'Существительные · Nouns',u:[
+  {n:40,t:'Agreement between subject and verb 1',ex:[]},
+  {n:41,t:'Agreement between subject and verb 2',ex:[]},
+  {n:42,t:'Agreement between subject and verb 3',ex:[]},
+  {n:43,t:'Compound nouns and noun phrases',ex:[]}]},
+{sec:'Артикли, определители, кванторы · Articles, determiners and quantifiers',u:[
+  {n:44,t:'A / an and one',ex:[]},
+  {n:45,t:'A / an, the and zero article 1',ex:[]},
+  {n:46,t:'A / an, the and zero article 2',ex:[]},
+  {n:47,t:'A / an, the and zero article 3',ex:[]},
+  {n:48,t:'Some and any',ex:[]},
+  {n:49,t:'No, none (of) and not any',ex:[]},
+  {n:50,t:'Much (of), many (of), a lot of, lots (of), etc.',ex:[]},
+  {n:51,t:'All (of), whole, every, each',ex:[]},
+  {n:52,t:'Few, little, less, fewer',ex:[]}]},
+{sec:'Относительные и другие придаточные · Relative clauses',u:[
+  {n:53,t:'Relative pronouns',ex:[]},
+  {n:54,t:'Other relative words: whose, when, whereby, etc.',ex:[]},
+  {n:55,t:'Prepositions in relative clauses',ex:[]},
+  {n:56,t:'Other ways of adding information to noun phrases 1',ex:[]},
+  {n:57,t:'Other ways of adding information to noun phrases 2',ex:[]},
+  {n:58,t:'Participle clauses with adverbial meaning 1',ex:[]},
+  {n:59,t:'Participle clauses with adverbial meaning 2',ex:[]}]},
+{sec:'Местоимения, замена, пропуск слов · Pronouns, substitution, ellipsis',u:[
+  {n:60,t:'Reflexive pronouns: herself, himself, themselves, etc.',ex:[]},
+  {n:61,t:'One and ones',ex:[]},
+  {n:62,t:'So and not as substitutes for clauses, etc.',ex:[]},
+  {n:63,t:'Do so; such',ex:[]},
+  {n:64,t:'More on leaving out words after auxiliary verbs',ex:[]},
+  {n:65,t:'Leaving out to-infinitives',ex:[]}]},
+{sec:'Прилагательные и наречия · Adjectives and adverbs',u:[
+  {n:66,t:'Position of adjectives',ex:[]},
+  {n:67,t:'Gradable and non-gradable adjectives 1',ex:[]},
+  {n:68,t:'Gradable and non-gradable adjectives 2',ex:[]},
+  {n:69,t:'Participle adjectives and compound adjectives',ex:[]},
+  {n:70,t:'Adjectives + to-infinitive, -ing, that-clause, wh-clause',ex:[]},
+  {n:71,t:'Adjectives and adverbs',ex:[]},
+  {n:72,t:'Adjectives and adverbs: comparative and superlative forms',ex:[]},
+  {n:73,t:'Comparative phrases and clauses',ex:[]},
+  {n:74,t:'Position of adverbs 1',ex:[]},
+  {n:75,t:'Position of adverbs 2',ex:[]},
+  {n:76,t:'Adverbs of place, direction, indefinite frequency, and time',ex:[]},
+  {n:77,t:'Degree adverbs and focus adverbs',ex:[]},
+  {n:78,t:'Comment adverbs and viewpoint adverbs',ex:[]}]},
+{sec:'Обстоятельственные придаточные и союзы · Adverbial clauses and conjunctions',u:[
+  {n:79,t:'Adverbial clauses of time',ex:[]},
+  {n:80,t:'Giving reasons: as, because, etc.; for and with',ex:[]},
+  {n:81,t:'Purposes and results: in order to, so as to, etc.',ex:[]},
+  {n:82,t:'Contrasts: although and though; even though / if; while, whilst, whereas',ex:[]},
+  {n:83,t:'If 1',ex:[]},
+  {n:84,t:'If 2',ex:[]},
+  {n:85,t:'If I were you ...; imagine he were to win',ex:[]},
+  {n:86,t:'If ... not and unless; if and whether; etc.',ex:[]},
+  {n:87,t:'Connecting ideas in a sentence and between sentences',ex:[]}]},
+{sec:'Предлоги · Prepositions',u:[
+  {n:88,t:'Prepositions of position and movement',ex:[]},
+  {n:89,t:'Between and among',ex:[]},
+  {n:90,t:'Prepositions of time',ex:[]},
+  {n:91,t:'Talking about exceptions',ex:[]},
+  {n:92,t:'Prepositions after verbs',ex:[]},
+  {n:93,t:'Prepositions after nouns',ex:[]},
+  {n:94,t:'Two- and three-word verbs: word order',ex:[]}]},
+{sec:'Организация информации · Organising information',u:[
+  {n:95,t:'There is, there was, etc.',ex:[]},
+  {n:96,t:'It 1',ex:[]},
+  {n:97,t:'It 2',ex:[]},
+  {n:98,t:'Focusing: it-clauses and what-clauses',ex:[]},
+  {n:99,t:'Inversion 1',ex:[]},
+  {n:100,t:'Inversion 2',ex:[]}]}
+];
+function gFindUnit(n){for(const s of GRAMMAR){const u=s.u.find(x=>x.n===n);if(u)return u;}return null;}
+function gAuthored(){let a=0,t=0;GRAMMAR.forEach(s=>s.u.forEach(u=>{t++;if(u.ex&&u.ex.length)a++;}));return{a,t};}
+let gRun=null;
+
+VIEWS.grammar=()=>{
+  const {a,t}=gAuthored();
+  V().innerHTML=`
+  <div class="card" style="background:var(--grad);border:none;color:#fff;margin-bottom:18px">
+    <div style="font-size:20px;font-weight:800">📖 Грамматика C1</div>
+    <div style="opacity:.9;margin-top:3px">100 тем (Advanced Grammar in Use) · упражнения с автопроверкой</div>
+    <div style="opacity:.85;font-size:13px;margin-top:8px">Готово упражнений для тем: <b>${a}</b> из ${t} · остальные добавляются</div>
+  </div>`+GRAMMAR.map(s=>`
+    <div class="card" style="margin-bottom:14px">
+      <div class="section-head"><h2>${esc(s.sec)}</h2></div>
+      <div class="grid g-auto">${s.u.map(u=>{
+        const done=u.ex&&u.ex.length;const prog=S.grammarProgress[u.n];
+        return `<button class="item" style="text-align:left;cursor:${done?'pointer':'default'};display:flex;flex-direction:column;gap:6px;${done?'':'opacity:.5'}" ${done?`onclick="gUnit(${u.n})"`:''}>
+          <div class="row"><span class="tag" style="background:${done?'var(--accent)':'var(--line)'};color:${done?'#fff':'var(--muted)'}">${u.n}</span>
+            ${prog!=null?`<span class="spacer"></span><span class="tag" style="background:rgba(67,230,160,.2);color:var(--ok)">${prog}%</span>`:''}</div>
+          <div style="font-weight:600;font-size:13.5px;line-height:1.3">${esc(u.t)}</div>
+          <div class="muted small">${done?u.ex.length+' упр.':'скоро'}</div>
+        </button>`}).join('')}</div>
+    </div>`).join('');
+};
+function gUnit(n){const u=gFindUnit(n);if(!u||!u.ex.length)return;
+  setActions('');
+  V().innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div class="row" style="margin-bottom:14px"><button class="btn sm" onclick="go('grammar')">← Все темы</button></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="row"><span class="tag" style="background:var(--accent);color:#fff">Юнит ${n}</span>
+        ${S.grammarProgress[n]!=null?`<span class="spacer"></span><span class="tag" style="background:rgba(67,230,160,.2);color:var(--ok)">лучший: ${S.grammarProgress[n]}%</span>`:''}</div>
+      <div style="font-size:18px;font-weight:700;margin-top:8px">${esc(u.t)}</div>
+    </div>
+    ${u.ex.map((ex,i)=>`<div class="item" style="margin-bottom:10px;display:flex;align-items:center;gap:12px">
+      <div style="width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font-weight:700;color:#fff">${i+1}</div>
+      <div style="flex:1"><div style="font-weight:600">Упражнение ${i+1}</div>
+        <div class="muted small">${esc(ex.d)}</div></div>
+      <button class="btn primary sm" onclick="gStart(${n},${i})">▶</button></div>`).join('')}
+  </div>`;
+}
+function gItemHtml(it,i){
+  if(it.opts){
+    return `<div class="exq" data-i="${i}" style="margin-bottom:16px">
+      <div style="margin-bottom:7px"><b>${i+1}.</b> ${esc(it.q)}</div>
+      ${it.opts.map((o,oi)=>`<label class="row" style="margin-bottom:5px;cursor:pointer;padding:7px 10px;border:1px solid var(--line);border-radius:9px">
+        <input type="radio" name="q${i}" value="${oi}"> <span>${esc(o)}</span></label>`).join('')}
+      <div class="fb small" style="margin-top:5px"></div></div>`;
+  }
+  const parts=String(it.q).split('___');let inner='';
+  parts.forEach((p,pi)=>{inner+=esc(p);if(pi<parts.length-1)inner+=`<input class="field gapin" data-bi="${pi}" autocomplete="off" autocapitalize="off" spellcheck="false" style="display:inline-block;width:150px;margin:2px 5px;padding:6px 9px;vertical-align:middle">`;});
+  return `<div class="exq" data-i="${i}" style="margin-bottom:16px">
+    <div style="line-height:2"><b>${i+1}.</b> ${inner}</div><div class="fb small" style="margin-top:3px"></div></div>`;
+}
+function gStart(n,ei){const u=gFindUnit(n);const ex=u.ex[ei];gRun={n,ei,ex,checked:false};
+  V().innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div class="row" style="margin-bottom:12px"><button class="btn sm" onclick="gUnit(${n})">← Назад</button>
+      <span class="spacer"></span><span class="muted small">Юнит ${n} · упр. ${ei+1}/${u.ex.length}</span></div>
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:2px">${esc(u.t)}</div>
+      <div class="muted small" style="margin-bottom:16px">${esc(ex.d)}</div>
+      <div id="exItems">${ex.items.map((it,i)=>gItemHtml(it,i)).join('')}</div>
+      <button class="btn primary" id="exCheck" style="margin-top:10px;width:100%" onclick="gCheck()">Проверить</button>
+      <div id="exResult" style="margin-top:14px"></div>
+    </div></div>`;
+}
+function gNorm(s){return String(s==null?'':s).toLowerCase().trim().replace(/’/g,"'").replace(/\s+/g,' ').replace(/[.!?]+$/,'');}
+function gMatch(input,ans){if(ans==null)return false;return String(ans).split('/').some(a=>gNorm(a)===gNorm(input));}
+function gCheck(){if(gRun.checked){gUnit(gRun.n);return;}
+  const ex=gRun.ex;let correct=0;
+  document.querySelectorAll('#exItems .exq').forEach(div=>{
+    const i=+div.dataset.i,it=ex.items[i],fb=div.querySelector('.fb');
+    if(it.opts){
+      const sel=div.querySelector('input[name=q'+i+']:checked');
+      const ok=sel&&+sel.value===it.c;
+      div.querySelectorAll('label').forEach((l,li)=>{if(li===it.c)l.style.borderColor='var(--ok)';else if(sel&&li===+sel.value)l.style.borderColor='var(--danger)';});
+      if(ok){correct++;fb.innerHTML='<span style="color:var(--ok)">✓ Верно</span>';}
+      else fb.innerHTML='<span style="color:var(--danger)">✗ Правильно: '+esc(it.opts[it.c])+'</span>';
+    }else{
+      const answers=Array.isArray(it.a)?it.a:[it.a];
+      const inputs=[...div.querySelectorAll('.gapin')];let allok=true;
+      inputs.forEach((inp,bi)=>{const ok=gMatch(inp.value,answers[bi]);inp.style.borderColor=ok?'var(--ok)':'var(--danger)';if(!ok)allok=false;});
+      if(allok){correct++;fb.innerHTML='<span style="color:var(--ok)">✓ Верно</span>';}
+      else fb.innerHTML='<span style="color:var(--danger)">✗ '+esc(answers.map(a=>String(a).split('/')[0]).join('  |  '))+'</span>';
+    }
+  });
+  const pct=Math.round(correct/ex.items.length*100);
+  document.getElementById('exResult').innerHTML=`<div class="card" style="text-align:center;background:var(--bg2)">
+    <div style="font-size:30px">${pct>=80?'🏆':pct>=50?'👍':'📚'}</div>
+    <div style="font-size:22px;font-weight:800">${correct} / ${ex.items.length} · ${pct}%</div>
+    <div class="progress" style="margin:12px auto;max-width:280px"><i style="width:${pct}%"></i></div></div>`;
+  const cur=S.grammarProgress[gRun.n];if(cur==null||pct>cur){S.grammarProgress[gRun.n]=pct;save();}
+  gRun.checked=true;document.getElementById('exCheck').textContent='← К упражнениям';
+  haptic(pct>=70?'success':'warning');
+  document.getElementById('exResult').scrollIntoView({behavior:'smooth',block:'center'});
+}
 
 /* ---------- shared ---------- */
 function emptyState(ic,t,s){return `<div class="empty"><div class="ei">${ic}</div><div style="font-weight:700;font-size:16px;color:var(--text)">${t}</div><div class="small" style="margin-top:6px">${s}</div></div>`}
