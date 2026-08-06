@@ -241,6 +241,9 @@ function syncTgColors(){try{
   document.querySelector('meta[name=theme-color]')?.setAttribute('content',bg);
 }catch(e){}}
 
+/* ---------- BUILD STAMP (для проверки, что открыта свежая версия) ---------- */
+const BUILD='2026-08-06 · 100/100';
+
 /* ---------- STORE ---------- */
 const KEY='englishSphere_v1';
 const DEFAULT={
@@ -960,7 +963,7 @@ VIEWS.settings=()=>{
     </div>
     <button class="btn danger" style="margin-top:16px" onclick="resetAll()">🗑️ Стереть все данные</button>
   </div>
-  <div class="empty small" style="padding:24px 0 8px">EnglishSphere · твоя эко-сфера · всё в одном</div>`;
+  <div class="empty small" style="padding:24px 0 8px">EnglishSphere · твоя эко-сфера · всё в одном<br>Сборка ${BUILD}</div>`;
 };
 function saveProfile(){S.profile.name=val('pName');save();document.getElementById('brandSub').textContent=S.profile.name?esc(S.profile.name):'эко-сфера учителя';toast('Профиль сохранён ✓')}
 function setTheme(t){S.profile.theme=t;document.documentElement.setAttribute('data-theme',t);save();syncTgColors();haptic('success');VIEWS.settings()}
@@ -4396,11 +4399,14 @@ let gRun=null;
 
 VIEWS.grammar=()=>{
   const {a,t}=gAuthored();
+  const exCount=GRAMMAR.reduce((n,s)=>n+s.u.reduce((m,u)=>m+u.ex.length,0),0);
+  const itemCount=GRAMMAR.reduce((n,s)=>n+s.u.reduce((m,u)=>m+u.ex.reduce((k,e)=>k+e.items.length,0),0),0);
   V().innerHTML=`
   <div class="card" style="background:var(--grad);border:none;color:#fff;margin-bottom:18px">
     <div style="font-size:20px;font-weight:800">📖 Грамматика C1</div>
     <div style="opacity:.9;margin-top:3px">100 тем (Advanced Grammar in Use) · упражнения с автопроверкой</div>
-    <div style="opacity:.85;font-size:13px;margin-top:8px">Готово упражнений для тем: <b>${a}</b> из ${t} · остальные добавляются</div>
+    <div style="opacity:.85;font-size:13px;margin-top:8px">С упражнениями: <b>${a}</b> из ${t} тем · ${exCount} упражнений · ${itemCount} заданий</div>
+    <div style="opacity:.7;font-size:11.5px;margin-top:6px">Сборка ${BUILD}</div>
   </div>`+GRAMMAR.map(s=>`
     <div class="card" style="margin-bottom:14px">
       <div class="section-head"><h2>${esc(s.sec)}</h2></div>
