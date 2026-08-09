@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slate — students, lessons and payments for tutors</title>
+<meta name="description" id="metaDesc" content="Slate replaces the spreadsheet and the notebook: it counts lesson packages, keeps your week in order and shows every student what's left.">
+<meta name="theme-color" content="#F4EFE3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233A4429'/%3E%3Crect x='7' y='9' width='18' height='14' rx='2.5' fill='none' stroke='%23E9EBD8' stroke-width='2'/%3E%3Cpath d='M11 15h10M11 19h6' stroke='%23E9EBD8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  /* beige / paper */
+  --paper:#F4EFE3;
+  --paper-2:#FBF8F1;
+  --paper-3:#EAE3D2;
+  --paper-4:#DED5BF;
+
+  /* olive */
+  --olive-50:#EDF0E2;
+  --olive-100:#DDE3CB;
+  --olive-200:#C3CDA6;
+  --olive-300:#A2B07E;
+  --olive-400:#7F9159;
+  --olive-500:#657646;
+  --olive-600:#4F5D34;
+  --olive-700:#3A4429;
+  --olive-800:#2B331F;
+
+  /* ink */
+  --ink:#23261C;
+  --ink-2:#484D3C;
+  --ink-3:#787D68;
+  --line:rgba(35,38,28,.11);
+  --line-2:rgba(35,38,28,.06);
+
+  --clay:#B4835B;
+  --clay-soft:#F1E2D2;
+
+  --r:20px;
+  --r-lg:28px;
+  --r-xl:36px;
+
+  --sh-xs:0 1px 2px rgba(35,38,28,.05);
+  --sh-sm:0 2px 8px rgba(35,38,28,.055), 0 1px 2px rgba(35,38,28,.04);
+  --sh-md:0 20px 44px -26px rgba(35,38,28,.4), 0 3px 10px rgba(35,38,28,.05);
+  --sh-lg:0 44px 90px -44px rgba(43,51,31,.5), 0 10px 30px -16px rgba(35,38,28,.2);
+
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+  --arm:"Noto Sans Armenian","Noto Serif Armenian",Mshtakan,"Arial Unicode MS","Segoe UI",sans-serif;
+
+  --container:1160px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:16px;line-height:1.58;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden;
+}
+/* тёплая бумажная текстура */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+p{margin:0}
+::selection{background:var(--olive-200);color:var(--olive-800)}
+
+h1,h2,h3{font-family:var(--serif);font-weight:600;margin:0;letter-spacing:-.015em;line-height:1.12}
+h4{font-family:var(--sans);margin:0}
+/* армянский: у системных засечных армянских шрифтов слабое покрытие — используем гротеск */
+html[lang="hy"] h1,html[lang="hy"] h2,html[lang="hy"] h3,
+html[lang="hy"] .serif{font-family:var(--arm);font-weight:640;letter-spacing:-.02em}
+html[lang="hy"] body,html[lang="hy"] .num,html[lang="hy"] .price .v{font-family:var(--arm)}
+/* армянские слова длиннее — сбавляем кегль заголовков и разрешаем перенос */
+html[lang="hy"] .h1{font-size:clamp(29px,4.1vw,48px);line-height:1.2;letter-spacing:-.02em}
+html[lang="hy"] .h2{font-size:clamp(24px,3.2vw,36px);line-height:1.22}
+html[lang="hy"] .split h2{font-size:clamp(23px,2.8vw,32px)}
+html[lang="hy"] .cta h2{font-size:clamp(25px,3.4vw,38px)}
+html[lang="hy"] .hl{white-space:normal}
+html[lang="hy"] .btn{font-size:14.5px}
+html[lang="hy"] .lesson{font-size:9.5px}
+html[lang="hy"] .lesson b{font-size:10px}
+
+.container{width:100%;max-width:var(--container);margin-inline:auto;padding-inline:24px;position:relative;z-index:1}
+.section{padding:clamp(68px,8.5vw,120px) 0;position:relative}
+.head{max-width:660px}
+.head.mid{margin-inline:auto;text-align:center}
+.h1{font-size:clamp(40px,6vw,70px);letter-spacing:-.028em}
+.h2{font-size:clamp(29px,4vw,44px)}
+.lead{font-size:clamp(16.5px,1.45vw,19px);color:var(--ink-2);line-height:1.62}
+.muted{color:var(--ink-3)}
+
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);
+  font-size:12px;font-weight:640;letter-spacing:.14em;text-transform:uppercase;color:var(--olive-500);
+}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--olive-300)}
+.head .h2{margin:16px 0 16px}
+
+/* подчёркивание от руки */
+.hl{position:relative;white-space:nowrap;font-style:italic}
+.hl::after{
+  content:"";position:absolute;left:-.06em;right:-.06em;bottom:-.14em;height:.36em;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none'%3E%3Cpath d='M2 9.5c38-5 71-6.5 104-5.5S172 7 198 4.5' fill='none' stroke='%23A2B07E' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center/100% 100%;
+  pointer-events:none;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  height:48px;padding:0 22px;border-radius:999px;border:1px solid transparent;cursor:pointer;
+  font-family:var(--sans);font-size:15px;font-weight:560;letter-spacing:-.005em;white-space:nowrap;
+  transition:transform .18s cubic-bezier(.2,.7,.3,1),background-color .2s,box-shadow .22s,border-color .2s,color .2s;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--olive-600);color:var(--paper-2);box-shadow:0 12px 24px -14px rgba(58,68,41,.95)}
+.btn-primary:hover{background:var(--olive-700);box-shadow:0 18px 32px -16px rgba(58,68,41,1)}
+.btn-ghost{border-color:var(--line);color:var(--ink);background:transparent}
+.btn-ghost:hover{background:rgba(251,248,241,.8);border-color:rgba(35,38,28,.2)}
+.btn-paper{background:var(--paper-2);color:var(--olive-800)}
+.btn-paper:hover{background:#fff}
+.btn-lg{height:55px;padding:0 28px;font-size:16px}
+.btn-sm{height:40px;padding:0 16px;font-size:14px}
+.arr{transition:transform .2s}
+.btn:hover .arr{transform:translateX(3px)}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.header{position:sticky;top:0;z-index:60;transition:background-color .3s,box-shadow .3s}
+.header.stuck{background:rgba(244,239,227,.85);backdrop-filter:saturate(150%) blur(14px);-webkit-backdrop-filter:saturate(150%) blur(14px);box-shadow:0 1px 0 var(--line-2),0 12px 30px -26px rgba(35,38,28,.6)}
+.nav{display:flex;align-items:center;gap:22px;height:78px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--serif);font-size:21px;font-weight:600;letter-spacing:-.02em}
+html[lang="hy"] .brand{font-family:var(--serif)}
+.brand .mark{width:34px;height:34px;border-radius:11px;background:var(--olive-700);display:grid;place-items:center;box-shadow:0 8px 16px -10px rgba(58,68,41,.9);flex:none}
+.brand .mark svg{width:19px;height:19px}
+.nav-links{display:flex;gap:2px;margin-left:auto}
+.nav-links a{padding:9px 13px;border-radius:999px;font-size:14.5px;font-weight:500;color:var(--ink-2);transition:color .18s,background-color .18s}
+.nav-links a:hover{color:var(--ink);background:rgba(35,38,28,.05)}
+.nav-right{display:flex;align-items:center;gap:10px}
+
+/* language switcher */
+.lang{display:inline-flex;padding:3px;background:var(--paper-3);border-radius:999px;gap:1px}
+.lang button{
+  border:0;background:transparent;cursor:pointer;border-radius:999px;
+  padding:6px 10px;font-size:12px;font-weight:640;letter-spacing:.04em;color:var(--ink-3);
+  transition:background-color .2s,color .2s,box-shadow .2s;
+}
+.lang button:hover{color:var(--ink)}
+.lang button.on{background:var(--paper-2);color:var(--olive-700);box-shadow:var(--sh-xs)}
+
+.burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.burger span{display:block;width:18px;height:1.6px;background:var(--ink);position:relative}
+.burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:1.6px;background:var(--ink)}
+.burger span::before{top:-6px}
+.burger span::after{top:6px}
+.mmenu{display:none;background:rgba(244,239,227,.97);backdrop-filter:blur(14px);border-top:1px solid var(--line-2)}
+.mmenu.open{display:block}
+.mmenu .container{display:flex;flex-direction:column;padding-block:12px 22px}
+.mmenu a{padding:13px 2px;font-size:17px;font-weight:520;border-bottom:1px solid var(--line-2)}
+.mmenu .btn{margin-top:16px;width:100%}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{padding-top:clamp(34px,5vw,64px);padding-bottom:clamp(56px,7vw,92px);position:relative;overflow:hidden}
+.hero::after{
+  content:"";position:absolute;z-index:0;left:58%;top:-380px;width:1100px;height:900px;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(162,176,126,.3),transparent 70%);pointer-events:none;
+}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(36px,5vw,70px);align-items:center}
+/* длинные слова (особенно армянские) не должны раздвигать колонки шире экрана */
+.hero-grid>*,.split>*,.grid>*,.stats>*,.feats>*,.plans>*,.two>*{min-width:0}
+.hero h1{margin:20px 0 22px}
+.hero .lead{max-width:520px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
+.hero-notes{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:22px;font-size:13.5px;color:var(--ink-3)}
+.hero-notes span{display:inline-flex;align-items:center;gap:8px}
+.tick{width:17px;height:17px;border-radius:50%;background:var(--olive-100);color:var(--olive-600);display:grid;place-items:center;flex:none}
+.tick svg{width:9px;height:9px}
+.badge-top{
+  display:inline-flex;align-items:center;gap:9px;height:34px;padding:0 14px 0 5px;border-radius:999px;
+  background:rgba(251,248,241,.85);border:1px solid var(--line);font-size:13px;color:var(--ink-2);box-shadow:var(--sh-xs);
+}
+.badge-top b{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--olive-600);color:var(--paper-2);font-size:11.5px;font-weight:640}
+
+/* ---- грифельная доска ---- */
+.board-wrap{position:relative}
+.board{
+  background:linear-gradient(168deg,var(--olive-700),var(--olive-800));
+  border-radius:var(--r-xl);padding:22px;box-shadow:var(--sh-lg);
+  border:1px solid rgba(237,240,226,.14);color:#E9EBD8;position:relative;overflow:hidden;
+}
+.board::before{
+  content:"";position:absolute;inset:0;opacity:.5;pointer-events:none;
+  background:radial-gradient(70% 50% at 20% 0%,rgba(233,235,216,.14),transparent 60%);
+}
+.board-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;position:relative;z-index:1}
+.board-title{font-family:var(--serif);font-size:16px;letter-spacing:-.01em}
+html[lang="hy"] .board-title{font-family:var(--arm)}
+.bchips{display:flex;gap:6px}
+.bchip{font-size:11px;padding:5px 10px;border-radius:999px;background:rgba(233,235,216,.12);color:#DDE1C9;white-space:nowrap}
+.bchip.on{background:var(--olive-200);color:var(--olive-800);font-weight:600}
+
+.grid{display:grid;grid-template-columns:38px repeat(5,1fr);gap:5px;position:relative;z-index:1}
+.grid .dh{font-size:10.5px;text-align:center;color:rgba(233,235,216,.65);padding-bottom:6px;font-weight:560}
+.grid .th{font-size:9.5px;text-align:right;padding-right:5px;color:rgba(233,235,216,.5);line-height:44px}
+.slot{height:44px;border-radius:9px;border:1px dashed rgba(233,235,216,.13)}
+.lesson{
+  height:44px;border-radius:9px;padding:6px 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  font-size:10px;line-height:1.28;background:rgba(195,205,166,.9);color:var(--olive-800);border:1px solid rgba(233,235,216,.35);
+}
+.lesson b{display:block;font-size:10.5px;font-weight:660;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis}
+.lesson.trial{background:rgba(241,226,210,.92);border-color:rgba(241,226,210,.5);color:#6B4526}
+.lesson.moved{background:rgba(233,235,216,.16);color:#E9EBD8;border-style:dashed;border-color:rgba(233,235,216,.4)}
+.lesson.pick{outline:2px solid var(--olive-200);outline-offset:2px;transform:rotate(-1.5deg);box-shadow:0 16px 26px -14px rgba(0,0,0,.6)}
+.board-foot{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;padding-top:13px;border-top:1px solid rgba(233,235,216,.14);font-size:11px;color:rgba(233,235,216,.65);position:relative;z-index:1}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.lg i{width:9px;height:9px;border-radius:3px;display:block}
+
+.fcard{
+  position:absolute;z-index:2;right:-20px;bottom:-40px;width:238px;background:var(--paper-2);
+  border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--sh-lg);
+}
+.fc-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ava{width:34px;height:34px;border-radius:50%;background:var(--olive-100);color:var(--olive-600);display:grid;place-items:center;font-size:12.5px;font-weight:660;flex:none;font-family:var(--sans)}
+.fc-n{font-size:13.5px;font-weight:620;letter-spacing:-.01em}
+.fc-s{font-size:11.5px;color:var(--ink-3)}
+.bar{height:7px;border-radius:99px;background:var(--paper-3);overflow:hidden;margin:12px 0 9px}
+.bar i{display:block;height:100%;width:62%;border-radius:99px;background:linear-gradient(90deg,var(--olive-300),var(--olive-600))}
+.fc-r{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);padding:2px 0}
+.fc-r b{font-weight:640}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-2);border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden}
+.stat{background:var(--paper-2);padding:26px 24px}
+.stat .num{font-family:var(--serif);font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.02em;color:var(--olive-600);line-height:1.1}
+.stat .lbl{font-size:13.5px;color:var(--ink-3);margin-top:7px}
+
+/* ============================================================
+   CARDS / COMPARE
+   ============================================================ */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);padding:clamp(24px,2.6vw,32px);box-shadow:var(--sh-sm)}
+.card.faint{background:rgba(251,248,241,.45);border-style:dashed;box-shadow:none}
+.tag{display:inline-flex;font-family:var(--sans);font-size:11px;font-weight:660;letter-spacing:.09em;text-transform:uppercase;padding:5px 11px;border-radius:999px;margin-bottom:18px}
+.tag.a{background:var(--paper-3);color:var(--ink-3)}
+.tag.b{background:var(--olive-600);color:var(--paper-2)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px}
+.list li{display:flex;gap:11px;font-size:15px;color:var(--ink-2);line-height:1.5}
+.ic{width:20px;height:20px;flex:none;border-radius:50%;display:grid;place-items:center;margin-top:2px}
+.ic.n{background:var(--paper-3);color:var(--ink-3)}
+.ic.y{background:var(--olive-100);color:var(--olive-600)}
+.ic svg{width:10px;height:10px}
+
+/* ============================================================
+   FEATURES
+   ============================================================ */
+.feats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feat{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);padding:28px;box-shadow:var(--sh-sm);
+  transition:transform .28s cubic-bezier(.2,.7,.3,1),box-shadow .28s,border-color .28s}
+.feat:hover{transform:translateY(-4px);box-shadow:var(--sh-md);border-color:var(--olive-200)}
+.fic{width:46px;height:46px;border-radius:14px;background:var(--olive-50);border:1px solid var(--olive-100);color:var(--olive-600);display:grid;place-items:center;margin-bottom:18px}
+.fic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.feat h3{font-size:20px;margin-bottom:10px}
+.feat p{font-size:14.6px;color:var(--ink-2);line-height:1.6}
+
+/* ============================================================
+   SPLIT BLOCKS
+   ============================================================ */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,72px);align-items:center}
+.split+.split{margin-top:clamp(64px,8vw,112px)}
+.split.rev .media{order:-1}
+.split h2{margin:16px 0 16px;font-size:clamp(26px,3.3vw,38px)}
+.split .list{margin-top:24px}
+
+.panel{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-md);overflow:hidden}
+.p-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 20px;border-bottom:1px solid var(--line-2);background:rgba(234,227,210,.4)}
+.p-head .t{font-family:var(--sans);font-weight:620;font-size:14px;letter-spacing:-.01em}
+.p-body{padding:6px 20px 12px}
+.row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:0}
+.row .nm{font-size:14px;font-weight:560;letter-spacing:-.01em}
+.row .sb{font-size:12px;color:var(--ink-3);margin-top:2px}
+.pill{font-family:var(--sans);font-size:11px;font-weight:620;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--olive-50);color:var(--olive-600)}
+.pill.warn{background:var(--clay-soft);color:#8A5A32}
+.pill.mut{background:var(--paper-3);color:var(--ink-3)}
+
+.phone{width:min(296px,100%);margin-inline:auto;border-radius:38px;padding:11px;background:var(--olive-800);box-shadow:var(--sh-lg)}
+.screen{background:var(--paper);border-radius:28px;padding:18px 15px 20px;overflow:hidden}
+.sc-top{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3);margin-bottom:14px}
+.sc-card{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--sh-xs)}
+.sc-card+.sc-card{margin-top:10px}
+.sc-big{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.02em;color:var(--olive-600);line-height:1}
+html[lang="hy"] .sc-big{font-family:var(--arm)}
+.sc-lbl{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+.sc-t{font-size:12px;font-weight:640;margin-bottom:7px;letter-spacing:-.01em}
+.sc-line{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:7px 0;border-bottom:1px solid var(--line-2)}
+.sc-line:last-child{border-bottom:0}
+
+/* ============================================================
+   SUBJECTS
+   ============================================================ */
+.subs{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:860px;margin-inline:auto}
+.sub{
+  display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:999px;
+  background:var(--paper-2);border:1px solid var(--line);box-shadow:var(--sh-xs);
+  font-size:15px;font-weight:520;transition:transform .25s,border-color .25s,background-color .25s;
+}
+.sub:hover{transform:translateY(-3px);border-color:var(--olive-200)}
+.sub .em{font-size:18px;line-height:1}
+
+/* ============================================================
+   STEPS
+   ============================================================ */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:s}
+.step{padding-top:28px;position:relative}
+.step::after{content:"";position:absolute;top:9px;left:0;right:0;height:1px;background:var(--line)}
+.step .n{counter-increment:s;font-family:var(--sans);font-size:12.5px;font-weight:660;letter-spacing:.1em;color:var(--olive-500)}
+.step .n::before{content:"0" counter(s)}
+.step h3{font-size:21px;margin:12px 0 9px}
+.step p{font-size:14.8px;color:var(--ink-2)}
+
+/* ============================================================
+   QUOTE
+   ============================================================ */
+.quote{background:var(--olive-700);color:var(--olive-50);border-radius:var(--r-xl);padding:clamp(34px,5vw,62px);position:relative;overflow:hidden}
+.quote::after{content:"";position:absolute;right:-140px;top:-140px;width:440px;height:440px;border-radius:50%;background:radial-gradient(closest-side,rgba(195,205,166,.26),transparent 70%)}
+.quote q{quotes:none}
+.quote .txt{font-family:var(--serif);font-size:clamp(21px,2.6vw,32px);line-height:1.36;letter-spacing:-.015em;max-width:840px;position:relative;z-index:1;display:block}
+html[lang="hy"] .quote .txt{font-family:var(--arm);font-weight:520;letter-spacing:-.01em}
+.quote .by{display:flex;align-items:center;gap:12px;margin-top:26px;position:relative;z-index:1}
+.quote .ava{background:var(--olive-500);color:var(--olive-50)}
+.quote .qn{font-family:var(--sans);font-size:14.5px;font-weight:600}
+.quote .qr{font-family:var(--sans);font-size:13px;color:var(--olive-200)}
+
+/* ============================================================
+   PRICING
+   ============================================================ */
+.toggle{display:inline-flex;padding:4px;border-radius:999px;background:var(--paper-3);gap:2px;margin-top:24px}
+.toggle button{border:0;background:transparent;cursor:pointer;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:540;color:var(--ink-2);transition:background-color .2s,color .2s,box-shadow .2s}
+.toggle button.on{background:var(--paper-2);color:var(--ink);box-shadow:var(--sh-xs)}
+.toggle .sv{font-size:11px;font-weight:660;color:var(--olive-500);margin-left:6px}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.plan{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);padding:30px 28px;box-shadow:var(--sh-sm);display:flex;flex-direction:column}
+.plan.best{border-color:var(--olive-300);box-shadow:var(--sh-md);position:relative}
+.plan.best .flag{position:absolute;top:-11px;left:28px;background:var(--olive-600);color:var(--paper-2);font-family:var(--sans);font-size:11px;font-weight:640;letter-spacing:.04em;padding:4px 11px;border-radius:999px}
+.plan .pn{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:-.015em}
+html[lang="hy"] .plan .pn{font-family:var(--arm)}
+.plan .pd{font-size:13.5px;color:var(--ink-3);margin-top:7px;min-height:40px}
+.price{display:flex;align-items:baseline;gap:5px;margin:18px 0 3px}
+.price .v{font-family:var(--serif);font-size:42px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.price .per{font-size:13.5px;color:var(--ink-3)}
+.plan .lim{font-size:12.5px;color:var(--ink-3)}
+.plan .btn{width:100%;margin:22px 0}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq{max-width:840px;margin-inline:auto;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;padding:22px 46px 22px 0;position:relative;font-family:var(--serif);font-size:clamp(17px,1.8vw,20px);font-weight:600;letter-spacing:-.01em}
+html[lang="hy"] .faq summary{font-family:var(--arm);font-size:clamp(16px,1.6vw,18px)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";position:absolute;right:8px;top:50%;width:11px;height:11px;border-right:1.7px solid var(--olive-500);border-bottom:1.7px solid var(--olive-500);transform:translateY(-70%) rotate(45deg);transition:transform .25s}
+.faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.faq .ans{padding:0 56px 24px 0;font-size:15.3px;color:var(--ink-2);line-height:1.64}
+
+/* ============================================================
+   CTA + FOOTER
+   ============================================================ */
+.cta{background:linear-gradient(158deg,var(--olive-600),var(--olive-800));border-radius:var(--r-xl);padding:clamp(40px,6vw,78px);text-align:center;color:var(--olive-50);position:relative;overflow:hidden;box-shadow:var(--sh-lg)}
+.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 50% 0%,rgba(237,240,226,.2),transparent 70%)}
+.cta>*{position:relative;z-index:1}
+.cta h2{font-size:clamp(28px,4vw,46px);margin-bottom:14px}
+.cta p{color:var(--olive-200);max-width:520px;margin:0 auto 30px;font-size:17px}
+.cta-b{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+
+.footer{padding:clamp(52px,6vw,80px) 0 40px;border-top:1px solid var(--line);margin-top:clamp(24px,4vw,56px)}
+.fgrid{display:grid;grid-template-columns:1.7fr 1fr 1fr 1fr;gap:40px}
+.fabout{max-width:290px;font-size:14px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+.fcol h4{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:640;margin-bottom:14px}
+.fcol a{display:block;font-size:14.5px;color:var(--ink-2);padding:6px 0;transition:color .18s}
+.fcol a:hover{color:var(--olive-600)}
+.fbot{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin-top:50px;padding-top:24px;border-top:1px solid var(--line-2);font-size:13px;color:var(--ink-3)}
+
+/* ============================================================
+   REVEAL
+   ============================================================ */
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rv{opacity:1;transform:none;transition:none}}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width:1040px){
+  .feats{grid-template-columns:repeat(2,1fr)}
+  .plans{grid-template-columns:1fr;max-width:540px;margin-inline:auto}
+  .fgrid{grid-template-columns:1fr 1fr;gap:32px}
+}
+@media (max-width:920px){
+  .nav-links{display:none}
+  .nav-right .btn-ghost{display:none}
+  .burger{display:flex}
+  .nav{height:68px;gap:12px}
+  .hero-grid{grid-template-columns:1fr;gap:52px}
+  .hero .lead{max-width:none}
+  .split,.split.rev{grid-template-columns:1fr}
+  .split.rev .media{order:0}
+  .two{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:30px}
+  .step::after{display:none}
+  .stats{grid-template-columns:1fr 1fr}
+  .fcard{right:0;bottom:-30px;width:206px}
+}
+@media (max-width:560px){
+  .container{padding-inline:18px}
+  .feats{grid-template-columns:1fr}
+  .fgrid{grid-template-columns:1fr}
+  .grid{grid-template-columns:32px repeat(3,1fr)}
+  .grid .d4,.grid .d5{display:none}
+  .fcard{position:static;width:auto;margin-top:16px}
+  .hero-cta,.cta-b{flex-direction:column}
+  .hero-cta .btn,.cta-b .btn{width:100%}
+  /* в шапке остаются переключатель языка и бургер — кнопки живут в меню */
+  .nav-right .btn{display:none}
+  .lang button{padding:6px 9px;font-size:12px}
+  .faq .ans{padding-right:0}
+  /* длинные армянские слова: даём переносить и снимаем рисованное подчёркивание */
+  .hl{white-space:normal;color:var(--olive-600)}
+  .hl::after{display:none}
+  .badge-top{height:auto;min-height:34px;padding:5px 14px 5px 5px;flex-wrap:wrap;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="header" id="header">
+  <div class="container">
+    <nav class="nav">
+      <a class="brand" href="#top">
+        <span class="mark"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span>Slate</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#how" data-i18n="nav.how">How it works</a>
+        <a href="#subjects" data-i18n="nav.subjects">Subjects</a>
+        <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      </div>
+
+      <div class="nav-right">
+        <div class="lang" id="lang" role="group" aria-label="Language">
+          <button data-lang="en" class="on">EN</button>
+          <button data-lang="ru">RU</button>
+          <button data-lang="hy">ՀԱՅ</button>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="#login" data-i18n="nav.login">Log in</a>
+        <a class="btn btn-primary btn-sm" href="#start" data-i18n="nav.cta">Start free</a>
+        <button class="burger" id="burger" aria-label="Menu" aria-expanded="false"><span></span></button>
+      </div>
+    </nav>
+  </div>
+
+  <div class="mmenu" id="mmenu">
+    <div class="container">
+      <a href="#features" data-i18n="nav.features">Features</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#subjects" data-i18n="nav.subjects">Subjects</a>
+      <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+      <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#login" data-i18n="nav.login">Log in</a>
+      <a class="btn btn-primary" href="#start" data-i18n="nav.cta">Start free</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="rv">
+        <span class="badge-top"><b data-i18n="hero.badgeB">Free plan</b><span data-i18n="hero.badge">no card, no setup fee</span></span>
+        <h1 class="h1" data-i18n-html="hero.title">Students, lessons and payments — on one <span class="hl">clean slate</span></h1>
+        <p class="lead" data-i18n="hero.sub">Slate replaces the spreadsheet, the notebook and the awkward “you still owe me for two lessons” message. It counts lesson packages, keeps your week in order and shows every student exactly what is left.</p>
+
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="#start"><span data-i18n="hero.cta1">Start free</span> <span class="arr">→</span></a>
+          <a class="btn btn-ghost btn-lg" href="#how" data-i18n="hero.cta2">See how it works</a>
+        </div>
+
+        <div class="hero-notes">
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span data-i18n="hero.n1">Any subject</span></span>
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span data-i18n="hero.n2">Online and in person</span></span>
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span data-i18n="hero.n3">Works from your phone</span></span>
+        </div>
+      </div>
+
+      <div class="board-wrap rv">
+        <div class="board">
+          <div class="board-top">
+            <span class="board-title" data-i18n="board.title">Your week</span>
+            <span class="bchips">
+              <span class="bchip on" data-i18n="board.chip1">All students</span>
+              <span class="bchip" data-i18n="board.chip2">Online</span>
+            </span>
+          </div>
+
+          <div class="grid">
+            <div class="dh"></div>
+            <div class="dh" data-i18n="d.mon">Mon</div>
+            <div class="dh" data-i18n="d.tue">Tue</div>
+            <div class="dh" data-i18n="d.wed">Wed</div>
+            <div class="dh d4" data-i18n="d.thu">Thu</div>
+            <div class="dh d5" data-i18n="d.fri">Fri</div>
+
+            <div class="th">15:00</div>
+            <div class="lesson"><b data-i18n="l.math">Maths</b><span data-i18n="l.s1">Leo · gr. 9</span></div>
+            <div class="slot"></div>
+            <div class="lesson"><b data-i18n="l.math">Maths</b><span data-i18n="l.s1">Leo · gr. 9</span></div>
+            <div class="slot d4"></div>
+            <div class="lesson trial d5"><b data-i18n="l.trial">Trial</b><span data-i18n="l.s4">Nina</span></div>
+
+            <div class="th">17:00</div>
+            <div class="slot"></div>
+            <div class="lesson"><b data-i18n="l.eng">English</b><span data-i18n="l.s2">Mari · B1</span></div>
+            <div class="slot"></div>
+            <div class="lesson d4"><b data-i18n="l.eng">English</b><span data-i18n="l.s2">Mari · B1</span></div>
+            <div class="slot d5"></div>
+
+            <div class="th">18:30</div>
+            <div class="lesson pick"><b data-i18n="l.exam">Exam prep</b><span data-i18n="l.s3">Aram · 11</span></div>
+            <div class="slot"></div>
+            <div class="lesson moved"><b data-i18n="l.moved">Moved</b><span data-i18n="l.s3">Aram · 11</span></div>
+            <div class="slot d4"></div>
+            <div class="lesson d5"><b data-i18n="l.exam">Exam prep</b><span data-i18n="l.s3">Aram · 11</span></div>
+
+            <div class="th">20:00</div>
+            <div class="slot"></div>
+            <div class="lesson"><b data-i18n="l.guitar">Guitar</b><span data-i18n="l.s5">Tigran</span></div>
+            <div class="slot"></div>
+            <div class="lesson d4"><b data-i18n="l.guitar">Guitar</b><span data-i18n="l.s5">Tigran</span></div>
+            <div class="slot d5"></div>
+          </div>
+
+          <div class="board-foot">
+            <span class="lg"><i style="background:rgba(195,205,166,.9)"></i><span data-i18n="board.lg1">Lesson</span></span>
+            <span class="lg"><i style="background:rgba(241,226,210,.92)"></i><span data-i18n="board.lg2">Trial</span></span>
+            <span class="lg"><i style="background:rgba(233,235,216,.2);border:1px dashed rgba(233,235,216,.5)"></i><span data-i18n="board.lg3">Moved</span></span>
+          </div>
+        </div>
+
+        <div class="fcard">
+          <div class="fc-head">
+            <span class="ava">MA</span>
+            <div>
+              <div class="fc-n" data-i18n="fc.name">Mari A.</div>
+              <div class="fc-s" data-i18n="fc.pkg">Package of 8 · English</div>
+            </div>
+          </div>
+          <div class="bar"><i></i></div>
+          <div class="fc-r"><span data-i18n="fc.left">Lessons left</span><b data-i18n="fc.leftV">5 of 8</b></div>
+          <div class="fc-r"><span data-i18n="fc.next">Next lesson</span><b data-i18n="fc.nextV">Tue, 17:00</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STATS ===================== -->
+<section class="section" style="padding-top:clamp(22px,3vw,38px)">
+  <div class="container rv">
+    <div class="stats">
+      <div class="stat"><div class="num" data-i18n="st.1v">3 hours</div><div class="lbl" data-i18n="st.1l">of admin you get back every week</div></div>
+      <div class="stat"><div class="num" data-i18n="st.2v">0</div><div class="lbl" data-i18n="st.2l">lessons counted in your head</div></div>
+      <div class="stat"><div class="num" data-i18n="st.3v">1 link</div><div class="lbl" data-i18n="st.3l">is all a student needs to see the balance</div></div>
+      <div class="stat"><div class="num" data-i18n="st.4v">10 minutes</div><div class="lbl" data-i18n="st.4l">to set up your first week</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROBLEM ===================== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="head rv">
+      <span class="eyebrow" data-i18n="prob.eyebrow">Why Slate</span>
+      <h2 class="h2" data-i18n="prob.title">Teaching is the easy part</h2>
+      <p class="lead" data-i18n="prob.sub">The hard part is remembering who moved Thursday, who paid for four lessons and who has quietly owed you for two since March.</p>
+    </div>
+
+    <div class="two rv" style="margin-top:clamp(32px,4.5vw,56px)">
+      <div class="card faint">
+        <span class="tag a" data-i18n="prob.was">Before</span>
+        <ul class="list">
+          <li><span class="ic n"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="prob.w1">A spreadsheet only you can read</span></li>
+          <li><span class="ic n"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="prob.w2">Lessons recounted from memory at the end of the month</span></li>
+          <li><span class="ic n"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="prob.w3">“Can we move Thursday?” lost in three different chats</span></li>
+          <li><span class="ic n"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="prob.w4">Awkward reminders about money, written by hand</span></li>
+          <li><span class="ic n"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span data-i18n="prob.w5">No idea which days and subjects actually pay off</span></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="tag b" data-i18n="prob.now">With Slate</span>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="prob.n1">One week in front of you, with every student on it</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="prob.n2">Packages deducted automatically when you mark a lesson</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="prob.n3">Rescheduling by dragging, with the history kept</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="prob.n4">The student opens a link and sees the balance without asking</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="prob.n5">Income and hours per month in a single report</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="head rv">
+      <span class="eyebrow" data-i18n="feat.eyebrow">Features</span>
+      <h2 class="h2" data-i18n="feat.title">Everything a tutoring week is made of</h2>
+      <p class="lead" data-i18n="feat.sub">Nothing to assemble from modules: students, schedule, packages and money are one thing.</p>
+    </div>
+
+    <div class="feats rv" style="margin-top:clamp(32px,4.5vw,56px)">
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.6-3.6 3.4-5.6 7.2-5.6s6.6 2 7.2 5.6"/></svg></div>
+        <h3 data-i18n="f1.t">Students</h3>
+        <p data-i18n="f1.d">A card per student: subject, level, parent's contact and your notes after each lesson. Everything you used to keep in your head.</p>
+      </article>
+
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <h3 data-i18n="f2.t">Schedule</h3>
+        <p data-i18n="f2.d">Recurring slots for the whole term, drag to reschedule, clashes flagged before you confirm them.</p>
+      </article>
+
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 11h18M7 15.5h4"/></svg></div>
+        <h3 data-i18n="f3.t">Lesson packages</h3>
+        <p data-i18n="f3.d">Packages of any size or single lessons, an individual rate per student, deducted the moment you mark attendance.</p>
+      </article>
+
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><path d="M12 3v18M16.5 7.2c-.6-1.5-2.2-2.4-4.2-2.4-2.4 0-4 1.2-4 3.1 0 4.4 8.8 2.5 8.8 7 0 2-1.8 3.3-4.4 3.3-2.3 0-4-1-4.6-2.6"/></svg></div>
+        <h3 data-i18n="f4.t">Payments</h3>
+        <p data-i18n="f4.d">Who paid, who owes, what is due this week. The reminder goes out without you having to write it.</p>
+      </article>
+
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5.5h3M12 18.2h.01"/></svg></div>
+        <h3 data-i18n="f5.t">Student page</h3>
+        <p data-i18n="f5.d">A personal link with lessons left, the next lesson, homework and payment history. No account, no password.</p>
+      </article>
+
+      <article class="feat">
+        <div class="fic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <h3 data-i18n="f6.t">Reports</h3>
+        <p data-i18n="f6.d">Income, hours and attendance by month — so you can see which subjects and which time slots are worth keeping.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SPLITS ===================== -->
+<section class="section" id="how" style="padding-top:0">
+  <div class="container">
+
+    <div class="split">
+      <div class="rv">
+        <span class="eyebrow" data-i18n="s1.eyebrow">Schedule</span>
+        <h2 data-i18n="s1.title">Move Thursday in one drag</h2>
+        <p class="lead" data-i18n="s1.sub">Pick up a lesson, drop it on a new time. Slate warns you about clashes, keeps the record of who moved what, and leaves the package untouched until the lesson actually happens.</p>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s1.b1">Recurring lessons set once for the whole term</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s1.b2">Your own cancellation rule: a late cancel counts as a lesson</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s1.b3">Attendance marked from your phone, right after the lesson</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s1.b4">Online and in-person lessons side by side, with the call link attached</span></li>
+        </ul>
+      </div>
+
+      <div class="media rv">
+        <div class="panel">
+          <div class="p-head">
+            <span class="t" data-i18n="s1.p">Lesson · Exam prep</span>
+            <span class="pill ok" data-i18n="s1.pill">Moved</span>
+          </div>
+          <div class="p-body">
+            <div class="row">
+              <span class="ava">AR</span>
+              <div class="g"><div class="nm" data-i18n="s1.r1n">Aram, grade 11</div><div class="sb" data-i18n="s1.r1s">Wednesday 18:30 → Friday 18:30</div></div>
+              <span class="pill mut" data-i18n="s1.r1p">by you</span>
+            </div>
+            <div class="row">
+              <span class="ava" style="background:var(--paper-3);color:var(--ink-2)">✓</span>
+              <div class="g"><div class="nm" data-i18n="s1.r2n">Package untouched</div><div class="sb" data-i18n="s1.r2s">Deducted only after the lesson is marked</div></div>
+              <span class="pill ok" data-i18n="s1.r2p">4 left</span>
+            </div>
+            <div class="row">
+              <span class="ava" style="background:var(--clay-soft);color:#8A5A32">!</span>
+              <div class="g"><div class="nm" data-i18n="s1.r3n">Clash check</div><div class="sb" data-i18n="s1.r3s">Friday 18:30 is free — nothing overlaps</div></div>
+              <span class="pill mut" data-i18n="s1.r3p">clear</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split rev">
+      <div class="rv">
+        <span class="eyebrow" data-i18n="s2.eyebrow">Packages &amp; payments</span>
+        <h2 data-i18n="s2.title">It counts the lessons so you don't have to</h2>
+        <p class="lead" data-i18n="s2.sub">Set the number of lessons, the rate and the validity once. From then on every marked lesson is deducted, and one lesson before the end Slate reminds you that it is time to renew.</p>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s2.b1">Packages of 4, 8, 10 lessons — or pay-as-you-go</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s2.b2">A different rate per student, subject or lesson length</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s2.b3">Pauses for holidays, with the validity extended automatically</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s2.b4">A debt list that builds itself, so nothing is written off by accident</span></li>
+        </ul>
+      </div>
+
+      <div class="media rv">
+        <div class="panel">
+          <div class="p-head">
+            <span class="t" data-i18n="s2.p">Packages · active</span>
+            <span class="pill mut" data-i18n="s2.pm">May</span>
+          </div>
+          <div class="p-body">
+            <div class="row">
+              <span class="ava">MA</span>
+              <div class="g"><div class="nm" data-i18n="s2.r1n">Mari A. · English</div><div class="sb" data-i18n="s2.r1s">8 lessons · valid until 30 May</div></div>
+              <span class="pill ok" data-i18n="s2.r1p">5 of 8</span>
+            </div>
+            <div class="row">
+              <span class="ava">LE</span>
+              <div class="g"><div class="nm" data-i18n="s2.r2n">Leo B. · Maths</div><div class="sb" data-i18n="s2.r2s">4 lessons · time to renew</div></div>
+              <span class="pill warn" data-i18n="s2.r2p">1 of 4</span>
+            </div>
+            <div class="row">
+              <span class="ava">TI</span>
+              <div class="g"><div class="nm" data-i18n="s2.r3n">Tigran S. · Guitar</div><div class="sb" data-i18n="s2.r3s">Pay-as-you-go · paid after each lesson</div></div>
+              <span class="pill ok" data-i18n="s2.r3p">no debt</span>
+            </div>
+            <div class="row">
+              <span class="ava">NI</span>
+              <div class="g"><div class="nm" data-i18n="s2.r4n">Nina K. · trial</div><div class="sb" data-i18n="s2.r4s">Paused until 12 May · holidays</div></div>
+              <span class="pill mut" data-i18n="s2.r4p">paused</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="rv">
+        <span class="eyebrow" data-i18n="s3.eyebrow">For the student</span>
+        <h2 data-i18n="s3.title">One link instead of ten messages</h2>
+        <p class="lead" data-i18n="s3.sub">The student — or the parent — opens a personal link on their phone and sees the balance, the next lesson and the homework. The question “how many lessons do I have left?” simply stops being asked.</p>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s3.b1">No sign-up, no password, nothing to install</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s3.b2">Homework and your notes from the last lesson</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="s3.b3">Payment history parents can check for themselves</span></li>
+        </ul>
+      </div>
+
+      <div class="media rv">
+        <div class="phone">
+          <div class="screen">
+            <div class="sc-top"><span>9:41</span><span>Slate</span></div>
+
+            <div class="sc-card">
+              <div class="sc-big" data-i18n="ph.big">5 of 8</div>
+              <div class="sc-lbl" data-i18n="ph.lbl">lessons left · valid until 30 May</div>
+              <div class="bar" style="margin-bottom:0"><i></i></div>
+            </div>
+
+            <div class="sc-card">
+              <div class="sc-t" data-i18n="ph.next">Next lessons</div>
+              <div class="sc-line"><span data-i18n="ph.l1">Tue, 17:00 · English</span><span class="muted" data-i18n="ph.online">online</span></div>
+              <div class="sc-line"><span data-i18n="ph.l2">Thu, 17:00 · English</span><span class="muted" data-i18n="ph.online">online</span></div>
+            </div>
+
+            <div class="sc-card">
+              <div class="sc-t" data-i18n="ph.hw">Homework</div>
+              <div class="sc-line"><span data-i18n="ph.hw1">Unit 7, exercises 3–5</span><span class="muted" data-i18n="ph.due">by Tue</span></div>
+              <div class="sc-line"><span data-i18n="ph.paid">Paid on 6 May</span><b data-i18n="ph.paidV">8 lessons</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== SUBJECTS ===================== -->
+<section class="section" id="subjects">
+  <div class="container">
+    <div class="head mid rv">
+      <span class="eyebrow" data-i18n="subj.eyebrow">Any subject</span>
+      <h2 class="h2" data-i18n="subj.title">Slate does not care what you teach</h2>
+      <p class="lead" data-i18n="subj.sub">It counts lessons, not curricula — so it fits a maths tutor, a music teacher and an exam coach equally well.</p>
+    </div>
+
+    <div class="subs rv" style="margin-top:clamp(30px,4vw,48px)">
+      <span class="sub"><span class="em">📐</span><span data-i18n="subj.1">Maths and physics</span></span>
+      <span class="sub"><span class="em">🗣️</span><span data-i18n="subj.2">Languages</span></span>
+      <span class="sub"><span class="em">🎹</span><span data-i18n="subj.3">Music</span></span>
+      <span class="sub"><span class="em">💻</span><span data-i18n="subj.4">Programming</span></span>
+      <span class="sub"><span class="em">🎓</span><span data-i18n="subj.5">Exam prep</span></span>
+      <span class="sub"><span class="em">🎨</span><span data-i18n="subj.6">Art and design</span></span>
+      <span class="sub"><span class="em">♟️</span><span data-i18n="subj.7">Chess</span></span>
+      <span class="sub"><span class="em">📚</span><span data-i18n="subj.8">Primary school</span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STEPS ===================== -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="head rv">
+      <span class="eyebrow" data-i18n="steps.eyebrow">Getting started</span>
+      <h2 class="h2" data-i18n="steps.title">Set up in one evening, keep it for years</h2>
+    </div>
+
+    <div class="steps rv" style="margin-top:clamp(30px,4vw,48px)">
+      <div class="step">
+        <span class="n"></span>
+        <h3 data-i18n="steps.1t">Add your students</h3>
+        <p data-i18n="steps.1d">Name, subject, rate and how many lessons they have already paid for. Ten students take about five minutes.</p>
+      </div>
+      <div class="step">
+        <span class="n"></span>
+        <h3 data-i18n="steps.2t">Lay out your week</h3>
+        <p data-i18n="steps.2d">Put the lessons where they belong and switch on repetition. The rest of the term fills itself in.</p>
+      </div>
+      <div class="step">
+        <span class="n"></span>
+        <h3 data-i18n="steps.3t">Just mark the lessons</h3>
+        <p data-i18n="steps.3d">One tap after each lesson. Packages, balances, debts and reminders follow on their own.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== QUOTE ===================== -->
+<section class="section" style="padding-top:0">
+  <div class="container rv">
+    <div class="quote">
+      <span class="txt" data-i18n="quote.t">“I used to spend every Sunday rebuilding my week from memory. Now I mark a lesson and the rest — the package, the balance, the reminder — happens without me.”</span>
+      <div class="by">
+        <span class="ava">AN</span>
+        <div>
+          <div class="qn" data-i18n="quote.n">Anna</div>
+          <div class="qr" data-i18n="quote.r">English tutor, 23 students</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PRICING ===================== -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="head mid rv">
+      <span class="eyebrow" data-i18n="price.eyebrow">Pricing</span>
+      <h2 class="h2" data-i18n="price.title">Free while you are small</h2>
+      <p class="lead" data-i18n="price.sub">Every feature is on every plan. The only difference is how many students you keep.</p>
+      <div class="toggle" id="toggle" role="group">
+        <button class="on" data-period="month" data-i18n="price.monthly">Monthly</button>
+        <button data-period="year"><span data-i18n="price.yearly">Yearly</span><span class="sv" data-i18n="price.save">−20%</span></button>
+      </div>
+    </div>
+
+    <div class="plans rv" style="margin-top:clamp(34px,4.5vw,56px)">
+      <article class="plan">
+        <div class="pn" data-i18n="p1.n">Solo</div>
+        <div class="pd" data-i18n="p1.d">For a tutor who is just putting things in order</div>
+        <div class="price"><span class="v" data-month="$0" data-year="$0">$0</span><span class="per" data-i18n="price.per">/ month</span></div>
+        <div class="lim" data-i18n="p1.l">up to 5 students</div>
+        <a class="btn btn-ghost" href="#start" data-i18n="p1.c">Start free</a>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f1">Schedule and lesson packages</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f2">Student page by link</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f3">Payment and debt tracking</span></li>
+        </ul>
+      </article>
+
+      <article class="plan best">
+        <span class="flag" data-i18n="price.popular">Most popular</span>
+        <div class="pn" data-i18n="p2.n">Pro</div>
+        <div class="pd" data-i18n="p2.d">For a full private practice, online and in person</div>
+        <div class="price"><span class="v" data-month="$9" data-year="$7">$9</span><span class="per" data-i18n="price.per">/ month</span></div>
+        <div class="lim" data-i18n="p2.l">up to 60 students</div>
+        <a class="btn btn-primary" href="#start" data-i18n="p2.c">Start free</a>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f1">Everything in Solo</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f2">Automatic reminders for students and parents</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f3">Income, hours and attendance reports</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f4">Homework and lesson notes</span></li>
+        </ul>
+      </article>
+
+      <article class="plan">
+        <div class="pn" data-i18n="p3.n">Team</div>
+        <div class="pd" data-i18n="p3.d">For a few tutors working under one name</div>
+        <div class="price"><span class="v" data-month="$29" data-year="$23">$29</span><span class="per" data-i18n="price.per">/ month</span></div>
+        <div class="lim" data-i18n="p3.l">unlimited students</div>
+        <a class="btn btn-ghost" href="#start" data-i18n="p3.c">Talk to us</a>
+        <ul class="list">
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f1">Everything in Pro</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f2">Several tutors with their own schedules</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f3">Shared report and payout calculation</span></li>
+          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f4">We move your data across for you</span></li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="section" id="faq" style="padding-top:0">
+  <div class="container">
+    <div class="head mid rv">
+      <span class="eyebrow" data-i18n="faq.eyebrow">FAQ</span>
+      <h2 class="h2" data-i18n="faq.title">Questions tutors ask first</h2>
+    </div>
+
+    <div class="faq rv" style="margin-top:clamp(28px,4vw,44px)">
+      <details open>
+        <summary data-i18n="q1">Do I have to move my whole history across?</summary>
+        <div class="ans" data-i18n="a1">No. Add the students you teach right now and how many lessons they have left — that is enough to start on Monday. The old spreadsheet can stay as an archive.</div>
+      </details>
+      <details>
+        <summary data-i18n="q2">What exactly does the student see?</summary>
+        <div class="ans" data-i18n="a2">Only their own page: lessons left, the next lessons, homework and payment history. They never see other students, your income or your notes marked private.</div>
+      </details>
+      <details>
+        <summary data-i18n="q3">What if a student cancels at the last minute?</summary>
+        <div class="ans" data-i18n="a3">You set the rule once — for example, a cancellation less than 12 hours before the lesson counts as a lesson. Slate applies it for you, so you never have to argue about it.</div>
+      </details>
+      <details>
+        <summary data-i18n="q4">Can I charge different students different rates?</summary>
+        <div class="ans" data-i18n="a4">Yes. The rate is set per student, subject or lesson length, and the package still counts and expires automatically.</div>
+      </details>
+      <details>
+        <summary data-i18n="q5">Does it work for group lessons?</summary>
+        <div class="ans" data-i18n="a5">Yes. A lesson can hold several students, and attendance is marked for each of them separately — every package is deducted on its own.</div>
+      </details>
+      <details>
+        <summary data-i18n="q6">Can I get my data out?</summary>
+        <div class="ans" data-i18n="a6">At any moment. Students, lessons and payments export to a spreadsheet in one click. The data is yours.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA ===================== -->
+<section class="section" id="start" style="padding-top:0">
+  <div class="container rv">
+    <div class="cta">
+      <h2 data-i18n="cta.t">Start your next week on Slate</h2>
+      <p data-i18n="cta.s">Free for up to five students, with no card and no contract. Add the sixth one when you are ready.</p>
+      <div class="cta-b">
+        <a class="btn btn-paper btn-lg" href="#"><span data-i18n="cta.b1">Create your Slate</span> <span class="arr">→</span></a>
+        <a class="btn btn-lg" href="#" style="border-color:rgba(237,240,226,.35);color:var(--olive-50)" data-i18n="cta.b2">See a demo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="fgrid">
+      <div>
+        <a class="brand" href="#top">
+          <span class="mark"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <span>Slate</span>
+        </a>
+        <p class="fabout" data-i18n="foot.about">Students, lessons and payments for private teachers and tutors — in one place, in any subject.</p>
+      </div>
+
+      <div class="fcol">
+        <h4 data-i18n="foot.c1">Product</h4>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#how" data-i18n="nav.how">How it works</a>
+        <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      </div>
+
+      <div class="fcol">
+        <h4 data-i18n="foot.c2">For tutors</h4>
+        <a href="#subjects" data-i18n="subj.1">Maths and physics</a>
+        <a href="#subjects" data-i18n="subj.2">Languages</a>
+        <a href="#subjects" data-i18n="subj.3">Music</a>
+        <a href="#subjects" data-i18n="subj.5">Exam prep</a>
+      </div>
+
+      <div class="fcol">
+        <h4 data-i18n="foot.c3">Support</h4>
+        <a href="#" data-i18n="foot.help">Help centre</a>
+        <a href="#" data-i18n="foot.import">Import from a spreadsheet</a>
+        <a href="#" data-i18n="foot.contact">Contact us</a>
+        <a href="#login" data-i18n="nav.login">Log in</a>
+      </div>
+    </div>
+
+    <div class="fbot">
+      <span>© <span id="year">2026</span> Slate</span>
+      <span style="display:flex;gap:20px;flex-wrap:wrap">
+        <a href="#" data-i18n="foot.privacy">Privacy</a>
+        <a href="#" data-i18n="foot.terms">Terms</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   ПЕРЕВОДЫ: один ключ — три языка рядом, чтобы ничего не разъезжалось
+   ============================================================ */
+var T = {
+"meta.title":{en:"Slate — students, lessons and payments for tutors",ru:"Slate — ученики, занятия и оплаты для репетиторов",hy:"Slate — աշակերտներ, պարապմունքներ և վճարումներ կրկնուսույցների համար"},
+"meta.desc":{en:"Slate replaces the spreadsheet and the notebook: it counts lesson packages, keeps your week in order and shows every student what is left.",ru:"Slate заменяет таблицу и ежедневник: сам считает пакеты занятий, держит неделю в порядке и показывает каждому ученику остаток.",hy:"Slate-ը փոխարինում է աղյուսակին և օրագրին. ինքն է հաշվում պարապմունքների փաթեթները, կարգի մեջ պահում շաբաթը և ցույց տալիս յուրաքանչյուր աշակերտի մնացորդը։"},
+
+"nav.features":{en:"Features",ru:"Возможности",hy:"Հնարավորություններ"},
+"nav.how":{en:"How it works",ru:"Как это работает",hy:"Ինչպես է աշխատում"},
+"nav.subjects":{en:"Subjects",ru:"Предметы",hy:"Առարկաներ"},
+"nav.pricing":{en:"Pricing",ru:"Тарифы",hy:"Սակագներ"},
+"nav.faq":{en:"FAQ",ru:"Вопросы",hy:"Հարցեր"},
+"nav.login":{en:"Log in",ru:"Войти",hy:"Մուտք"},
+"nav.cta":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
+
+"hero.badgeB":{en:"Free plan",ru:"Бесплатный тариф",hy:"Անվճար սակագին"},
+"hero.badge":{en:"no card, no setup fee",ru:"без карты и платы за подключение",hy:"առանց քարտի և միացման վճարի"},
+"hero.title":{
+  en:'Students, lessons and payments — on one <span class="hl">clean slate</span>',
+  ru:'Ученики, занятия и оплаты — <span class="hl">на одной доске</span>',
+  hy:'Աշակերտները, պարապմունքները և վճարումները՝ <span class="hl">մեկ գրատախտակին</span>'
+},
+"hero.sub":{en:"Slate replaces the spreadsheet, the notebook and the awkward “you still owe me for two lessons” message. It counts lesson packages, keeps your week in order and shows every student exactly what is left.",ru:"Slate заменяет таблицу, ежедневник и неловкое сообщение «за вами ещё два занятия». Он сам считает пакеты занятий, держит неделю в порядке и показывает каждому ученику, сколько осталось.",hy:"Slate-ը փոխարինում է աղյուսակին, օրագրին և «Դուք դեռ երկու պարապմունքի պարտք ունեք» անհարմար հաղորդագրությանը։ Այն ինքն է հաշվում փաթեթները, կարգի մեջ պահում շաբաթը և ցույց տալիս յուրաքանչյուր աշակերտին, թե որքան է մնացել։"},
+"hero.cta1":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
+"hero.cta2":{en:"See how it works",ru:"Посмотреть, как устроено",hy:"Տեսնել, թե ինչպես է աշխատում"},
+"hero.n1":{en:"Any subject",ru:"Любой предмет",hy:"Ցանկացած առարկա"},
+"hero.n2":{en:"Online and in person",ru:"Онлайн и очно",hy:"Առցանց և առերես"},
+"hero.n3":{en:"Works from your phone",ru:"Работает с телефона",hy:"Աշխատում է հեռախոսից"},
+
+"board.title":{en:"Your week",ru:"Ваша неделя",hy:"Ձեր շաբաթը"},
+"board.chip1":{en:"All students",ru:"Все ученики",hy:"Բոլոր աշակերտները"},
+"board.chip2":{en:"Online",ru:"Онлайн",hy:"Առցանց"},
+"board.lg1":{en:"Lesson",ru:"Занятие",hy:"Պարապմունք"},
+"board.lg2":{en:"Trial",ru:"Пробное",hy:"Փորձնական"},
+"board.lg3":{en:"Moved",ru:"Перенесено",hy:"Տեղափոխված"},
+"d.mon":{en:"Mon",ru:"Пн",hy:"Երկ"},
+"d.tue":{en:"Tue",ru:"Вт",hy:"Երք"},
+"d.wed":{en:"Wed",ru:"Ср",hy:"Չրք"},
+"d.thu":{en:"Thu",ru:"Чт",hy:"Հնգ"},
+"d.fri":{en:"Fri",ru:"Пт",hy:"Ուրբ"},
+"l.math":{en:"Maths",ru:"Математика",hy:"Մաթեմ."},
+"l.eng":{en:"English",ru:"Английский",hy:"Անգլերեն"},
+"l.exam":{en:"Exam prep",ru:"Подготовка",hy:"Քննական"},
+"l.guitar":{en:"Guitar",ru:"Гитара",hy:"Կիթառ"},
+"l.trial":{en:"Trial",ru:"Пробное",hy:"Փորձն."},
+"l.moved":{en:"Moved",ru:"Перенос",hy:"Տեղափ."},
+"l.s1":{en:"Leo · gr. 9",ru:"Лёва · 9 кл.",hy:"Լևոն · 9"},
+"l.s2":{en:"Mari · B1",ru:"Мари · B1",hy:"Մարի · B1"},
+"l.s3":{en:"Aram · 11",ru:"Арам · 11",hy:"Արամ · 11"},
+"l.s4":{en:"Nina",ru:"Нина",hy:"Նինա"},
+"l.s5":{en:"Tigran",ru:"Тигран",hy:"Տիգրան"},
+"fc.name":{en:"Mari A.",ru:"Мари А.",hy:"Մարի Ա."},
+"fc.pkg":{en:"Package of 8 · English",ru:"Пакет из 8 · английский",hy:"8 պարապմունքի փաթեթ · անգլերեն"},
+"fc.left":{en:"Lessons left",ru:"Осталось занятий",hy:"Մնացել է"},
+"fc.leftV":{en:"5 of 8",ru:"5 из 8",hy:"5 / 8"},
+"fc.next":{en:"Next lesson",ru:"Следующее",hy:"Հաջորդը"},
+"fc.nextV":{en:"Tue, 17:00",ru:"Вт, 17:00",hy:"Երք, 17:00"},
+
+"st.1v":{en:"3 hours",ru:"3 часа",hy:"3 ժամ"},
+"st.1l":{en:"of admin you get back every week",ru:"рутины возвращается вам каждую неделю",hy:"վարչական աշխատանք՝ վերադարձված ձեզ ամեն շաբաթ"},
+"st.2v":{en:"0",ru:"0",hy:"0"},
+"st.2l":{en:"lessons counted in your head",ru:"занятий, посчитанных в уме",hy:"մտքում հաշված պարապմունք"},
+"st.3v":{en:"1 link",ru:"1 ссылка",hy:"1 հղում"},
+"st.3l":{en:"is all a student needs to see the balance",ru:"— всё, что нужно ученику, чтобы увидеть остаток",hy:"աշակերտին բավական է մնացորդը տեսնելու համար"},
+"st.4v":{en:"10 minutes",ru:"10 минут",hy:"10 րոպե"},
+"st.4l":{en:"to set up your first week",ru:"на настройку первой недели",hy:"առաջին շաբաթը կարգավորելու համար"},
+
+"prob.eyebrow":{en:"Why Slate",ru:"Зачем",hy:"Ինչու Slate"},
+"prob.title":{en:"Teaching is the easy part",ru:"Сложное в репетиторстве — не уроки",hy:"Դասավանդելը դժվարագույնը չէ"},
+"prob.sub":{en:"The hard part is remembering who moved Thursday, who paid for four lessons and who has quietly owed you for two since March.",ru:"Сложно помнить, кто перенёс четверг, кто оплатил четыре занятия и кто тихо должен за два ещё с марта.",hy:"Դժվարը հիշելն է՝ ով է տեղափոխել հինգշաբթին, ով է վճարել չորս պարապմունքի համար և ով է մարտից ի վեր լուռ երկուսի պարտք։"},
+"prob.was":{en:"Before",ru:"Было",hy:"Առաջ"},
+"prob.now":{en:"With Slate",ru:"Со Slate",hy:"Slate-ի հետ"},
+"prob.w1":{en:"A spreadsheet only you can read",ru:"Таблица, в которой разбираетесь только вы",hy:"Աղյուսակ, որը միայն դուք եք հասկանում"},
+"prob.w2":{en:"Lessons recounted from memory at the end of the month",ru:"Занятия, пересчитанные по памяти в конце месяца",hy:"Ամսվա վերջում հիշողությամբ վերահաշված պարապմունքներ"},
+"prob.w3":{en:"“Can we move Thursday?” lost in three different chats",ru:"«Перенесём четверг?», потерянное в трёх чатах",hy:"«Տեղափոխե՞նք հինգշաբթին», որ կորել է երեք զրույցում"},
+"prob.w4":{en:"Awkward reminders about money, written by hand",ru:"Неловкие напоминания про деньги, написанные вручную",hy:"Փողի մասին անհարմար հիշեցումներ՝ գրված ձեռքով"},
+"prob.w5":{en:"No idea which days and subjects actually pay off",ru:"Непонятно, какие дни и предметы реально приносят доход",hy:"Անհասկանալի է, թե որ օրերն ու առարկաներն են իրականում եկամուտ բերում"},
+"prob.n1":{en:"One week in front of you, with every student on it",ru:"Одна неделя перед глазами, со всеми учениками сразу",hy:"Մեկ շաբաթ ձեր առջև՝ բոլոր աշակերտներով"},
+"prob.n2":{en:"Packages deducted automatically when you mark a lesson",ru:"Пакеты списываются сами, когда вы отмечаете занятие",hy:"Փաթեթները դուրս են գրվում ինքնաբերաբար, երբ նշում եք պարապմունքը"},
+"prob.n3":{en:"Rescheduling by dragging, with the history kept",ru:"Перенос перетаскиванием, с сохранением истории",hy:"Տեղափոխում՝ քաշելով, պատմությունը պահպանվում է"},
+"prob.n4":{en:"The student opens a link and sees the balance without asking",ru:"Ученик открывает ссылку и видит остаток, не спрашивая",hy:"Աշակերտը բացում է հղումը և տեսնում մնացորդը՝ առանց հարցնելու"},
+"prob.n5":{en:"Income and hours per month in a single report",ru:"Доход и часы за месяц в одном отчёте",hy:"Ամսվա եկամուտն ու ժամերը՝ մեկ հաշվետվությունում"},
+
+"feat.eyebrow":{en:"Features",ru:"Возможности",hy:"Հնարավորություններ"},
+"feat.title":{en:"Everything a tutoring week is made of",ru:"Всё, из чего состоит неделя репетитора",hy:"Այն ամենը, ինչից բաղկացած է կրկնուսույցի շաբաթը"},
+"feat.sub":{en:"Nothing to assemble from modules: students, schedule, packages and money are one thing.",ru:"Ничего не нужно докупать модулями: ученики, расписание, пакеты и деньги работают как одно целое.",hy:"Ոչինչ մոդուլներով հավաքելու կարիք չկա. աշակերտները, ժամանակացույցը, փաթեթներն ու փողը մեկ ամբողջություն են։"},
+"f1.t":{en:"Students",ru:"Ученики",hy:"Աշակերտներ"},
+"f1.d":{en:"A card per student: subject, level, the parent's contact and your notes after each lesson. Everything you used to keep in your head.",ru:"Карточка на каждого: предмет, уровень, контакт родителя и ваши заметки после занятия. Всё, что раньше держалось в голове.",hy:"Քարտ յուրաքանչյուրի համար՝ առարկա, մակարդակ, ծնողի կոնտակտ և ձեր նշումները դասից հետո։ Այն ամենը, ինչ առաջ պահում էիք մտքում։"},
+"f2.t":{en:"Schedule",ru:"Расписание",hy:"Ժամանակացույց"},
+"f2.d":{en:"Recurring slots for the whole term, drag to reschedule, clashes flagged before you confirm them.",ru:"Повторяющиеся слоты на весь семестр, перенос перетаскиванием, накладки видны до подтверждения.",hy:"Կրկնվող ժամեր ամբողջ կիսամյակի համար, տեղափոխում՝ քաշելով, համընկնումները երևում են նախքան հաստատելը։"},
+"f3.t":{en:"Lesson packages",ru:"Пакеты занятий",hy:"Պարապմունքների փաթեթներ"},
+"f3.d":{en:"Packages of any size or single lessons, an individual rate per student, deducted the moment you mark attendance.",ru:"Пакеты любого размера или разовые занятия, своя ставка для каждого, списание в момент отметки.",hy:"Ցանկացած չափի փաթեթ կամ առանձին պարապմունքներ, անհատական սակագին, դուրսգրում՝ նշման պահին։"},
+"f4.t":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+"f4.d":{en:"Who paid, who owes, what is due this week. The reminder goes out without you having to write it.",ru:"Кто оплатил, кто должен, что ждёт оплаты на этой неделе. Напоминание уходит без вашего участия.",hy:"Ով է վճարել, ով է պարտք, ինչն է սպասում վճարման այս շաբաթ։ Հիշեցումը գնում է առանց ձեր մասնակցության։"},
+"f5.t":{en:"Student page",ru:"Страница ученика",hy:"Աշակերտի էջը"},
+"f5.d":{en:"A personal link with lessons left, the next lesson, homework and payment history. No account, no password.",ru:"Личная ссылка с остатком занятий, ближайшим уроком, домашним заданием и историей оплат. Без аккаунта и пароля.",hy:"Անձնական հղում՝ մնացած պարապմունքներով, հաջորդ դասով, տնային աշխատանքով և վճարումների պատմությամբ։ Առանց հաշվի և գաղտնաբառի։"},
+"f6.t":{en:"Reports",ru:"Отчёты",hy:"Հաշվետվություններ"},
+"f6.d":{en:"Income, hours and attendance by month — so you can see which subjects and which time slots are worth keeping.",ru:"Доход, часы и посещаемость по месяцам — видно, какие предметы и какие часы стоит оставить.",hy:"Եկամուտ, ժամեր և հաճախում ըստ ամիսների՝ երևում է, թե որ առարկաներն ու ժամերն արժե պահել։"},
+
+"s1.eyebrow":{en:"Schedule",ru:"Расписание",hy:"Ժամանակացույց"},
+"s1.title":{en:"Move Thursday in one drag",ru:"Перенести четверг — одно движение",hy:"Տեղափոխեք հինգշաբթին մեկ շարժումով"},
+"s1.sub":{en:"Pick up a lesson, drop it on a new time. Slate warns you about clashes, keeps the record of who moved what, and leaves the package untouched until the lesson actually happens.",ru:"Возьмите занятие и отпустите на новом времени. Slate предупредит о накладке, сохранит, кто и когда перенёс, и не тронет пакет, пока занятие не состоится.",hy:"Վերցրեք պարապմունքը և թողեք նոր ժամին։ Slate-ը կզգուշացնի համընկնման մասին, կպահի, թե ով և երբ է տեղափոխել, և չի դիպչի փաթեթին, մինչև դասը կայանա։"},
+"s1.b1":{en:"Recurring lessons set once for the whole term",ru:"Повторяющиеся занятия задаются один раз на весь семестр",hy:"Կրկնվող պարապմունքները սահմանվում են մեկ անգամ՝ ամբողջ կիսամյակի համար"},
+"s1.b2":{en:"Your own cancellation rule: a late cancel counts as a lesson",ru:"Своё правило отмены: поздняя отмена считается занятием",hy:"Ձեր չեղարկման կանոնը՝ ուշ չեղարկումը հաշվվում է որպես պարապմունք"},
+"s1.b3":{en:"Attendance marked from your phone, right after the lesson",ru:"Отметка занятия с телефона, сразу после урока",hy:"Հաճախումը նշվում է հեռախոսից՝ դասից անմիջապես հետո"},
+"s1.b4":{en:"Online and in-person lessons side by side, with the call link attached",ru:"Онлайн и очные занятия рядом, со ссылкой на созвон",hy:"Առցանց և առերես դասերը կողք կողքի՝ կապի հղումով"},
+"s1.p":{en:"Lesson · Exam prep",ru:"Занятие · Подготовка",hy:"Պարապմունք · Քննություն"},
+"s1.pill":{en:"Moved",ru:"Перенесено",hy:"Տեղափոխված"},
+"s1.r1n":{en:"Aram, grade 11",ru:"Арам, 11 класс",hy:"Արամ, 11-րդ դասարան"},
+"s1.r1s":{en:"Wednesday 18:30 → Friday 18:30",ru:"Среда 18:30 → пятница 18:30",hy:"Չորեքշաբթի 18:30 → ուրբաթ 18:30"},
+"s1.r1p":{en:"by you",ru:"вами",hy:"ձեր կողմից"},
+"s1.r2n":{en:"Package untouched",ru:"Пакет не тронут",hy:"Փաթեթը մնում է անփոփոխ"},
+"s1.r2s":{en:"Deducted only after the lesson is marked",ru:"Списание только после отметки занятия",hy:"Դուրսգրումը միայն պարապմունքը նշելուց հետո"},
+"s1.r2p":{en:"4 left",ru:"осталось 4",hy:"մնաց 4"},
+"s1.r3n":{en:"Clash check",ru:"Проверка накладок",hy:"Համընկնման ստուգում"},
+"s1.r3s":{en:"Friday 18:30 is free — nothing overlaps",ru:"Пятница 18:30 свободна — ничего не пересекается",hy:"Ուրբաթ 18:30-ը ազատ է՝ ոչինչ չի համընկնում"},
+"s1.r3p":{en:"clear",ru:"чисто",hy:"մաքուր"},
+
+"s2.eyebrow":{en:"Packages & payments",ru:"Пакеты и оплаты",hy:"Փաթեթներ և վճարումներ"},
+"s2.title":{en:"It counts the lessons so you don't have to",ru:"Считает занятия за вас",hy:"Հաշվում է պարապմունքները ձեր փոխարեն"},
+"s2.sub":{en:"Set the number of lessons, the rate and the validity once. From then on every marked lesson is deducted, and one lesson before the end Slate reminds you that it is time to renew.",ru:"Задайте число занятий, ставку и срок один раз. Дальше каждое отмеченное занятие списывается само, а за одно занятие до конца Slate напомнит, что пора продлевать.",hy:"Մեկ անգամ սահմանեք պարապմունքների քանակը, սակագինը և ժամկետը։ Այնուհետև յուրաքանչյուր նշված դաս դուրս է գրվում ինքնաբերաբար, իսկ ավարտից մեկ դաս առաջ Slate-ը կհիշեցնի երկարաձգել։"},
+"s2.b1":{en:"Packages of 4, 8, 10 lessons — or pay-as-you-go",ru:"Пакеты по 4, 8, 10 занятий — или оплата за каждое",hy:"4, 8, 10 պարապմունքի փաթեթներ կամ վճարում յուրաքանչյուրի համար"},
+"s2.b2":{en:"A different rate per student, subject or lesson length",ru:"Своя ставка для ученика, предмета или длительности урока",hy:"Առանձին սակագին ըստ աշակերտի, առարկայի կամ դասի տևողության"},
+"s2.b3":{en:"Pauses for holidays, with the validity extended automatically",ru:"Пауза на каникулы с автоматическим продлением срока",hy:"Դադար արձակուրդների համար՝ ժամկետի ինքնաշխատ երկարաձգմամբ"},
+"s2.b4":{en:"A debt list that builds itself, so nothing is written off by accident",ru:"Список долгов собирается сам — ничего не теряется по случайности",hy:"Պարտքերի ցանկը կազմվում է ինքնուրույն՝ ոչինչ պատահաբար չի կորչում"},
+"s2.p":{en:"Packages · active",ru:"Пакеты · активные",hy:"Փաթեթներ · ակտիվ"},
+"s2.pm":{en:"May",ru:"Май",hy:"Մայիս"},
+"s2.r1n":{en:"Mari A. · English",ru:"Мари А. · английский",hy:"Մարի Ա. · անգլերեն"},
+"s2.r1s":{en:"8 lessons · valid until 30 May",ru:"8 занятий · до 30 мая",hy:"8 պարապմունք · մինչև մայիսի 30"},
+"s2.r1p":{en:"5 of 8",ru:"5 из 8",hy:"5 / 8"},
+"s2.r2n":{en:"Leo B. · Maths",ru:"Лёва Б. · математика",hy:"Լևոն Բ. · մաթեմատիկա"},
+"s2.r2s":{en:"4 lessons · time to renew",ru:"4 занятия · пора продлевать",hy:"4 պարապմունք · ժամանակն է երկարաձգել"},
+"s2.r2p":{en:"1 of 4",ru:"1 из 4",hy:"1 / 4"},
+"s2.r3n":{en:"Tigran S. · Guitar",ru:"Тигран С. · гитара",hy:"Տիգրան Ս. · կիթառ"},
+"s2.r3s":{en:"Pay-as-you-go · paid after each lesson",ru:"Разовые · оплата после каждого занятия",hy:"Առանձին դասեր · վճարում յուրաքանչյուրից հետո"},
+"s2.r3p":{en:"no debt",ru:"без долга",hy:"առանց պարտքի"},
+"s2.r4n":{en:"Nina K. · trial",ru:"Нина К. · пробное",hy:"Նինա Կ. · փորձնական"},
+"s2.r4s":{en:"Paused until 12 May · holidays",ru:"Пауза до 12 мая · каникулы",hy:"Դադար մինչև մայիսի 12 · արձակուրդ"},
+"s2.r4p":{en:"paused",ru:"пауза",hy:"դադար"},
+
+"s3.eyebrow":{en:"For the student",ru:"Ученику",hy:"Աշակերտի համար"},
+"s3.title":{en:"One link instead of ten messages",ru:"Одна ссылка вместо десяти сообщений",hy:"Մեկ հղում՝ տասը հաղորդագրության փոխարեն"},
+"s3.sub":{en:"The student — or the parent — opens a personal link on their phone and sees the balance, the next lesson and the homework. The question “how many lessons do I have left?” simply stops being asked.",ru:"Ученик или родитель открывает личную ссылку на телефоне и видит остаток, ближайшее занятие и домашнее задание. Вопрос «сколько у меня осталось?» просто перестаёт задаваться.",hy:"Աշակերտը կամ ծնողը հեռախոսում բացում է անձնական հղումը և տեսնում մնացորդը, հաջորդ դասը և տնային աշխատանքը։ «Քանի՞ դաս է մնացել» հարցը պարզապես դադարում է հնչել։"},
+"s3.b1":{en:"No sign-up, no password, nothing to install",ru:"Без регистрации, пароля и установки приложения",hy:"Առանց գրանցման, գաղտնաբառի և հավելված տեղադրելու"},
+"s3.b2":{en:"Homework and your notes from the last lesson",ru:"Домашнее задание и ваши заметки с прошлого урока",hy:"Տնային աշխատանք և ձեր նշումները նախորդ դասից"},
+"s3.b3":{en:"Payment history parents can check for themselves",ru:"История оплат, которую родитель проверит сам",hy:"Վճարումների պատմություն, որը ծնողը կստուգի ինքը"},
+"ph.big":{en:"5 of 8",ru:"5 из 8",hy:"5 / 8"},
+"ph.lbl":{en:"lessons left · valid until 30 May",ru:"занятий осталось · до 30 мая",hy:"պարապմունք է մնացել · մինչև մայիսի 30"},
+"ph.next":{en:"Next lessons",ru:"Ближайшие занятия",hy:"Մոտակա դասերը"},
+"ph.l1":{en:"Tue, 17:00 · English",ru:"Вт, 17:00 · английский",hy:"Երք, 17:00 · անգլերեն"},
+"ph.l2":{en:"Thu, 17:00 · English",ru:"Чт, 17:00 · английский",hy:"Հնգ, 17:00 · անգլերեն"},
+"ph.online":{en:"online",ru:"онлайн",hy:"առցանց"},
+"ph.hw":{en:"Homework",ru:"Домашнее задание",hy:"Տնային աշխատանք"},
+"ph.hw1":{en:"Unit 7, exercises 3–5",ru:"Юнит 7, упражнения 3–5",hy:"Բաժին 7, վարժություններ 3–5"},
+"ph.due":{en:"by Tue",ru:"к вторнику",hy:"մինչև երք."},
+"ph.paid":{en:"Paid on 6 May",ru:"Оплачено 6 мая",hy:"Վճարվել է մայիսի 6-ին"},
+"ph.paidV":{en:"8 lessons",ru:"8 занятий",hy:"8 պարապմունք"},
+
+"subj.eyebrow":{en:"Any subject",ru:"Любой предмет",hy:"Ցանկացած առարկա"},
+"subj.title":{en:"Slate does not care what you teach",ru:"Slate всё равно, что вы преподаёте",hy:"Slate-ի համար կարևոր չէ, թե ինչ եք դասավանդում"},
+"subj.sub":{en:"It counts lessons, not curricula — so it fits a maths tutor, a music teacher and an exam coach equally well.",ru:"Он считает занятия, а не программу — поэтому одинаково подходит репетитору по математике, преподавателю музыки и тому, кто готовит к экзаменам.",hy:"Այն հաշվում է դասերը, ոչ թե ծրագիրը, ուստի հավասարապես հարմար է մաթեմատիկայի կրկնուսույցին, երաժշտության ուսուցչին և քննության նախապատրաստողին։"},
+"subj.1":{en:"Maths and physics",ru:"Математика и физика",hy:"Մաթեմատիկա և ֆիզիկա"},
+"subj.2":{en:"Languages",ru:"Языки",hy:"Լեզուներ"},
+"subj.3":{en:"Music",ru:"Музыка",hy:"Երաժշտություն"},
+"subj.4":{en:"Programming",ru:"Программирование",hy:"Ծրագրավորում"},
+"subj.5":{en:"Exam prep",ru:"Подготовка к экзаменам",hy:"Քննությանը նախապատրաստում"},
+"subj.6":{en:"Art and design",ru:"Рисование и дизайн",hy:"Նկարչություն և դիզայն"},
+"subj.7":{en:"Chess",ru:"Шахматы",hy:"Շախմատ"},
+"subj.8":{en:"Primary school",ru:"Начальная школа",hy:"Տարրական դպրոց"},
+
+"steps.eyebrow":{en:"Getting started",ru:"Начало",hy:"Սկիզբ"},
+"steps.title":{en:"Set up in one evening, keep it for years",ru:"Настроить за вечер — пользоваться годами",hy:"Կարգավորեք մեկ երեկոյում, օգտագործեք տարիներ"},
+"steps.1t":{en:"Add your students",ru:"Добавьте учеников",hy:"Ավելացրեք աշակերտներին"},
+"steps.1d":{en:"Name, subject, rate and how many lessons they have already paid for. Ten students take about five minutes.",ru:"Имя, предмет, ставка и сколько занятий уже оплачено. Десять учеников — примерно пять минут.",hy:"Անուն, առարկա, սակագին և քանի դաս է արդեն վճարված։ Տասը աշակերտ՝ մոտ հինգ րոպե։"},
+"steps.2t":{en:"Lay out your week",ru:"Разложите неделю",hy:"Դասավորեք շաբաթը"},
+"steps.2d":{en:"Put the lessons where they belong and switch on repetition. The rest of the term fills itself in.",ru:"Расставьте занятия по местам и включите повторение. Остальной семестр заполнится сам.",hy:"Տեղադրեք դասերն իրենց տեղում և միացրեք կրկնությունը։ Կիսամյակի մնացած մասը կլրացվի ինքնուրույն։"},
+"steps.3t":{en:"Just mark the lessons",ru:"Просто отмечайте занятия",hy:"Պարզապես նշեք դասերը"},
+"steps.3d":{en:"One tap after each lesson. Packages, balances, debts and reminders follow on their own.",ru:"Одно касание после урока. Пакеты, остатки, долги и напоминания дальше идут сами.",hy:"Մեկ հպում դասից հետո։ Փաթեթները, մնացորդները, պարտքերն ու հիշեցումներն այնուհետև գործում են ինքնուրույն։"},
+
+"quote.t":{en:"“I used to spend every Sunday rebuilding my week from memory. Now I mark a lesson and the rest — the package, the balance, the reminder — happens without me.”",ru:"«Раньше каждое воскресенье уходило на то, чтобы восстановить неделю по памяти. Теперь я отмечаю занятие — и пакет, остаток и напоминание срабатывают без меня».",hy:"«Առաջ ամեն կիրակի անցնում էր շաբաթը հիշողությամբ վերականգնելու վրա։ Հիմա ես նշում եմ դասը, և մնացածը՝ փաթեթը, մնացորդը, հիշեցումը, տեղի է ունենում առանց ինձ»։"},
+"quote.n":{en:"Anna",ru:"Анна",hy:"Աննա"},
+"quote.r":{en:"English tutor, 23 students",ru:"репетитор английского, 23 ученика",hy:"անգլերենի կրկնուսույց, 23 աշակերտ"},
+
+"price.eyebrow":{en:"Pricing",ru:"Тарифы",hy:"Սակագներ"},
+"price.title":{en:"Free while you are small",ru:"Бесплатно, пока учеников немного",hy:"Անվճար, քանի դեռ աշակերտները քիչ են"},
+"price.sub":{en:"Every feature is on every plan. The only difference is how many students you keep.",ru:"Все возможности есть на любом тарифе. Разница только в числе учеников.",hy:"Բոլոր հնարավորությունները հասանելի են ցանկացած սակագնում։ Տարբերությունը միայն աշակերտների թիվն է։"},
+"price.monthly":{en:"Monthly",ru:"Помесячно",hy:"Ամսական"},
+"price.yearly":{en:"Yearly",ru:"За год",hy:"Տարեկան"},
+"price.save":{en:"−20%",ru:"−20%",hy:"−20%"},
+"price.per":{en:"/ month",ru:"/ мес",hy:"/ ամիս"},
+"price.popular":{en:"Most popular",ru:"Популярный",hy:"Ամենաընտրվածը"},
+"p1.n":{en:"Solo",ru:"Solo",hy:"Solo"},
+"p1.d":{en:"For a tutor who is just putting things in order",ru:"Для репетитора, который только наводит порядок",hy:"Կրկնուսույցի համար, ով նոր է կարգի բերում գործերը"},
+"p1.l":{en:"up to 5 students",ru:"до 5 учеников",hy:"մինչև 5 աշակերտ"},
+"p1.c":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
+"p1.f1":{en:"Schedule and lesson packages",ru:"Расписание и пакеты занятий",hy:"Ժամանակացույց և փաթեթներ"},
+"p1.f2":{en:"Student page by link",ru:"Страница ученика по ссылке",hy:"Աշակերտի էջը հղումով"},
+"p1.f3":{en:"Payment and debt tracking",ru:"Учёт оплат и долгов",hy:"Վճարումների և պարտքերի հաշվառում"},
+"p2.n":{en:"Pro",ru:"Pro",hy:"Pro"},
+"p2.d":{en:"For a full private practice, online and in person",ru:"Для полной практики: онлайн и очно",hy:"Լիարժեք պրակտիկայի համար՝ առցանց և առերես"},
+"p2.l":{en:"up to 60 students",ru:"до 60 учеников",hy:"մինչև 60 աշակերտ"},
+"p2.c":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
+"p2.f1":{en:"Everything in Solo",ru:"Всё из Solo",hy:"Ամեն ինչ Solo-ից"},
+"p2.f2":{en:"Automatic reminders for students and parents",ru:"Автоматические напоминания ученикам и родителям",hy:"Ինքնաշխատ հիշեցումներ աշակերտներին և ծնողներին"},
+"p2.f3":{en:"Income, hours and attendance reports",ru:"Отчёты по доходу, часам и посещаемости",hy:"Հաշվետվություններ եկամտի, ժամերի և հաճախման վերաբերյալ"},
+"p2.f4":{en:"Homework and lesson notes",ru:"Домашние задания и заметки к занятиям",hy:"Տնային աշխատանքներ և դասի նշումներ"},
+"p3.n":{en:"Team",ru:"Team",hy:"Team"},
+"p3.d":{en:"For a few tutors working under one name",ru:"Для нескольких преподавателей под одним именем",hy:"Մեկ անվան ներքո աշխատող մի քանի դասավանդողի համար"},
+"p3.l":{en:"unlimited students",ru:"без ограничения по ученикам",hy:"առանց աշակերտների սահմանափակման"},
+"p3.c":{en:"Talk to us",ru:"Обсудить переезд",hy:"Կապվել մեզ հետ"},
+"p3.f1":{en:"Everything in Pro",ru:"Всё из Pro",hy:"Ամեն ինչ Pro-ից"},
+"p3.f2":{en:"Several tutors with their own schedules",ru:"Несколько преподавателей со своим расписанием",hy:"Մի քանի դասավանդող՝ իրենց ժամանակացույցով"},
+"p3.f3":{en:"Shared report and payout calculation",ru:"Сводный отчёт и расчёт выплат",hy:"Ընդհանուր հաշվետվություն և վճարումների հաշվարկ"},
+"p3.f4":{en:"We move your data across for you",ru:"Переносим ваши данные за вас",hy:"Ձեր տվյալները մենք ենք տեղափոխում"},
+
+"faq.eyebrow":{en:"FAQ",ru:"Вопросы",hy:"Հարցեր"},
+"faq.title":{en:"Questions tutors ask first",ru:"Что спрашивают в первую очередь",hy:"Ինչ են հարցնում առաջին հերթին"},
+"q1":{en:"Do I have to move my whole history across?",ru:"Нужно ли переносить всю историю?",hy:"Պե՞տք է տեղափոխել ամբողջ պատմությունը։"},
+"a1":{en:"No. Add the students you teach right now and how many lessons they have left — that is enough to start on Monday. The old spreadsheet can stay as an archive.",ru:"Нет. Добавьте тех, с кем занимаетесь сейчас, и остаток их занятий — этого достаточно, чтобы начать с понедельника. Старая таблица может остаться архивом.",hy:"Ոչ։ Ավելացրեք նրանց, ում հետ պարապում եք հիմա, և նրանց մնացած դասերը՝ դա բավական է երկուշաբթի սկսելու համար։ Հին աղյուսակը կարող է մնալ որպես արխիվ։"},
+"q2":{en:"What exactly does the student see?",ru:"Что именно видит ученик?",hy:"Կոնկրետ ի՞նչ է տեսնում աշակերտը։"},
+"a2":{en:"Only their own page: lessons left, the next lessons, homework and payment history. They never see other students, your income or your private notes.",ru:"Только свою страницу: остаток занятий, ближайшие уроки, домашнее задание и историю оплат. Других учеников, ваш доход и приватные заметки он не видит.",hy:"Միայն իր էջը՝ մնացած դասերը, մոտակա պարապմունքները, տնային աշխատանքը և վճարումների պատմությունը։ Այլ աշակերտներին, ձեր եկամուտը և անձնական նշումները նա չի տեսնում։"},
+"q3":{en:"What if a student cancels at the last minute?",ru:"Что если ученик отменил в последний момент?",hy:"Իսկ եթե աշակերտը վերջին պահին չեղարկի՞։"},
+"a3":{en:"You set the rule once — for example, a cancellation less than 12 hours before the lesson counts as a lesson. Slate applies it for you, so you never have to argue about it.",ru:"Правило задаётся один раз — например, отмена менее чем за 12 часов считается занятием. Slate применяет его сам, и спорить об этом не приходится.",hy:"Կանոնը սահմանվում է մեկ անգամ, օրինակ՝ 12 ժամից պակաս ժամկետում չեղարկումը հաշվվում է որպես դաս։ Slate-ը կիրառում է այն ինքը, և վիճելու կարիք չի լինում։"},
+"q4":{en:"Can I charge different students different rates?",ru:"Можно ли задать разные ставки?",hy:"Կարելի՞ է տարբեր սակագներ սահմանել։"},
+"a4":{en:"Yes. The rate is set per student, subject or lesson length, and the package still counts and expires automatically.",ru:"Да. Ставка задаётся для ученика, предмета или длительности урока, при этом пакет всё так же считается и истекает автоматически.",hy:"Այո։ Սակագինը սահմանվում է ըստ աշակերտի, առարկայի կամ դասի տևողության, իսկ փաթեթը շարունակում է հաշվվել և ավարտվել ինքնաբերաբար։"},
+"q5":{en:"Does it work for group lessons?",ru:"Подходит ли для групповых занятий?",hy:"Հարմա՞ր է խմբային պարապմունքների համար։"},
+"a5":{en:"Yes. A lesson can hold several students, and attendance is marked for each of them separately — every package is deducted on its own.",ru:"Да. В занятии может быть несколько учеников, посещаемость отмечается по каждому — и каждый пакет списывается отдельно.",hy:"Այո։ Դասին կարող են մասնակցել մի քանի աշակերտ, հաճախումը նշվում է յուրաքանչյուրի համար, և յուրաքանչյուր փաթեթ դուրս է գրվում առանձին։"},
+"q6":{en:"Can I get my data out?",ru:"Можно ли забрать свои данные?",hy:"Կարո՞ղ եմ վերցնել իմ տվյալները։"},
+"a6":{en:"At any moment. Students, lessons and payments export to a spreadsheet in one click. The data is yours.",ru:"В любой момент. Ученики, занятия и оплаты выгружаются в таблицу в один клик. Данные ваши.",hy:"Ցանկացած պահի։ Աշակերտները, դասերը և վճարումները արտահանվում են աղյուսակ մեկ սեղմումով։ Տվյալները ձերն են։"},
+
+"cta.t":{en:"Start your next week on Slate",ru:"Начните следующую неделю в Slate",hy:"Սկսեք հաջորդ շաբաթը Slate-ում"},
+"cta.s":{en:"Free for up to five students, with no card and no contract. Add the sixth one when you are ready.",ru:"Бесплатно до пяти учеников, без карты и договора. Шестого добавите, когда будете готовы.",hy:"Անվճար՝ մինչև հինգ աշակերտ, առանց քարտի և պայմանագրի։ Վեցերորդին կավելացնեք, երբ պատրաստ լինեք։"},
+"cta.b1":{en:"Create your Slate",ru:"Создать свой Slate",hy:"Ստեղծել ձեր Slate-ը"},
+"cta.b2":{en:"See a demo",ru:"Показать демо",hy:"Դիտել դեմոն"},
+
+"foot.about":{en:"Students, lessons and payments for private teachers and tutors — in one place, in any subject.",ru:"Ученики, занятия и оплаты для частных преподавателей и репетиторов — в одном месте, по любому предмету.",hy:"Աշակերտներ, պարապմունքներ և վճարումներ մասնավոր ուսուցիչների ու կրկնուսույցների համար՝ մեկ տեղում, ցանկացած առարկայի գծով։"},
+"foot.c1":{en:"Product",ru:"Продукт",hy:"Ապրանք"},
+"foot.c2":{en:"For tutors",ru:"Преподавателям",hy:"Դասավանդողներին"},
+"foot.c3":{en:"Support",ru:"Поддержка",hy:"Աջակցություն"},
+"foot.help":{en:"Help centre",ru:"Помощь",hy:"Օգնություն"},
+"foot.import":{en:"Import from a spreadsheet",ru:"Перенос из таблицы",hy:"Ներմուծում աղյուսակից"},
+"foot.contact":{en:"Contact us",ru:"Написать нам",hy:"Գրել մեզ"},
+"foot.privacy":{en:"Privacy",ru:"Конфиденциальность",hy:"Գաղտնիություն"},
+"foot.terms":{en:"Terms",ru:"Условия",hy:"Պայմաններ"}
+};
+
+(function () {
+  var LANGS = ["en","ru","hy"];
+  var STORE = "slate-lang";
+
+  function pick() {
+    var saved = null;
+    try { saved = localStorage.getItem(STORE); } catch (e) {}
+    if (saved && LANGS.indexOf(saved) > -1) return saved;
+    var nav = (navigator.languages || [navigator.language || "en"]).join(",").toLowerCase();
+    if (nav.indexOf("hy") > -1) return "hy";
+    if (nav.indexOf("ru") > -1) return "ru";
+    return "en";
+  }
+
+  function apply(lang) {
+    document.documentElement.lang = lang;
+    document.title = T["meta.title"][lang];
+    var md = document.getElementById("metaDesc");
+    if (md) md.setAttribute("content", T["meta.desc"][lang]);
+
+    document.querySelectorAll("[data-i18n]").forEach(function (el) {
+      var v = T[el.dataset.i18n];
+      if (v && v[lang]) el.textContent = v[lang];
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach(function (el) {
+      var v = T[el.dataset.i18nHtml];
+      if (v && v[lang]) el.innerHTML = v[lang];
+    });
+
+    document.querySelectorAll("#lang button").forEach(function (b) {
+      b.classList.toggle("on", b.dataset.lang === lang);
+    });
+    try { localStorage.setItem(STORE, lang); } catch (e) {}
+  }
+
+  apply(pick());
+
+  document.getElementById("lang").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) apply(b.dataset.lang);
+  });
+
+  /* шапка */
+  var header = document.getElementById("header");
+  var onScroll = function () { header.classList.toggle("stuck", window.scrollY > 8); };
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  /* мобильное меню */
+  var burger = document.getElementById("burger"), mmenu = document.getElementById("mmenu");
+  burger.addEventListener("click", function () {
+    var open = mmenu.classList.toggle("open");
+    burger.setAttribute("aria-expanded", String(open));
+  });
+  mmenu.addEventListener("click", function (e) {
+    if (e.target.tagName === "A") { mmenu.classList.remove("open"); burger.setAttribute("aria-expanded", "false"); }
+  });
+
+  /* якоря с учётом липкой шапки */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var id = a.getAttribute("href");
+    if (id.length < 2) return;
+    var el = document.querySelector(id);
+    if (!el) return;
+    e.preventDefault();
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 86, behavior: "smooth" });
+  });
+
+  /* появление блоков */
+  var items = document.querySelectorAll(".rv");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add("in"); io.unobserve(x.target); } });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add("in"); });
+  }
+
+  /* период оплаты */
+  var toggle = document.getElementById("toggle");
+  toggle.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    toggle.querySelectorAll("button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    var p = b.dataset.period;
+    document.querySelectorAll(".price .v").forEach(function (v) { v.textContent = v.dataset[p]; });
+  });
+
+  document.getElementById("year").textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
