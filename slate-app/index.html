@@ -201,6 +201,16 @@ tr:last-child td{border-bottom:0}
 
 .banner{background:var(--clay-soft);border:1px solid #E3C9AF;color:var(--clay-ink);padding:11px 15px;border-radius:12px;font-size:13.5px;margin-bottom:16px}
 
+/* ---------- кабинет ученика ---------- */
+.app.cab-mode{grid-template-columns:1fr}
+.app.cab-mode .side,.app.cab-mode .mob-top{display:none}
+.app.cab-mode .main{padding:34px 22px 60px}
+.cab-wrap{max-width:640px;margin:0 auto}
+.cab-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}
+.cab-head h1{font-size:27px}
+.cab-head .sub{color:var(--ink-3);font-size:14px;margin-top:4px}
+.cab-wrap .row a.btn{text-decoration:none}
+
 /* ---------- телефон ---------- */
 .mob-top{display:none}
 @media (max-width:900px){
@@ -396,12 +406,62 @@ var T = {
 "c.importBad":{en:"That file is not a Slate backup",ru:"Это не файл с данными Slate",hy:"Սա Slate-ի տվյալների ֆայլ չէ"},
 "c.storageBad":{en:"This browser does not save data on file:// — open the app through a local server (see README) or the entries will be lost when you close the tab.",ru:"Этот браузер не сохраняет данные при открытии файла напрямую — запустите приложение через локальный сервер (см. README), иначе записи пропадут при закрытии вкладки.",hy:"Այս դիտարկիչը չի պահում տվյալները ֆայլն ուղիղ բացելիս — գործարկեք հավելվածը տեղական սերվերով (տես README), այլապես գրառումները կկորչեն։"},
 
+"c.teacher":{en:"Your name (the student sees it)",ru:"Ваше имя (его видит ученик)",hy:"Ձեր անունը (աշակերտը տեսնում է)"},
+"cur.title":{en:"Currency",ru:"Валюта",hy:"Արժույթ"},
+"cur.AMD":{en:"Dram",ru:"Драм",hy:"Դրամ"},
+"cur.RUB":{en:"Rouble",ru:"Рубль",hy:"Ռուբլի"},
+"cur.USD":{en:"Dollar",ru:"Доллар",hy:"Դոլար"},
+"cur.student":{en:"Student's currency",ru:"Валюта ученика",hy:"Աշակերտի արժույթը"},
+
+"pk.title":{en:"Package",ru:"Абонемент",hy:"Բաժանորդագրություն"},
+"pk.new":{en:"New package",ru:"Новый абонемент",hy:"Նոր բաժանորդագրություն"},
+"pk.size":{en:"Lessons in the package",ru:"Занятий в абонементе",hy:"Դասերի քանակը"},
+"pk.start":{en:"Starts on",ru:"Дата начала",hy:"Սկսվում է"},
+"pk.days":{en:"Days of the week",ru:"Дни недели",hy:"Շաբաթվա օրերը"},
+"pk.time":{en:"Lesson time",ru:"Время занятия",hy:"Դասի ժամը"},
+"pk.last":{en:"Last lesson",ru:"Последнее занятие",hy:"Վերջին դասը"},
+"pk.price":{en:"Price",ru:"Стоимость",hy:"Արժեքը"},
+"pk.paid":{en:"Mark as paid right away",ru:"Сразу отметить оплаченным",hy:"Անմիջապես նշել վճարված"},
+"pk.active":{en:"Active package",ru:"Активный абонемент",hy:"Ակտիվ բաժանորդագրություն"},
+"pk.none":{en:"No package",ru:"Абонемента нет",hy:"Բաժանորդագրություն չկա"},
+"pk.pickDays":{en:"Pick at least one day",ru:"Выберите хотя бы один день",hy:"Ընտրեք գոնե մեկ օր"},
+"pk.created":{en:"Package created",ru:"Абонемент создан",hy:"Բաժանորդագրությունը ստեղծվեց"},
+"pk.willBe":{en:"Lessons will be added to the schedule automatically",ru:"Занятия сами встанут в расписание",hy:"Դասերն ինքնաբերաբար կավելանան ժամանակացույցում"},
+"pk.from":{en:"from",ru:"с",hy:"սկսած"},
+"pk.to":{en:"to",ru:"по",hy:"մինչև"},
+
+"cab.title":{en:"Student portal",ru:"Кабинет ученика",hy:"Աշակերտի անձնական էջ"},
+"cab.link":{en:"Link to sign in",ru:"Ссылка для входа",hy:"Մուտքի հղում"},
+"cab.code":{en:"Code",ru:"Код",hy:"Կոդ"},
+"cab.open":{en:"Open the portal",ru:"Открыть кабинет",hy:"Բացել էջը"},
+"cab.enter":{en:"Sign in",ru:"Войти",hy:"Մուտք"},
+"cab.wrong":{en:"Wrong code",ru:"Неверный код",hy:"Սխալ կոդ"},
+"cab.exit":{en:"Exit",ru:"Выход",hy:"Ելք"},
+"cab.codeHint":{en:"Enter the code your teacher gave you",ru:"Введите код, который дал преподаватель",hy:"Մուտքագրեք ուսուցչի տված կոդը"},
+"cab.balance":{en:"Lessons left",ru:"Осталось занятий",hy:"Մնացել է դաս"},
+"cab.until":{en:"Package runs until",ru:"Абонемент до",hy:"Բաժանորդագրությունը մինչև"},
+"cab.next":{en:"Your next lessons",ru:"Ваши ближайшие занятия",hy:"Ձեր մոտակա դասերը"},
+"cab.links":{en:"Links",ru:"Ссылки",hy:"Հղումներ"},
+"cab.join":{en:"Join",ru:"Подключиться",hy:"Միանալ"},
+"cab.pay":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+"cab.teacher":{en:"Teacher",ru:"Преподаватель",hy:"Ուսուցիչ"},
+"cab.forTeacher":{en:"Back to the app",ru:"Вернуться в программу",hy:"Վերադառնալ ծրագիր"},
+"cab.copyLink":{en:"Copy link and code",ru:"Скопировать ссылку и код",hy:"Պատճենել հղումն ու կոդը"},
+"cab.localNote":{en:"The link works on this computer. Once the app is on a server, the same link will work anywhere.",ru:"Ссылка работает на этом компьютере. Когда программа переедет на сервер, эта же ссылка заработает откуда угодно.",hy:"Հղումն աշխատում է այս համակարգչում։ Երբ ծրագիրը տեղափոխվի սերվեր, նույն հղումը կաշխատի ամենուր։"},
+
+"s.links":{en:"Links (title | address, one per line)",ru:"Ссылки (название | адрес, по одной в строке)",hy:"Հղումներ (անուն | հասցե, տողում մեկը)"},
+"l.link":{en:"Lesson link",ru:"Ссылка на занятие",hy:"Դասի հղումը"},
+"r.byCurrency":{en:"Income by currency",ru:"Доход по валютам",hy:"Եկամուտն ըստ արժույթների"},
+
 "d.mon":{en:"Mon",ru:"Пн",hy:"Երկ"},"d.tue":{en:"Tue",ru:"Вт",hy:"Երք"},"d.wed":{en:"Wed",ru:"Ср",hy:"Չրք"},
 "d.thu":{en:"Thu",ru:"Чт",hy:"Հնգ"},"d.fri":{en:"Fri",ru:"Пт",hy:"Ուրբ"},"d.sat":{en:"Sat",ru:"Сб",hy:"Շբթ"},"d.sun":{en:"Sun",ru:"Вс",hy:"Կիր"}
 };
 
 var LANGS = ["en","ru","hy"], LOC = {en:"en-GB",ru:"ru-RU",hy:"hy-AM"};
 function t(k){ var e = T[k]; return e ? (e[S.lang] || e.en) : k; }
+
+/* валюты: драм, рубль, доллар */
+var CUR = { AMD:"֏", RUB:"₽", USD:"$" }, CUR_LIST = ["AMD","RUB","USD"];
 
 /* ---------------------------- хранилище ---------------------------- */
 var KEY = "slate-data-v1", storageOK = true;
@@ -411,14 +471,28 @@ function blank(){
     var n = (navigator.languages || [navigator.language || "en"]).join(",").toLowerCase();
     lang = n.indexOf("hy") > -1 ? "hy" : (n.indexOf("ru") > -1 ? "ru" : "en");
   } catch (e) {}
-  return { v:1, lang:lang, currency:"₽", defRate:2000, defDur:60, countNoShow:true,
-           students:[], lessons:[], payments:[] };
+  return { v:2, lang:lang, cur:"AMD", teacher:"", defRate:5000, defDur:60, countNoShow:true,
+           students:[], lessons:[], payments:[], packs:[] };
+}
+/* приводим данные старых версий к текущей структуре */
+function migrate(d){
+  if (d.currency && !d.cur) d.cur = ({ "₽":"RUB", "֏":"AMD", "$":"USD" })[d.currency] || "AMD";
+  if (!CUR[d.cur]) d.cur = "AMD";
+  d.packs = d.packs || [];
+  (d.students || []).forEach(function(s){
+    if (!CUR[s.currency]) s.currency = d.cur;
+    if (!s.code) s.code = String(Math.floor(1000 + Math.random() * 9000));
+    if (typeof s.links !== "string") s.links = s.links || "";
+  });
+  (d.payments || []).forEach(function(p){ if (!CUR[p.currency]) p.currency = d.cur; });
+  (d.lessons || []).forEach(function(l){ if (typeof l.link !== "string") l.link = ""; });
+  return d;
 }
 function load(){
   try {
     var raw = localStorage.getItem(KEY);
     localStorage.setItem(KEY + "-probe", "1"); localStorage.removeItem(KEY + "-probe");
-    if (raw) { var d = JSON.parse(raw); if (d && d.students) return Object.assign(blank(), d); }
+    if (raw) { var d = JSON.parse(raw); if (d && d.students) return migrate(Object.assign(blank(), d)); }
   } catch (e) { storageOK = false; }
   return blank();
 }
@@ -466,12 +540,50 @@ function upcoming(sid, n){
   return S.lessons.filter(function(l){ return l.studentId === sid && l.date >= td && l.status === "planned"; })
     .sort(function(a,b){ return (a.date + a.time) < (b.date + b.time) ? -1 : 1; }).slice(0, n || 3);
 }
-function money(n){ return (Math.round(n) || 0).toLocaleString(LOC[S.lang] || "en") + " " + S.currency; }
-function incomeIn(from, to){
-  var sum = 0;
-  S.payments.forEach(function(p){ if (p.date >= from && p.date <= to) sum += (+p.amount || 0); });
-  return sum;
+function money(n, c){
+  return (Math.round(n) || 0).toLocaleString(LOC[S.lang] || "en") + " " + (CUR[c || S.cur] || "");
 }
+/* доход не складывается между валютами — считаем по каждой отдельно */
+function incomeMap(from, to){
+  var m = {};
+  S.payments.forEach(function(p){
+    if (p.date >= from && p.date <= to) { var c = p.currency || S.cur; m[c] = (m[c] || 0) + (+p.amount || 0); }
+  });
+  return m;
+}
+function incomeIn(from, to, c){ return incomeMap(from, to)[c || S.cur] || 0; }
+function fmtMap(m){
+  var ks = CUR_LIST.filter(function(k){ return m[k]; });
+  return ks.length ? ks.map(function(k){ return money(m[k], k); }).join(" · ") : money(0);
+}
+/* ---- абонементы ---- */
+function dayOf(dateStr){ return ((parse(dateStr).getDay() + 6) % 7) + 1; } /* 1 = понедельник */
+function packDates(start, days, size){
+  var out = [], d = start, guard = 0;
+  if (!days.length || size <= 0) return out;
+  while (out.length < size && guard++ < 800) {
+    if (days.indexOf(dayOf(d)) > -1) out.push(d);
+    d = addDays(d, 1);
+  }
+  return out;
+}
+function packOf(sid){
+  var td = today();
+  return S.packs.filter(function(p){ return p.studentId === sid; })
+    .sort(function(a,b){ return a.start < b.start ? 1 : -1; })
+    .filter(function(p){ return p.last >= td || p.start >= td; })[0] ||
+    S.packs.filter(function(p){ return p.studentId === sid; })
+      .sort(function(a,b){ return a.start < b.start ? 1 : -1; })[0] || null;
+}
+function studentLinks(s){
+  return String(s.links || "").split("\n").map(function(line){
+    var i = line.indexOf("|");
+    if (i < 0) { var u = line.trim(); return u ? { title: u, url: u } : null; }
+    var title = line.slice(0, i).trim(), url = line.slice(i + 1).trim();
+    return url ? { title: title || url, url: url } : null;
+  }).filter(Boolean);
+}
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : "https://" + String(u).replace(/^\/+/, ""); }
 function monthRange(off){
   var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + (off || 0));
   var from = iso(d); d.setMonth(d.getMonth() + 1); d.setDate(0);
@@ -541,7 +653,7 @@ function viewToday(){
 
   var kpis = '<div class="grid-4">' +
     kpi(t("t.week"), week.length, t("t.lessonsWeek")) +
-    kpi(t("t.income"), money(incomeIn(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
+    kpi(t("t.income"), fmtMap(incomeMap(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
     kpi(t("nav.students"), activeStudents().length, t("s.total")) +
     kpi(t("t.debts"), debtors.length, debtors.length ? debtors.map(function(s){ return s.name; }).slice(0,2).join(", ") : "—", debtors.length ? "bad" : "") +
     "</div>";
@@ -621,8 +733,9 @@ function viewStudents(){
     var b = balance(s.id), up = upcoming(s.id, 1)[0];
     return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
       '<div class="g"><div class="nm">' + esc(s.name) + (s.archived ? ' <span class="chip mut">' + esc(t("s.archived")) + "</span>" : "") + "</div>" +
-      '<div class="sb">' + esc([s.subject, s.level, s.rate ? money(s.rate) : ""].filter(Boolean).join(" · ")) +
-      (up ? " · " + esc(fmtLong(up.date) + " " + up.time) : "") + "</div></div>" +
+      '<div class="sb">' + esc([s.subject, s.level, s.rate ? money(s.rate, s.currency) : ""].filter(Boolean).join(" · ")) +
+      (up ? " · " + esc(fmtLong(up.date) + " " + up.time) : "") +
+      (function(){ var pk = packOf(s.id); return pk ? ' · <span>' + esc(t("pk.to") + " " + fmtLong(pk.last)) + "</span>" : ""; })() + "</div></div>" +
       '<span class="chip ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "ok") + '">' + (b < 0 ? esc(t("s.debt")) + " " + (-b) : b + " " + esc(t("s.left"))) + "</span>" +
       '<div class="act">' +
       '<button class="btn btn-g btn-s" data-act="student-card" data-id="' + s.id + '">' + esc(t("s.card")) + "</button>" +
@@ -632,6 +745,7 @@ function viewStudents(){
 
   return head(t("nav.students"), activeStudents().length + " " + t("s.total"),
       '<button class="btn btn-g" data-act="toggle-archived">' + esc(showArchived ? t("nav.students") : t("s.showArchived")) + "</button>" +
+      '<button class="btn btn-g" data-act="pack-new">+ ' + esc(t("pk.title")) + "</button>" +
       '<button class="btn btn-p" data-act="student-new">+ ' + esc(t("s.new")) + "</button>") +
     '<div class="card"><div class="card-b">' + body + "</div></div>";
 }
@@ -643,45 +757,58 @@ function viewMoney(){
   var body = list.length ? list.map(function(p){
     var s = student(p.studentId) || { name: "—" };
     return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
-      '<div class="g"><div class="nm">' + esc(s.name) + " · " + esc(money(p.amount)) + "</div>" +
+      '<div class="g"><div class="nm">' + esc(s.name) + " · " + esc(money(p.amount, p.currency)) + "</div>" +
       '<div class="sb">' + esc(fmtLong(p.date) + " · " + p.lessons + " " + t("l.count") + (p.note ? " · " + p.note : "")) + "</div></div>" +
       '<div class="act"><button class="btn btn-d btn-s" data-act="pay-del" data-id="' + p.id + '">' + esc(t("a.delete")) + "</button></div></div>";
   }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>";
 
-  return head(t("nav.money"), t("p.month") + ": " + money(incomeIn(mr.from, mr.to)),
+  return head(t("nav.money"), t("p.month") + ": " + fmtMap(incomeMap(mr.from, mr.to)),
       '<button class="btn btn-p" data-act="pay-new">+ ' + esc(t("p.add")) + "</button>") +
     '<div class="card"><div class="card-b">' + body + "</div></div>";
 }
 
 /* ---------------------------- вид: отчёты ---------------------------- */
+var chartCur = null;
 function viewReports(){
+  if (!CUR[chartCur]) chartCur = S.cur;
   var months = [], max = 0;
   for (var i = 5; i >= 0; i--) {
-    var r = monthRange(-i), sum = incomeIn(r.from, r.to);
+    var r = monthRange(-i), sum = incomeIn(r.from, r.to, chartCur);
     months.push({ label: fmtMonth(r.y, r.m), v: sum });
     if (sum > max) max = sum;
   }
+  var short = function(v){
+    if (!v) return "";
+    return max >= 10000 ? Math.round(v / 1000) + "k" : String(Math.round(v));
+  };
   var bars = '<div class="bars">' + months.map(function(m){
     var h = max ? Math.max(3, Math.round(m.v / max * 118)) : 3;
-    return '<div class="b"><div class="bv tnum">' + (m.v ? Math.round(m.v / 1000) + "k" : "") + "</div>" +
+    return '<div class="b"><div class="bv tnum">' + esc(short(m.v)) + "</div>" +
       '<div class="bar" style="height:' + h + 'px"></div><div class="bl">' + esc(m.label) + "</div></div>";
   }).join("") + "</div>";
+  var curPicker = '<select class="inp" id="chart-cur" data-act="chart-cur" style="height:32px;width:auto;font-size:13px">' +
+    CUR_LIST.map(function(c){ return '<option value="' + c + '"' + (chartCur === c ? " selected" : "") + ">" + CUR[c] + " " + esc(t("cur." + c)) + "</option>"; }).join("") + "</select>";
 
   var mr = monthRange(0);
   var rows = activeStudents().map(function(s){
-    var held = 0, mins = 0, paid = 0;
+    var held = 0, mins = 0, paid = {};
     S.lessons.forEach(function(l){
       if (l.studentId === s.id && l.date >= mr.from && l.date <= mr.to && isUsed(l)) { held++; mins += (+l.dur || 60); }
     });
-    S.payments.forEach(function(p){ if (p.studentId === s.id && p.date >= mr.from && p.date <= mr.to) paid += (+p.amount || 0); });
-    return { s: s, held: held, hours: (mins / 60), paid: paid, bal: balance(s.id) };
-  }).filter(function(r){ return r.held || r.paid; }).sort(function(a,b){ return b.paid - a.paid; });
+    S.payments.forEach(function(p){
+      if (p.studentId === s.id && p.date >= mr.from && p.date <= mr.to) {
+        var c = p.currency || S.cur; paid[c] = (paid[c] || 0) + (+p.amount || 0);
+      }
+    });
+    var main = paid[chartCur] || 0;
+    return { s: s, held: held, hours: (mins / 60), paid: paid, main: main, bal: balance(s.id) };
+  }).filter(function(r){ return r.held || Object.keys(r.paid).length; }).sort(function(a,b){ return b.main - a.main || b.held - a.held; });
 
   var table = rows.length ? '<div class="tw"><table><thead><tr><th>' + esc(t("l.student")) + "</th><th>" + esc(t("r.held")) +
     "</th><th>" + esc(t("r.hours")) + "</th><th>" + esc(t("r.paid")) + "</th><th>" + esc(t("s.balance")) + "</th></tr></thead><tbody>" +
     rows.map(function(r){
       return "<tr><td>" + esc(r.s.name) + '</td><td class="tnum">' + r.held + '</td><td class="tnum">' + r.hours.toFixed(1) +
-        '</td><td class="tnum">' + esc(money(r.paid)) + '</td><td class="tnum">' + r.bal + "</td></tr>";
+        '</td><td class="tnum">' + esc(fmtMap(r.paid)) + '</td><td class="tnum">' + r.bal + "</td></tr>";
     }).join("") + "</tbody></table></div>" : '<div class="empty">' + esc(t("r.noData")) + "</div>";
 
   var totalHeld = 0, totalMin = 0;
@@ -689,12 +816,12 @@ function viewReports(){
 
   return head(t("r.title"), fmtMonth(mr.y, mr.m)) +
     '<div class="stack"><div class="grid-4">' +
-      kpi(t("t.income"), money(incomeIn(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
+      kpi(t("r.byCurrency"), fmtMap(incomeMap(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
       kpi(t("r.held"), totalHeld, t("l.count")) +
       kpi(t("r.hours"), (totalMin / 60).toFixed(1), fmtMonth(mr.y, mr.m)) +
       kpi(t("nav.students"), activeStudents().length, t("s.total")) +
     "</div>" +
-    '<div class="card"><div class="card-h"><h2>' + esc(t("r.income6")) + '</h2></div><div class="card-b">' + bars + "</div></div>" +
+    '<div class="card"><div class="card-h"><h2>' + esc(t("r.income6")) + "</h2>" + curPicker + '</div><div class="card-b">' + bars + "</div></div>" +
     '<div class="card"><div class="card-h"><h2>' + esc(t("r.byStudent")) + '</h2></div><div class="card-b">' + table + "</div></div></div>";
 }
 
@@ -704,8 +831,11 @@ function viewSettings(){
     '<div class="stack"><div class="card"><div class="card-h"><h2>' + esc(t("c.title")) + '</h2></div><div class="card-b">' +
     '<div class="f" style="padding:12px 0">' +
       '<div class="f-row">' +
-        '<label class="fl">' + esc(t("c.currency")) + '<input class="inp" id="set-cur" value="' + esc(S.currency) + '"></label>' +
+        '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="set-cur">' + curOptions(S.cur) + "</select></label>" +
         '<label class="fl">' + esc(t("c.defRate")) + '<input class="inp tnum" id="set-rate" type="number" min="0" step="50" value="' + (+S.defRate || 0) + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("c.teacher")) + '<input class="inp" id="set-teacher" value="' + esc(S.teacher || "") + '"></label>' +
       "</div>" +
       '<div class="f-row">' +
         '<label class="fl">' + esc(t("c.defDur")) + '<input class="inp tnum" id="set-dur" type="number" min="15" step="15" value="' + (+S.defDur || 60) + '"></label>' +
@@ -745,6 +875,11 @@ function toast(msg){
 }
 function val(id){ var el = document.getElementById(id); return el ? el.value.trim() : ""; }
 function checked(id){ var el = document.getElementById(id); return !!(el && el.checked); }
+function curOptions(sel){
+  return CUR_LIST.map(function(c){
+    return '<option value="' + c + '"' + (sel === c ? " selected" : "") + ">" + CUR[c] + " · " + esc(t("cur." + c)) + "</option>";
+  }).join("");
+}
 function studentOptions(sel){
   return activeStudents().sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(s){
     return '<option value="' + s.id + '"' + (sel === s.id ? " selected" : "") + ">" + esc(s.name) + (s.subject ? " · " + esc(s.subject) : "") + "</option>";
@@ -763,9 +898,13 @@ function studentForm(id){
       "</div>" +
       '<div class="f-row">' +
         '<label class="fl">' + esc(t("s.rate")) + '<input class="inp tnum" id="st-rate" type="number" min="0" step="50" value="' + (s ? (+s.rate || 0) : (+S.defRate || 0)) + '"></label>' +
-        '<label class="fl">' + esc(t("s.contact")) + '<input class="inp" id="st-contact" value="' + esc(s ? s.contact : "") + '" placeholder="+374 …"></label>' +
+        '<label class="fl">' + esc(t("cur.student")) + '<select class="inp" id="st-cur">' + curOptions(s ? s.currency : S.cur) + "</select></label>" +
       "</div>" +
-      '<label class="fl">' + esc(t("s.parent")) + '<input class="inp" id="st-parent" value="' + esc(s ? s.parent : "") + '"></label>' +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("s.contact")) + '<input class="inp" id="st-contact" value="' + esc(s ? s.contact : "") + '" placeholder="+374 …"></label>' +
+        '<label class="fl">' + esc(t("s.parent")) + '<input class="inp" id="st-parent" value="' + esc(s ? s.parent : "") + '"></label>' +
+      "</div>" +
+      '<label class="fl">' + esc(t("s.links")) + '<textarea class="inp" id="st-links" placeholder="Zoom | https://zoom.us/j/…&#10;' + esc(t("l.hw")) + ' | https://…">' + esc(s ? s.links : "") + "</textarea></label>" +
       '<label class="fl">' + esc(t("s.notes")) + '<textarea class="inp" id="st-notes">' + esc(s ? s.notes : "") + "</textarea></label>" +
     "</div>",
     (s ? '<button class="btn btn-d" data-act="student-del" data-id="' + s.id + '">' + esc(t("a.delete")) + "</button>" +
@@ -777,9 +916,10 @@ function studentForm(id){
     var name = val("st-name");
     if (!name) { document.getElementById("st-name").focus(); return; }
     var data = { name: name, subject: val("st-subj"), level: val("st-lvl"), rate: +val("st-rate") || 0,
+                 currency: val("st-cur") || S.cur, links: val("st-links"),
                  contact: val("st-contact"), parent: val("st-parent"), notes: val("st-notes") };
     if (s) Object.assign(s, data);
-    else S.students.push(Object.assign({ id: uid(), archived: false }, data));
+    else S.students.push(Object.assign({ id: uid(), archived: false, code: String(Math.floor(1000 + Math.random() * 9000)) }, data));
     save(); closeModal(); render(); toast(t("a.saved"));
   };
 }
@@ -799,9 +939,19 @@ function studentCard(id){
         kpi(t("s.paidL"), paidLessons(id), "") +
         kpi(t("s.usedL"), usedLessons(id), "") +
       "</div>" +
+      (function(){
+        var pk = packOf(id);
+        return '<div class="card"><div class="card-h"><h2>' + esc(t("pk.title")) + "</h2>" +
+          '<button class="btn btn-g btn-s" data-act="pack-new" data-id="' + id + '">+ ' + esc(t("pk.new")) + '</button></div><div class="card-b">' +
+          (pk ? '<div class="row"><div class="g"><div class="nm">' + pk.size + " " + esc(t("l.count")) + " · " + esc(money(pk.price, pk.currency)) + "</div>" +
+                '<div class="sb">' + esc(t("pk.from") + " " + fmtLong(pk.start) + " " + t("pk.to") + " " + fmtLong(pk.last)) + "</div></div>" +
+                '<span class="chip ' + (pk.last >= today() ? "ok" : "mut") + '">' + esc(t("pk.last") + ": " + fmtLong(pk.last)) + "</span></div>"
+              : '<div class="empty">' + esc(t("pk.none")) + "</div>") +
+          "</div></div>";
+      })() +
       '<div class="card"><div class="card-b" style="padding-top:10px">' +
         '<div class="row"><div class="g"><div class="nm">' + esc([s.subject, s.level].filter(Boolean).join(" · ") || "—") + "</div>" +
-        '<div class="sb">' + esc([s.contact, s.parent, s.rate ? money(s.rate) : ""].filter(Boolean).join(" · ") || "—") + "</div></div></div>" +
+        '<div class="sb">' + esc([s.contact, s.parent, s.rate ? money(s.rate, s.currency) : ""].filter(Boolean).join(" · ") || "—") + "</div></div></div>" +
         (s.notes ? '<div class="row"><div class="g"><div class="sb" style="white-space:normal">' + esc(s.notes) + "</div></div></div>" : "") +
       "</div></div>" +
       '<div class="card"><div class="card-h"><h2>' + esc(t("s.upcoming")) + '</h2></div><div class="card-b">' +
@@ -820,11 +970,12 @@ function studentCard(id){
       '<div class="card"><div class="card-h"><h2>' + esc(t("s.payments")) + '</h2>' +
         '<button class="btn btn-p btn-s" data-act="pay-new" data-id="' + id + '">+ ' + esc(t("p.add")) + "</button></div><div class=\"card-b\">" +
         (pays.length ? pays.map(function(p){
-          return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount)) + " · " + p.lessons + " " + esc(t("l.count")) + "</div>" +
+          return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("l.count")) + "</div>" +
             '<div class="sb">' + esc(fmtLong(p.date) + (p.note ? " · " + p.note : "")) + "</div></div></div>";
         }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>") +
       "</div></div>" +
     "</div>",
+    '<button class="btn btn-g" data-act="cab-share" data-id="' + id + '">' + esc(t("cab.title")) + "</button>" +
     '<button class="btn btn-g" data-act="student-text" data-id="' + id + '">' + esc(t("s.forStudent")) + "</button>" +
     '<button class="btn btn-g" data-act="student-edit" data-id="' + id + '">' + esc(t("a.edit")) + "</button>" +
     '<button class="btn btn-p" data-act="lesson-new" data-student="' + id + '">+ ' + esc(t("l.new")) + "</button>", true);
@@ -848,6 +999,81 @@ function studentText(id){
     '<button class="btn btn-p" data-act="copy-text">' + esc(t("a.copy")) + "</button>");
 }
 
+/* --- абонемент: N занятий, дни недели, последний день считается сам --- */
+function packForm(sid){
+  if (!activeStudents().length) { studentForm(); return; }
+  var pre = sid || (activeStudents()[0] || {}).id, s = student(pre) || {};
+  var dayBoxes = DKEYS.map(function(k, i){
+    return '<label class="check" style="gap:6px"><input type="checkbox" class="pk-day" value="' + (i + 1) + '"' +
+      (i < 1 ? " checked" : "") + ">" + esc(t(k)) + "</label>";
+  }).join("");
+
+  modal(t("pk.new"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("l.student")) + '<select class="inp" id="pk-student">' + studentOptions(pre) + "</select></label>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.size")) +
+          '<select class="inp" id="pk-size"><option>8</option><option>10</option><option>12</option><option>4</option><option>16</option><option>20</option></select></label>' +
+        '<label class="fl">' + esc(t("pk.start")) + '<input class="inp" id="pk-start" type="date" value="' + today() + '"></label>' +
+      "</div>" +
+      '<div><div class="fl" style="margin-bottom:7px">' + esc(t("pk.days")) + "</div>" +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px" id="pk-days">' + dayBoxes + "</div></div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.time")) + '<input class="inp" id="pk-time" type="time" value="17:00"></label>' +
+        '<label class="fl">' + esc(t("l.dur")) + '<input class="inp tnum" id="pk-dur" type="number" min="15" step="15" value="' + (+S.defDur || 60) + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.price")) + '<input class="inp tnum" id="pk-price" type="number" min="0" step="100" value="' + ((+s.rate || +S.defRate || 0) * 8) + '"></label>' +
+        '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="pk-cur">' + curOptions(s.currency || S.cur) + "</select></label>" +
+      "</div>" +
+      '<label class="check"><input type="checkbox" id="pk-paid" checked>' + esc(t("pk.paid")) + "</label>" +
+      '<div class="kpi" id="pk-preview" style="margin-top:2px"></div>' +
+      '<p class="hint">' + esc(t("pk.willBe")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>", true);
+
+  var pickedDays = function(){
+    return Array.prototype.slice.call(document.querySelectorAll(".pk-day:checked")).map(function(x){ return +x.value; });
+  };
+  var preview = function(){
+    var days = pickedDays(), size = +val("pk-size") || 0, dates = packDates(val("pk-start"), days, size);
+    var box = document.getElementById("pk-preview");
+    if (!dates.length) { box.innerHTML = '<div class="l">' + esc(t("pk.pickDays")) + "</div>"; return; }
+    box.innerHTML = '<div class="l">' + esc(t("pk.last")) + '</div><div class="v">' + esc(fmtLong(dates[dates.length - 1])) + "</div>" +
+      '<div class="n">' + esc(t("pk.from") + " " + fmtLong(dates[0]) + " " + t("pk.to") + " " + fmtLong(dates[dates.length - 1]) + " · " + size + " " + t("l.count")) + "</div>";
+  };
+  var recalcPrice = function(){
+    var st = student(val("pk-student")) || {}, n = +val("pk-size") || 0;
+    document.getElementById("pk-price").value = (+st.rate || +S.defRate || 0) * n;
+    var cs = document.getElementById("pk-cur"); if (st.currency) cs.value = st.currency;
+  };
+  document.getElementById("pk-days").addEventListener("change", preview);
+  document.getElementById("pk-size").addEventListener("change", function(){ recalcPrice(); preview(); });
+  document.getElementById("pk-start").addEventListener("change", preview);
+  document.getElementById("pk-student").addEventListener("change", recalcPrice);
+  preview();
+
+  onSubmit = function(){
+    var days = pickedDays(), size = +val("pk-size") || 0, start = val("pk-start"), sid2 = val("pk-student");
+    if (!days.length) { toast(t("pk.pickDays")); return; }
+    var dates = packDates(start, days, size);
+    if (!dates.length || !sid2) return;
+    var packId = uid(), time = val("pk-time") || "17:00", dur = +val("pk-dur") || 60;
+    dates.forEach(function(d){
+      S.lessons.push({ id: uid(), studentId: sid2, date: d, time: time, dur: dur, online: false,
+                       hw: "", note: "", link: "", packId: packId, status: "planned" });
+    });
+    S.packs.push({ id: packId, studentId: sid2, size: size, start: dates[0], last: dates[dates.length - 1],
+                   days: days, time: time, price: +val("pk-price") || 0, currency: val("pk-cur") || S.cur });
+    if (checked("pk-paid")) {
+      S.payments.push({ id: uid(), studentId: sid2, lessons: size, amount: +val("pk-price") || 0,
+                        currency: val("pk-cur") || S.cur, date: today(), note: t("pk.title") });
+    }
+    save(); closeModal(); render(); toast(t("pk.created") + ": " + fmtLong(dates[dates.length - 1]));
+  };
+}
+
 /* --- занятие --- */
 function lessonForm(id, presetDate, presetStudent){
   var l = id ? lesson(id) : null;
@@ -866,6 +1092,7 @@ function lessonForm(id, presetDate, presetStudent){
         (l ? "" : '<label class="fl">' + esc(t("l.repeat")) + ' (' + esc(t("l.repeatN")) + ')<input class="inp tnum" id="ls-rep" type="number" min="0" max="52" value="0"></label>') +
       "</div>" +
       '<label class="check"><input type="checkbox" id="ls-online"' + (l && l.online ? " checked" : "") + ">" + esc(t("l.online")) + "</label>" +
+      '<label class="fl">' + esc(t("l.link")) + '<input class="inp" id="ls-link" value="' + esc(l ? l.link : "") + '" placeholder="https://…"></label>' +
       '<label class="fl">' + esc(t("l.hw")) + '<input class="inp" id="ls-hw" value="' + esc(l ? l.hw : "") + '"></label>' +
       '<label class="fl">' + esc(t("l.note")) + '<input class="inp" id="ls-note" value="' + esc(l ? l.note : "") + '"></label>' +
       (l ? '<p class="hint">' + esc(t("l.willCharge")) + "</p>" : "") +
@@ -881,7 +1108,8 @@ function lessonForm(id, presetDate, presetStudent){
 
   onSubmit = function(){
     var data = { studentId: val("ls-student"), date: val("ls-date"), time: val("ls-time"),
-                 dur: +val("ls-dur") || 60, online: checked("ls-online"), hw: val("ls-hw"), note: val("ls-note") };
+                 dur: +val("ls-dur") || 60, online: checked("ls-online"), link: val("ls-link"),
+                 hw: val("ls-hw"), note: val("ls-note") };
     if (!data.studentId || !data.date || !data.time) return;
     if (l) Object.assign(l, data);
     else {
@@ -910,6 +1138,7 @@ function paymentForm(sid){
         '<label class="fl">' + esc(t("p.lessons")) + '<input class="inp tnum" id="pay-lessons" type="number" min="0" step="1" value="8"></label>' +
         '<label class="fl">' + esc(t("p.amount")) + '<input class="inp tnum" id="pay-amount" type="number" min="0" step="100" value="' + ((+s.rate || +S.defRate || 0) * 8) + '"></label>' +
       "</div>" +
+      '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="pay-cur">' + curOptions(s.currency || S.cur) + "</select></label>" +
       '<label class="fl">' + esc(t("p.date")) + '<input class="inp" id="pay-date" type="date" value="' + today() + '"></label>' +
       '<label class="fl">' + esc(t("l.note")) + '<input class="inp" id="pay-note"></label>' +
       '<p class="hint">' + esc(t("p.autoAmount")) + "</p>" +
@@ -920,17 +1149,132 @@ function paymentForm(sid){
   var recalc = function(){
     var st = student(val("pay-student")) || {}, n = +val("pay-lessons") || 0;
     document.getElementById("pay-amount").value = (+st.rate || +S.defRate || 0) * n;
+    if (st.currency) document.getElementById("pay-cur").value = st.currency;
   };
   document.getElementById("pay-student").addEventListener("change", recalc);
   document.getElementById("pay-lessons").addEventListener("input", recalc);
 
   onSubmit = function(){
     var p = { id: uid(), studentId: val("pay-student"), lessons: +val("pay-lessons") || 0,
-              amount: +val("pay-amount") || 0, date: val("pay-date") || today(), note: val("pay-note") };
+              amount: +val("pay-amount") || 0, currency: val("pay-cur") || S.cur,
+              date: val("pay-date") || today(), note: val("pay-note") };
     if (!p.studentId) return;
     S.payments.push(p); save(); closeModal(); render(); toast(t("a.saved"));
   };
 }
+
+/* ---------------------------- кабинет ученика ---------------------------- */
+/* Кабинет открывается ссылкой вида …index.html#student=ID и закрыт кодом.
+   Пока программа локальная, ссылка работает на этом компьютере; после переезда
+   на сервер тот же адрес откроется у ученика с телефона. */
+function cabLink(id){
+  var s = student(id) || {};
+  return { url: location.origin + location.pathname + "#student=" + id, code: s.code || "" };
+}
+function cabShare(id){
+  var s = student(id); if (!s) return;
+  var L = cabLink(id);
+  modal(t("cab.title") + " · " + s.name,
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("cab.link")) + '<input class="inp" id="cab-url" value="' + esc(L.url) + '" readonly></label>' +
+      '<label class="fl">' + esc(t("cab.code")) + '<input class="inp tnum" id="cab-code" value="' + esc(L.code) + '" readonly style="font-size:22px;letter-spacing:.18em"></label>' +
+      '<textarea class="inp" id="st-text" style="min-height:80px">' + esc(t("cab.title") + ": " + L.url + "\n" + t("cab.code") + ": " + L.code) + "</textarea>" +
+      '<p class="hint">' + esc(t("cab.localNote")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    '<button class="btn btn-g" data-act="copy-text">' + esc(t("cab.copyLink")) + "</button>" +
+    '<button class="btn btn-p" data-act="cab-open" data-id="' + id + '">' + esc(t("cab.open")) + "</button>");
+}
+
+var cabId = null;
+function cabAuthed(id){
+  try { return sessionStorage.getItem("slate-cab-" + id) === "1"; } catch (e) { return false; }
+}
+function cabAuth(id){ try { sessionStorage.setItem("slate-cab-" + id, "1"); } catch (e) {} }
+
+function renderCabinet(id){
+  var s = student(id);
+  var host = document.getElementById("view");
+  document.querySelector(".app").classList.add("cab-mode");
+  if (!s) { host.innerHTML = '<div class="empty"><b>—</b></div>'; return; }
+
+  if (!cabAuthed(id)) {
+    host.innerHTML =
+      '<div class="cab-wrap"><div class="card" style="max-width:380px;margin:60px auto"><div class="card-h"><h2>' + esc(t("cab.title")) + '</h2></div>' +
+      '<div class="card-b"><div class="f" style="padding:12px 0">' +
+      '<p class="hint">' + esc(t("cab.codeHint")) + "</p>" +
+      '<input class="inp tnum" id="cab-input" inputmode="numeric" style="font-size:22px;letter-spacing:.2em;text-align:center" placeholder="••••">' +
+      '<button class="btn btn-p" data-act="cab-login" data-id="' + id + '">' + esc(t("cab.enter")) + "</button>" +
+      '<button class="btn btn-g" data-act="cab-exit">' + esc(t("cab.forTeacher")) + "</button>" +
+      "</div></div></div></div>";
+    var inp = document.getElementById("cab-input");
+    if (inp) { inp.focus(); inp.addEventListener("keydown", function(e){ if (e.key === "Enter") cabLogin(id); }); }
+    return;
+  }
+
+  var b = balance(id), pk = packOf(id), up = upcoming(id, 6), links = studentLinks(s);
+  var pays = S.payments.filter(function(p){ return p.studentId === id; })
+    .sort(function(a,b2){ return a.date < b2.date ? 1 : -1; }).slice(0, 6);
+  var hw = S.lessons.filter(function(l){ return l.studentId === id && l.hw; })
+    .sort(function(a,b2){ return a.date < b2.date ? 1 : -1; })[0];
+
+  host.innerHTML =
+    '<div class="cab-wrap">' +
+      '<div class="cab-head"><div><h1>' + esc(s.name) + "</h1>" +
+        '<div class="sub">' + esc([s.subject, s.level].filter(Boolean).join(" · ")) + "</div></div>" +
+        '<button class="btn btn-g btn-s" data-act="cab-exit">' + esc(t("cab.exit")) + "</button></div>" +
+
+      '<div class="grid-2">' +
+        '<div class="kpi ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "") + '"><div class="l">' + esc(t("cab.balance")) +
+          '</div><div class="v tnum">' + (b < 0 ? "−" + (-b) : b) + '</div><div class="n">' +
+          esc(pk ? t("cab.until") + " " + fmtLong(pk.last) : "") + "</div></div>" +
+        '<div class="kpi"><div class="l">' + esc(t("cab.teacher")) + '</div><div class="v" style="font-size:20px">' + esc(S.teacher || "Slate") + "</div>" +
+          '<div class="n">' + esc(s.contact || "") + "</div></div>" +
+      "</div>" +
+
+      '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.next")) + '</h2></div><div class="card-b">' +
+        (up.length ? up.map(function(l){
+          var url = l.link || (links[0] ? links[0].url : "");
+          return '<div class="row"><div class="g"><div class="nm">' + esc(fmtLong(l.date) + ", " + l.time) + "</div>" +
+            '<div class="sb">' + esc((l.online ? "online · " : "") + (l.hw || "")) + "</div></div>" +
+            (url ? '<a class="btn btn-p btn-s" href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener">' + esc(t("cab.join")) + "</a>" : "") +
+            "</div>";
+        }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
+      "</div></div>" +
+
+      (hw ? '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("l.hw")) + '</h2></div><div class="card-b">' +
+        '<div class="row"><div class="g"><div class="nm" style="white-space:normal">' + esc(hw.hw) + "</div>" +
+        '<div class="sb">' + esc(fmtLong(hw.date)) + "</div></div></div></div></div>" : "") +
+
+      (links.length ? '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.links")) + '</h2></div><div class="card-b">' +
+        links.map(function(x){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(x.title) + "</div></div>" +
+            '<a class="btn btn-g btn-s" href="' + esc(safeUrl(x.url)) + '" target="_blank" rel="noopener">' + esc(t("cab.join")) + "</a></div>";
+        }).join("") + "</div></div>" : "") +
+
+      '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.pay")) + '</h2></div><div class="card-b">' +
+        (pays.length ? pays.map(function(p){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("l.count")) + "</div>" +
+            '<div class="sb">' + esc(fmtLong(p.date)) + "</div></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>") +
+      "</div></div>" +
+    "</div>";
+}
+function cabLogin(id){
+  var s = student(id), v = (document.getElementById("cab-input") || {}).value;
+  if (s && String(v || "").trim() === String(s.code)) { cabAuth(id); renderCabinet(id); }
+  else toast(t("cab.wrong"));
+}
+function route(){
+  var m = /#student=([A-Za-z0-9]+)/.exec(location.hash || "");
+  if (m) { cabId = m[1]; renderCabinet(cabId); }
+  else {
+    cabId = null;
+    document.querySelector(".app").classList.remove("cab-mode");
+    render();
+  }
+}
+window.addEventListener("hashchange", route);
 
 /* ---------------------------- данные: экспорт/импорт/демо ---------------------------- */
 function exportData(){
@@ -960,17 +1304,24 @@ function importData(){
 }
 function demoData(){
   var d = blank();
-  d.lang = S.lang; d.currency = S.currency; d.defRate = S.defRate;
-  var names = [["Мари Аветисян","Английский","B1",2500],["Лёва Барсегян","Математика","9 класс",2000],
-               ["Арам Саркисян","Подготовка к экзамену","11 класс",3000],["Тигран Мкртчян","Гитара","",1800],
-               ["Нина Карапетян","Английский","A2",2200]];
+  d.lang = S.lang; d.cur = S.cur; d.defRate = S.defRate;
+  var names = [["Мари Аветисян","Английский","B1",6000,"AMD"],["Лёва Барсегян","Математика","9 класс",5000,"AMD"],
+               ["Арам Саркисян","Подготовка к экзамену","11 класс",2500,"RUB"],["Тигран Мкртчян","Гитара","",30,"USD"],
+               ["Нина Карапетян","Английский","A2",5500,"AMD"]];
   var ws = weekStart(today());
   names.forEach(function(n, i){
-    var s = { id: uid(), name: n[0], subject: n[1], level: n[2], rate: n[3], contact: "", parent: "", notes: "", archived: false };
+    var s = { id: uid(), name: n[0], subject: n[1], level: n[2], rate: n[3], currency: n[4],
+              code: String(1000 + i * 1111), contact: "", parent: "",
+              links: i % 2 === 0 ? "Zoom | https://zoom.us/j/000" + i : "", notes: "", archived: false };
     d.students.push(s);
-    [-2, -34, -66].forEach(function(off, k){
-      d.payments.push({ id: uid(), studentId: s.id, lessons: 8, amount: n[3] * 8, date: addDays(today(), off), note: "" });
+    [-2, -34, -66].forEach(function(off){
+      d.payments.push({ id: uid(), studentId: s.id, lessons: 8, amount: n[3] * 8,
+                        currency: n[4], date: addDays(today(), off), note: "" });
     });
+    var days = [((i % 5) + 1), ((i + 2) % 5) + 1].filter(function(v, k, arr){ return arr.indexOf(v) === k; });
+    var dates = packDates(addDays(today(), -14), days, 12);
+    d.packs.push({ id: uid(), studentId: s.id, size: 12, start: dates[0], last: dates[dates.length - 1],
+                   days: days, time: "17:00", price: n[3] * 12, currency: n[4] });
     for (var w = -2; w <= 2; w++) {
       for (var k = 0; k < 2; k++) {
         var day = (i + k * 2) % 5, date = addDays(ws, w * 7 + day);
@@ -1033,6 +1384,12 @@ document.addEventListener("click", function(e){
       break;
     }
 
+    case "pack-new": packForm(id); break;
+    case "cab-share": cabShare(id); break;
+    case "cab-open": closeModal(); location.hash = "#student=" + id; break;
+    case "cab-login": cabLogin(id); break;
+    case "cab-exit": location.hash = ""; route(); break;
+
     case "pay-new": paymentForm(id); break;
     case "pay-del": {
       if (!confirm(t("a.confirm"))) break;
@@ -1046,9 +1403,10 @@ document.addEventListener("click", function(e){
     case "week-today": weekOf = weekStart(today()); render(); break;
 
     case "settings-save": {
-      S.currency = val("set-cur") || "₽";
+      S.cur = CUR[val("set-cur")] ? val("set-cur") : "AMD";
       S.defRate = +val("set-rate") || 0;
       S.defDur = +val("set-dur") || 60;
+      S.teacher = val("set-teacher");
       S.countNoShow = checked("set-noshow");
       var ls = document.getElementById("set-lang"); if (ls) S.lang = ls.value;
       save(); render(); toast(t("a.saved"));
@@ -1110,7 +1468,12 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-render();
+/* выбор валюты для графика в отчётах */
+document.addEventListener("change", function(e){
+  if (e.target && e.target.id === "chart-cur") { chartCur = e.target.value; render(); }
+});
+
+route();
 </script>
 </body>
 </html>
