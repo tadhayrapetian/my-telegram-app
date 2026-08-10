@@ -368,6 +368,8 @@ html[lang="hy"] .plan .pn{font-family:var(--arm)}
 .price .v{font-family:var(--serif);font-size:42px;font-weight:600;letter-spacing:-.03em;line-height:1}
 .price .per{font-size:13.5px;color:var(--ink-3)}
 .plan .lim{font-size:12.5px;color:var(--ink-3)}
+.plan-no{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:13px;color:var(--ink-3)}
+.soon{display:inline-block;margin-left:6px;white-space:nowrap;font-size:10.5px;font-weight:640;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--clay-soft);color:#8A5A32;vertical-align:middle}
 .plan .btn{width:100%;margin:22px 0}
 
 /* ============================================================
@@ -888,7 +890,7 @@ html[lang="hy"] .faq summary{font-family:var(--arm);font-size:clamp(16px,1.6vw,1
     <div class="head mid rv">
       <span class="eyebrow" data-i18n="price.eyebrow">Pricing</span>
       <h2 class="h2" data-i18n="price.title">Free while you are small</h2>
-      <p class="lead" data-i18n="price.sub">Every feature is on every plan. The only difference is how many students you keep.</p>
+      <p class="lead" data-i18n="price.sub2">Start free with the schedule alone. Move up when the students, the money and the paperwork pile up.</p>
       <div class="toggle" id="toggle" role="group">
         <button class="on" data-period="month" data-i18n="price.monthly">Monthly</button>
         <button data-period="year"><span data-i18n="price.yearly">Yearly</span><span class="sv" data-i18n="price.save">−20%</span></button>
@@ -897,44 +899,49 @@ html[lang="hy"] .faq summary{font-family:var(--arm);font-size:clamp(16px,1.6vw,1
 
     <div class="plans rv" style="margin-top:clamp(34px,4.5vw,56px)">
       <article class="plan">
-        <div class="pn" data-i18n="p1.n">Solo</div>
-        <div class="pd" data-i18n="p1.d">For a tutor who is just putting things in order</div>
+        <div class="pn" data-i18n="p1.n">Free</div>
+        <div class="pd" data-i18n="p1.d">For your first students and a week that finally holds together</div>
         <div class="price"><span class="v" data-month="$0" data-year="$0">$0</span><span class="per" data-i18n="price.per">/ month</span></div>
-        <div class="lim" data-i18n="p1.l">up to 5 students</div>
+        <div class="lim" data-i18n="p1.l">up to 2 students</div>
         <a class="btn btn-ghost" href="#start" data-i18n="p1.c">Start free</a>
         <ul class="list">
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f1">Schedule and lesson packages</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f2">Student page by link</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f3">Payment and debt tracking</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f1">The weekly schedule, rescheduling by dragging</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f2">Marking lessons held, cancelled or missed</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p1.f3">Online and in-person lessons in one grid</span></li>
         </ul>
+        <p class="plan-no" data-i18n="p1.no">No payments, packages or student portal</p>
       </article>
 
       <article class="plan best">
         <span class="flag" data-i18n="price.popular">Most popular</span>
         <div class="pn" data-i18n="p2.n">Pro</div>
-        <div class="pd" data-i18n="p2.d">For a full private practice, online and in person</div>
+        <div class="pd" data-i18n="p2.d">For a full practice, where the money has to add up</div>
         <div class="price"><span class="v" data-month="$9" data-year="$7">$9</span><span class="per" data-i18n="price.per">/ month</span></div>
-        <div class="lim" data-i18n="p2.l">up to 60 students</div>
-        <a class="btn btn-primary" href="#start" data-i18n="p2.c">Start free</a>
+        <div class="lim" data-i18n="p2.l">up to 15 students</div>
+        <a class="btn btn-primary" href="#start" data-i18n="p2.c">Try free for 14 days</a>
         <ul class="list">
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f1">Everything in Solo</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f2">Automatic reminders for students and parents</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f3">Income, hours and attendance reports</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f4">Homework and lesson notes</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f1">Everything in Free</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f2">Packages of 8, 10, 12 lessons — the end date is worked out for you</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f3">Payments, debts and reminders that send themselves</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f4">The student portal on a personal link</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f5">Reports: income, hours, attendance</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p2.f6">Three currencies: dram, rouble, dollar</span></li>
         </ul>
       </article>
 
       <article class="plan">
-        <div class="pn" data-i18n="p3.n">Team</div>
-        <div class="pd" data-i18n="p3.d">For a few tutors working under one name</div>
+        <div class="pn" data-i18n="p3.n">Studio</div>
+        <div class="pd" data-i18n="p3.d">For a school: several teachers, payouts and money coming in on its own</div>
         <div class="price"><span class="v" data-month="$29" data-year="$23">$29</span><span class="per" data-i18n="price.per">/ month</span></div>
-        <div class="lim" data-i18n="p3.l">unlimited students</div>
+        <div class="lim" data-i18n="p3.l">students without limit</div>
         <a class="btn btn-ghost" href="#start" data-i18n="p3.c">Talk to us</a>
         <ul class="list">
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f1">Everything in Pro</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f2">Several tutors with their own schedules</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f3">Shared report and payout calculation</span></li>
-          <li><span class="ic y"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f4">We move your data across for you</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f1">Everything in Pro</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f2">Several teachers, each with their own login and schedule</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f3">Payout calculation for every teacher</span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span data-i18n="p3.f4">Students pay by link, the balance tops up itself</span> <span class="soon" data-i18n="price.soon">soon</span></span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span data-i18n="p3.f5">Fiscal receipts for Armenia and Russia</span> <span class="soon" data-i18n="price.soon">soon</span></span></li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-i18n="p3.f6">We move your data across, and answer first</span></li>
         </ul>
       </article>
     </div>
@@ -1232,30 +1239,37 @@ var T = {
 "price.yearly":{en:"Yearly",ru:"За год",hy:"Տարեկան"},
 "price.save":{en:"−20%",ru:"−20%",hy:"−20%"},
 "price.per":{en:"/ month",ru:"/ мес",hy:"/ ամիս"},
-"price.popular":{en:"Most popular",ru:"Популярный",hy:"Ամենաընտրվածը"},
-"p1.n":{en:"Solo",ru:"Solo",hy:"Solo"},
-"p1.d":{en:"For a tutor who is just putting things in order",ru:"Для репетитора, который только наводит порядок",hy:"Կրկնուսույցի համար, ով նոր է կարգի բերում գործերը"},
-"p1.l":{en:"up to 5 students",ru:"до 5 учеников",hy:"մինչև 5 աշակերտ"},
+"price.sub2":{en:"Start free with the schedule alone. Move up when the students, the money and the paperwork pile up.",ru:"Начните бесплатно с одного расписания. Переходите выше, когда прибавятся ученики, оплаты и бумажная возня.",hy:"Սկսեք անվճար՝ միայն ժամանակացույցով։ Անցեք ավելի բարձր, երբ ավելանան աշակերտները, վճարումները և թղթաբանությունը։"},
+"price.soon":{en:"soon",ru:"скоро",hy:"շուտով"},
+"p1.n":{en:"Free",ru:"Бесплатный",hy:"Անվճար"},
+"p1.d":{en:"For your first students and a week that finally holds together",ru:"Для первых учеников и порядка в неделе",hy:"Առաջին աշակերտների և կարգավորված շաբաթվա համար"},
+"p1.l":{en:"up to 2 students",ru:"до 2 учеников",hy:"մինչև 2 աշակերտ"},
 "p1.c":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
-"p1.f1":{en:"Schedule and lesson packages",ru:"Расписание и пакеты занятий",hy:"Ժամանակացույց և փաթեթներ"},
-"p1.f2":{en:"Student page by link",ru:"Страница ученика по ссылке",hy:"Աշակերտի էջը հղումով"},
-"p1.f3":{en:"Payment and debt tracking",ru:"Учёт оплат и долгов",hy:"Վճարումների և պարտքերի հաշվառում"},
+"p1.f1":{en:"The weekly schedule, rescheduling by dragging",ru:"Расписание на неделю, перенос перетаскиванием",hy:"Շաբաթական ժամանակացույց, տեղափոխում քաշելով"},
+"p1.f2":{en:"Marking lessons held, cancelled or missed",ru:"Отметки: проведено, отменено, не пришёл",hy:"Նշումներ՝ անցկացված, չեղարկված, չի եկել"},
+"p1.f3":{en:"Online and in-person lessons in one grid",ru:"Онлайн и очные занятия в одной сетке",hy:"Առցանց և առերես դասերը մեկ ցանցում"},
+"p1.no":{en:"No payments, packages or student portal",ru:"Без оплат, абонементов и кабинета ученика",hy:"Առանց վճարումների, փաթեթների և աշակերտի էջի"},
 "p2.n":{en:"Pro",ru:"Pro",hy:"Pro"},
-"p2.d":{en:"For a full private practice, online and in person",ru:"Для полной практики: онлайн и очно",hy:"Լիարժեք պրակտիկայի համար՝ առցանց և առերես"},
-"p2.l":{en:"up to 60 students",ru:"до 60 учеников",hy:"մինչև 60 աշակերտ"},
-"p2.c":{en:"Start free",ru:"Начать бесплатно",hy:"Սկսել անվճար"},
-"p2.f1":{en:"Everything in Solo",ru:"Всё из Solo",hy:"Ամեն ինչ Solo-ից"},
-"p2.f2":{en:"Automatic reminders for students and parents",ru:"Автоматические напоминания ученикам и родителям",hy:"Ինքնաշխատ հիշեցումներ աշակերտներին և ծնողներին"},
-"p2.f3":{en:"Income, hours and attendance reports",ru:"Отчёты по доходу, часам и посещаемости",hy:"Հաշվետվություններ եկամտի, ժամերի և հաճախման վերաբերյալ"},
-"p2.f4":{en:"Homework and lesson notes",ru:"Домашние задания и заметки к занятиям",hy:"Տնային աշխատանքներ և դասի նշումներ"},
-"p3.n":{en:"Team",ru:"Team",hy:"Team"},
-"p3.d":{en:"For a few tutors working under one name",ru:"Для нескольких преподавателей под одним именем",hy:"Մեկ անվան ներքո աշխատող մի քանի դասավանդողի համար"},
-"p3.l":{en:"unlimited students",ru:"без ограничения по ученикам",hy:"առանց աշակերտների սահմանափակման"},
-"p3.c":{en:"Talk to us",ru:"Обсудить переезд",hy:"Կապվել մեզ հետ"},
+"p2.d":{en:"For a full practice, where the money has to add up",ru:"Для полноценной практики, где деньги должны сходиться",hy:"Լիարժեք պրակտիկայի համար, որտեղ գումարը պետք է ճշգրիտ լինի"},
+"p2.l":{en:"up to 15 students",ru:"до 15 учеников",hy:"մինչև 15 աշակերտ"},
+"p2.c":{en:"Try free for 14 days",ru:"14 дней бесплатно",hy:"14 օր անվճար"},
+"p2.f1":{en:"Everything in Free",ru:"Всё из бесплатного",hy:"Ամեն ինչ անվճարից"},
+"p2.f2":{en:"Packages of 8, 10, 12 lessons — the end date is worked out for you",ru:"Абонементы на 8, 10, 12 занятий — последний день считается сам",hy:"8, 10, 12 դասի փաթեթներ՝ վերջին օրը հաշվվում է ինքնաբերաբար"},
+"p2.f3":{en:"Payments, debts and reminders that send themselves",ru:"Оплаты, долги и напоминания, которые уходят сами",hy:"Վճարումներ, պարտքեր և հիշեցումներ, որոնք ուղարկվում են ինքնուրույն"},
+"p2.f4":{en:"The student portal on a personal link",ru:"Кабинет ученика по личной ссылке",hy:"Աշակերտի էջը անձնական հղումով"},
+"p2.f5":{en:"Reports: income, hours, attendance",ru:"Отчёты: доход, часы, посещаемость",hy:"Հաշվետվություններ՝ եկամուտ, ժամեր, հաճախում"},
+"p2.f6":{en:"Three currencies: dram, rouble, dollar",ru:"Три валюты: драм, рубль, доллар",hy:"Երեք արժույթ՝ դրամ, ռուբլի, դոլար"},
+"p3.n":{en:"Studio",ru:"Studio",hy:"Studio"},
+"p3.d":{en:"For a school: several teachers, payouts and money coming in on its own",ru:"Для школы: несколько преподавателей, выплаты и деньги, которые приходят сами",hy:"Դպրոցի համար՝ մի քանի դասավանդող, վճարումներ և ինքնաբերաբար մուտքագրվող գումար"},
+"p3.l":{en:"students without limit",ru:"учеников без ограничений",hy:"աշակերտներ առանց սահմանափակման"},
+"p3.c":{en:"Talk to us",ru:"Обсудить",hy:"Կապվել մեզ հետ"},
 "p3.f1":{en:"Everything in Pro",ru:"Всё из Pro",hy:"Ամեն ինչ Pro-ից"},
-"p3.f2":{en:"Several tutors with their own schedules",ru:"Несколько преподавателей со своим расписанием",hy:"Մի քանի դասավանդող՝ իրենց ժամանակացույցով"},
-"p3.f3":{en:"Shared report and payout calculation",ru:"Сводный отчёт и расчёт выплат",hy:"Ընդհանուր հաշվետվություն և վճարումների հաշվարկ"},
-"p3.f4":{en:"We move your data across for you",ru:"Переносим ваши данные за вас",hy:"Ձեր տվյալները մենք ենք տեղափոխում"},
+"p3.f2":{en:"Several teachers, each with their own login and schedule",ru:"Несколько преподавателей, у каждого свой вход и расписание",hy:"Մի քանի դասավանդող՝ յուրաքանչյուրն իր մուտքով և ժամանակացույցով"},
+"p3.f3":{en:"Payout calculation for every teacher",ru:"Расчёт выплат по каждому преподавателю",hy:"Վճարումների հաշվարկ յուրաքանչյուր դասավանդողի համար"},
+"p3.f4":{en:"Students pay by link, the balance tops up itself",ru:"Ученик платит по ссылке, баланс пополняется сам",hy:"Աշակերտը վճարում է հղումով, մնացորդը լրացվում է ինքնաբերաբար"},
+"p3.f5":{en:"Fiscal receipts for Armenia and Russia",ru:"Фискальные чеки для Армении и России",hy:"Հարկային կտրոններ Հայաստանի և Ռուսաստանի համար"},
+"p3.f6":{en:"We move your data across, and answer first",ru:"Переносим ваши данные и отвечаем в первую очередь",hy:"Տեղափոխում ենք ձեր տվյալները և պատասխանում առաջին հերթին"},
+"price.popular":{en:"Most popular",ru:"Популярный",hy:"Ամենաընտրվածը"},
 
 "faq.eyebrow":{en:"FAQ",ru:"Вопросы",hy:"Հարցեր"},
 "faq.title":{en:"Questions tutors ask first",ru:"Что спрашивают в первую очередь",hy:"Ինչ են հարցնում առաջին հերթին"},
