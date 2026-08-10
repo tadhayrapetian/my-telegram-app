@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slate</title>
+<meta name="theme-color" content="#F4EFE3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233A4429'/%3E%3Crect x='7' y='9' width='18' height='14' rx='2.5' fill='none' stroke='%23E9EBD8' stroke-width='2'/%3E%3Cpath d='M11 15h10M11 19h6' stroke='%23E9EBD8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#F4EFE3; --paper-2:#FBF8F1; --paper-3:#EAE3D2;
+  --olive-100:#DDE3CB; --olive-200:#C3CDA6; --olive-500:#657646; --olive-600:#4F5D34; --olive-700:#3A4429; --olive-800:#2B331F;
+  --ink:#23261C; --ink-2:#484D3C; --ink-3:#787D68;
+  --line:rgba(35,38,28,.12); --line-2:rgba(35,38,28,.07);
+  --clay-soft:#F1E2D2; --clay-ink:#8A5A32; --red:#A6483C; --red-soft:#F3DED9;
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --arm:"Noto Sans Armenian",Mshtakan,"Arial Unicode MS",sans-serif;
+  --sh:0 2px 8px rgba(35,38,28,.06);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html[lang="hy"] body{font-family:var(--arm)}
+h1,h2{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.15}
+html[lang="hy"] h1,html[lang="hy"] h2{font-family:var(--arm);font-weight:640}
+.wrap{max-width:560px;margin:0 auto;padding:30px 18px 60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:19px;font-weight:600;margin-bottom:22px}
+.brand .m{width:30px;height:30px;border-radius:9px;background:var(--olive-700);display:grid;place-items:center}
+.brand .m svg{width:17px;height:17px}
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);margin-bottom:14px}
+.card-h{padding:13px 17px;border-bottom:1px solid var(--line-2)}
+.card-h h2{font-size:16px}
+.card-b{padding:4px 17px 10px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:0}
+.nm{font-size:14.5px;font-weight:560}
+.sb{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--sh);margin-bottom:14px}
+.kpi .l{font-size:12.5px;color:var(--ink-3)}
+.kpi .v{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--olive-600);line-height:1.05;margin-top:4px}
+html[lang="hy"] .kpi .v{font-family:var(--arm)}
+.kpi .n{font-size:12.5px;color:var(--ink-3);margin-top:5px}
+.kpi.warn .v{color:var(--clay-ink)}
+.kpi.bad .v{color:var(--red)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:999px;
+  border:1px solid transparent;cursor:pointer;font:inherit;font-size:14px;font-weight:550;text-decoration:none;white-space:nowrap}
+.btn-p{background:var(--olive-600);color:var(--paper-2)}
+.btn-p:hover{background:var(--olive-700)}
+.btn-g{background:var(--paper-2);border-color:var(--line);color:var(--ink)}
+.inp{height:44px;width:100%;padding:0 14px;border:1px solid var(--line);border-radius:11px;background:var(--paper-2);font:inherit;color:var(--ink)}
+.inp:focus{outline:0;border-color:var(--olive-500);box-shadow:0 0 0 3px rgba(101,118,70,.16)}
+.f{display:flex;flex-direction:column;gap:12px;padding:14px 0}
+.hint{font-size:13px;color:var(--ink-3)}
+.err{background:var(--red-soft);color:var(--red);padding:10px 14px;border-radius:11px;font-size:13.5px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.head h1{font-size:25px}
+.head .sub{color:var(--ink-3);font-size:13.5px;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <span class="m"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span>Slate</span>
+  </div>
+  <div id="view"></div>
+</div>
+
+<script>
+var T = {
+  title:{en:"Your lessons",ru:"Ваши занятия",hy:"Ձեր դասերը"},
+  code:{en:"Code from your teacher",ru:"Код от преподавателя",hy:"Ուսուցչի տված կոդը"},
+  enter:{en:"Open",ru:"Открыть",hy:"Բացել"},
+  wrong:{en:"Wrong code",ru:"Неверный код",hy:"Սխալ կոդ"},
+  gone:{en:"This link no longer works",ru:"Ссылка больше не работает",hy:"Հղումն այլևս չի աշխատում"},
+  balance:{en:"Lessons left",ru:"Осталось занятий",hy:"Մնացել է դաս"},
+  until:{en:"Package runs until",ru:"Абонемент до",hy:"Բաժանորդագրությունը մինչև"},
+  next:{en:"Next lessons",ru:"Ближайшие занятия",hy:"Մոտակա դասերը"},
+  none:{en:"No lessons yet",ru:"Занятий пока нет",hy:"Դասեր դեռ չկան"},
+  join:{en:"Join",ru:"Подключиться",hy:"Միանալ"},
+  links:{en:"Links",ru:"Ссылки",hy:"Հղումներ"},
+  hw:{en:"Homework",ru:"Домашнее задание",hy:"Տնային աշխատանք"},
+  pay:{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+  teacher:{en:"Teacher",ru:"Преподаватель",hy:"Ուսուցիչ"},
+  online:{en:"online",ru:"онлайн",hy:"առցանց"},
+  lessons:{en:"lessons",ru:"занятий",hy:"դաս"}
+};
+var CUR = { AMD:"֏", RUB:"₽", USD:"$" };
+var LOC = { en:"en-GB", ru:"ru-RU", hy:"hy-AM" };
+var lang = (function(){
+  var n = (navigator.languages || [navigator.language || "en"]).join(",").toLowerCase();
+  return n.indexOf("hy") > -1 ? "hy" : n.indexOf("ru") > -1 ? "ru" : "en";
+})();
+var token = location.pathname.replace(/^\/s\//, "");
+var view = document.getElementById("view");
+
+function t(k){ return (T[k] && (T[k][lang] || T[k].en)) || k; }
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function money(n, c){ return (Math.round(n) || 0).toLocaleString(LOC[lang]) + " " + (CUR[c] || ""); }
+function fmtDate(s){
+  try { return new Intl.DateTimeFormat(LOC[lang], { day:"numeric", month:"long" }).format(new Date(s + "T00:00:00")); }
+  catch (e) { return s; }
+}
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : "https://" + String(u).replace(/^\/+/, ""); }
+
+function askCode(err){
+  document.documentElement.lang = lang;
+  view.innerHTML =
+    '<div class="card"><div class="card-h"><h2>' + esc(t("title")) + '</h2></div><div class="card-b"><div class="f">' +
+    (err ? '<div class="err">' + esc(err) + "</div>" : "") +
+    '<input class="inp" id="code" inputmode="numeric" style="font-size:20px;letter-spacing:.2em;text-align:center" placeholder="••••">' +
+    '<button class="btn btn-p" id="go">' + esc(t("enter")) + "</button>" +
+    "</div></div></div>";
+  var i = document.getElementById("code");
+  i.focus();
+  i.addEventListener("keydown", function(e){ if (e.key === "Enter") open(); });
+  document.getElementById("go").addEventListener("click", open);
+}
+
+function open(){
+  var code = (document.getElementById("code") || {}).value || "";
+  fetch("/api/portal", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: token, code: code.trim() })
+  }).then(function(r){
+    if (r.status === 404) return askCode(t("gone"));
+    if (!r.ok) return askCode(t("wrong"));
+    return r.json().then(function(d){
+      try { sessionStorage.setItem("slate-portal-" + token, code.trim()); } catch (e) {}
+      show(d);
+    });
+  }).catch(function(){ askCode(t("wrong")); });
+}
+
+function show(d){
+  if (d.lang && T.title[d.lang]) lang = d.lang;
+  document.documentElement.lang = lang;
+  var b = d.balance;
+  view.innerHTML =
+    '<div class="head"><div><h1>' + esc(d.student.name) + "</h1>" +
+      '<div class="sub">' + esc([d.student.subject, d.student.level].filter(Boolean).join(" · ")) + "</div></div>" +
+      (d.teacher ? '<div class="sub">' + esc(t("teacher")) + ": " + esc(d.teacher) + "</div>" : "") + "</div>" +
+
+    '<div class="kpi ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "") + '"><div class="l">' + esc(t("balance")) + "</div>" +
+      '<div class="v">' + (b < 0 ? "−" + (-b) : b) + "</div>" +
+      '<div class="n">' + (d.packUntil ? esc(t("until") + " " + fmtDate(d.packUntil)) : "") + "</div></div>" +
+
+    '<div class="card"><div class="card-h"><h2>' + esc(t("next")) + '</h2></div><div class="card-b">' +
+    (d.upcoming.length ? d.upcoming.map(function(l){
+      var url = l.link || (d.links[0] ? d.links[0].url : "");
+      return '<div class="row"><div class="g"><div class="nm">' + esc(fmtDate(l.date) + ", " + l.time) + "</div>" +
+        '<div class="sb">' + esc((l.online ? t("online") : "") + (l.hw ? (l.online ? " · " : "") + l.hw : "")) + "</div></div>" +
+        (url ? '<a class="btn btn-p" href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener">' + esc(t("join")) + "</a>" : "") + "</div>";
+    }).join("") : '<div class="row"><div class="g"><div class="sb">' + esc(t("none")) + "</div></div></div>") +
+    "</div></div>" +
+
+    (d.links.length ? '<div class="card"><div class="card-h"><h2>' + esc(t("links")) + '</h2></div><div class="card-b">' +
+      d.links.map(function(x){
+        return '<div class="row"><div class="g"><div class="nm">' + esc(x.title) + "</div></div>" +
+          '<a class="btn btn-g" href="' + esc(safeUrl(x.url)) + '" target="_blank" rel="noopener">' + esc(t("join")) + "</a></div>";
+      }).join("") + "</div></div>" : "") +
+
+    (d.payments.length ? '<div class="card"><div class="card-h"><h2>' + esc(t("pay")) + '</h2></div><div class="card-b">' +
+      d.payments.map(function(p){
+        return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("lessons")) + "</div>" +
+          '<div class="sb">' + esc(fmtDate(p.date)) + "</div></div></div>";
+      }).join("") + "</div></div>" : "");
+}
+
+/* если код уже вводили в этой сессии — открываем сразу */
+var saved = null;
+try { saved = sessionStorage.getItem("slate-portal-" + token); } catch (e) {}
+if (saved) {
+  fetch("/api/portal", { method: "POST", headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ token: token, code: saved }) })
+    .then(function(r){ return r.ok ? r.json().then(show) : askCode(); })
+    .catch(function(){ askCode(); });
+} else {
+  askCode();
+}
+</script>
+</body>
+</html>
