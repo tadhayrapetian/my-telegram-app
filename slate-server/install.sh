@@ -64,6 +64,7 @@ mkdir -p "$APP_DIR/public" "$APP_DIR/data" "$APP_DIR/backup"
 install -m 644 "$SRC_DIR/server.js" "$APP_DIR/server.js"
 install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || true
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
+install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"
 install -m 644 "$SRC_DIR/public/portal.html" "$APP_DIR/public/portal.html"
 chown -R slate:slate "$APP_DIR"
 chmod 700 "$APP_DIR/data"

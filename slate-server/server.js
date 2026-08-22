@@ -424,6 +424,9 @@ const server = http.createServer(async (req, res) => {
   try {
     /* кабинет ученика: /s/<token> */
     if (p.startsWith("/s/")) return serveFile(res, path.join(PUBLIC_DIR, "portal.html"));
+    /* корень — страница продукта, программа живёт на /app */
+    if (p === "/") return serveFile(res, path.join(PUBLIC_DIR, "landing.html"));
+    if (p === "/app" || p === "/app/") return serveFile(res, path.join(PUBLIC_DIR, "index.html"));
 
     const key = req.method + " " + p;
     if (routes[key]) return await routes[key](req, res, sessionUser(req));
@@ -431,7 +434,7 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith("/api/")) return send(res, 404, { error: "not_found" });
 
     /* статика */
-    const rel = p === "/" ? "index.html" : p.replace(/^\/+/, "");
+    const rel = p.replace(/^\/+/, "");
     const file = path.join(PUBLIC_DIR, rel);
     if (!file.startsWith(PUBLIC_DIR)) return send(res, 403, { error: "forbidden" });
     return serveFile(res, file);

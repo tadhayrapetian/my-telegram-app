@@ -1625,7 +1625,7 @@ document.addEventListener("click", function(e){
     case "au-send": authSend(); break;
     case "au-verify": authVerify(); break;
     case "au-back": authStage = "email"; authDev = ""; renderAuth(); break;
-    case "logout": apiCall("POST", "/api/auth/logout").then(function(){ location.reload(); }); break;
+    case "logout": apiCall("POST", "/api/auth/logout").then(function(){ location.href = "/"; }); break;
     case "go-settings": closeModal(); go("settings"); break;
     case "teacher-add": teacherForm(); break;
     case "teacher-del": {
