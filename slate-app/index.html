@@ -206,6 +206,19 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .check input{width:17px;height:17px;accent-color:var(--olive-600);cursor:pointer}
 .hint{font-size:12px;color:var(--ink-3)}
 
+/* чат */
+.chat{display:flex;flex-direction:column;gap:9px;max-height:320px;overflow-y:auto;padding:10px 0}
+.msg{align-self:flex-start;max-width:78%;background:var(--paper-3);border-radius:14px 14px 14px 4px;padding:9px 12px}
+.msg.me{align-self:flex-end;background:var(--olive-500);color:var(--paper-2);border-radius:14px 14px 4px 14px}
+.msg .tx{font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.msg .wh{font-size:10.5px;opacity:.65;margin-top:4px}
+.msg-file{display:inline-flex;align-items:center;gap:6px;border:0;cursor:pointer;font:inherit;font-size:13px;
+  background:rgba(255,255,255,.6);color:var(--ink);border-radius:9px;padding:6px 10px;margin-top:4px;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg.me .msg-file{background:rgba(251,248,241,.9)}
+.chat-send{display:flex;gap:7px;align-items:center;padding-top:10px;border-top:1px solid var(--line-2)}
+.chat-send .inp{flex:1}
+
 /* ---------- модалка ---------- */
 .overlay{position:fixed;inset:0;background:rgba(35,38,28,.42);backdrop-filter:blur(3px);z-index:80;display:none;align-items:flex-start;justify-content:center;padding:34px 16px;overflow-y:auto}
 .overlay.on{display:flex}
@@ -322,6 +335,7 @@ tr:last-child td{border-bottom:0}
 
 <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
+<input type="file" id="filePick" multiple style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">
 
 <script>
 /* =========================================================================
@@ -503,6 +517,25 @@ var T = {
 "s.thenPackYes":{en:"Add a package",ru:"Добавить абонемент",hy:"Ավելացնել բաժանորդագրություն"},
 "s.thenPackNo":{en:"Later",ru:"Позже",hy:"Ավելի ուշ"},
 "s.added":{en:"Student added",ru:"Ученик добавлен",hy:"Աշակերտն ավելացվեց"},
+"fl.title":{en:"Files",ru:"Файлы",hy:"Ֆայլեր"},
+"fl.add":{en:"Add files",ru:"Добавить файлы",hy:"Ավելացնել ֆայլեր"},
+"fl.none":{en:"No files yet",ru:"Файлов пока нет",hy:"Ֆայլեր դեռ չկան"},
+"fl.open":{en:"Open",ru:"Открыть",hy:"Բացել"},
+"fl.download":{en:"Download",ru:"Скачать",hy:"Ներբեռնել"},
+"fl.newTab":{en:"Open in a new tab",ru:"Открыть в новой вкладке",hy:"Բացել նոր ներդիրում"},
+"fl.byStudent":{en:"from the student",ru:"от ученика",hy:"աշակերտից"},
+"fl.tooBig":{en:"The file is larger than 15 MB",ru:"Файл больше 15 МБ",hy:"Ֆայլը 15 ՄԲ-ից մեծ է"},
+"fl.badType":{en:"This file type is not accepted",ru:"Такой тип файла не принимается",hy:"Այս տեսակի ֆայլը չի ընդունվում"},
+"fl.quota":{en:"Storage is full — delete something first",ru:"Место закончилось — удалите что-нибудь",hy:"Տեղն սպառվել է՝ ջնջեք որևէ բան"},
+"fl.uploading":{en:"Uploading…",ru:"Загружаю…",hy:"Բեռնում…"},
+"fl.serverOnly":{en:"Files and chat work when the app runs on a server",ru:"Файлы и переписка работают, когда программа стоит на сервере",hy:"Ֆայլերն ու նամակագրությունն աշխատում են, երբ ծրագիրը սերվերի վրա է"},
+"ch.title":{en:"Chat with the student",ru:"Переписка с учеником",hy:"Նամակագրություն աշակերտի հետ"},
+"ch.write":{en:"Write a message",ru:"Написать сообщение",hy:"Գրել հաղորդագրություն"},
+"ch.send":{en:"Send",ru:"Отправить",hy:"Ուղարկել"},
+"ch.none":{en:"No messages yet",ru:"Сообщений пока нет",hy:"Հաղորդագրություններ դեռ չկան"},
+"ch.you":{en:"You",ru:"Вы",hy:"Դուք"},
+"ch.attach":{en:"Attach a file",ru:"Прикрепить файл",hy:"Կցել ֆայլ"},
+"ph.photo":{en:"Photo",ru:"Фото",hy:"Լուսանկար"},
 "cur.title":{en:"Currency",ru:"Валюта",hy:"Արժույթ"},
 "cur.AMD":{en:"Dram",ru:"Драм",hy:"Դրամ"},
 "cur.RUB":{en:"Rouble",ru:"Рубль",hy:"Ռուբլի"},
@@ -1313,6 +1346,11 @@ function studentForm(id){
 
 function studentCard(id){
   var s = student(id); if (!s) return;
+  if (CARD.id !== id) { loadCard(id, function(){ studentCard(id); }); }
+  var photo = CARD.id === id ? (CARD.files.filter(function(f){ return f.kind === "photo"; })[0] || null) : null;
+  var docs = CARD.id === id ? CARD.files.filter(function(f){ return f.kind !== "photo"; }) : [];
+  var msgs = CARD.id === id ? CARD.msgs : [];
+  var canFiles = API.on && planLimits().portal;
   var b = balance(id), up = upcoming(id, 5);
   var hist = S.lessons.filter(function(l){ return l.studentId === id && l.date <= today(); })
     .sort(function(a,b2){ return (a.date + a.time) < (b2.date + b2.time) ? 1 : -1; }).slice(0, 8);
@@ -1321,6 +1359,8 @@ function studentCard(id){
 
   modal(s.name,
     '<div class="stack">' +
+      (photo ? '<div style="display:flex;justify-content:center"><img src="' + esc(photo.url) + '" alt="" ' +
+        'style="width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid var(--olive-200)"></div>' : "") +
       '<div class="grid-3">' +
         kpi(t("s.balance"), (b < 0 ? "−" + (-b) : b), b < 0 ? t("s.debt") : t("s.left"), b < 0 ? "bad" : b <= 1 ? "warn" : "") +
         kpi(t("s.paidL"), paidLessons(id), "") +
@@ -1354,6 +1394,31 @@ function studentCard(id){
             '<span class="chip ' + (l.status === "done" ? "ok" : l.status === "no_show" ? "warn" : "mut") + '">' + esc(t("l." + l.status)) + "</span></div>";
         }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
       "</div></div>" +
+      (canFiles ? '<div class="card"><div class="card-h"><h2>' + esc(t("fl.title")) + " · " + docs.length + "</h2>" +
+        '<button class="btn btn-g btn-s" data-act="file-add" data-id="' + id + '">+ ' + esc(t("fl.add")) + '</button></div><div class="card-b">' +
+        (docs.length ? docs.map(function(f){
+          return '<div class="row"><span class="ava" style="font-size:16px">' + fileIcon(f) + "</span>" +
+            '<div class="g"><div class="nm">' + esc(f.name) + "</div>" +
+            '<div class="sb">' + esc(fileSize(f.size) + " · " + fmtWhen(f.created) + (f.author === "student" ? " · " + t("fl.byStudent") : "")) + "</div></div>" +
+            '<div class="act"><button class="btn btn-g btn-s" data-act="file-open" data-fid="' + f.id + '">' + esc(t("fl.open")) + "</button>" +
+            '<button class="btn btn-d btn-s" data-act="file-del" data-fid="' + f.id + '" data-id="' + id + '">' + esc(t("a.delete")) + "</button></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("fl.none")) + "</div>") + "</div></div>" : "") +
+
+      (canFiles ? '<div class="card"><div class="card-h"><h2>' + esc(t("ch.title")) + '</h2></div><div class="card-b">' +
+        '<div class="chat">' +
+        (msgs.length ? msgs.map(function(m){
+          return '<div class="msg ' + (m.author === "teacher" ? "me" : "") + '">' +
+            (m.text ? '<div class="tx">' + esc(m.text) + "</div>" : "") +
+            (m.file ? '<button class="msg-file" data-act="file-open" data-fid="' + m.file.id + '">' + fileIcon(m.file) + " " + esc(m.file.name) + "</button>" : "") +
+            '<div class="wh">' + esc((m.author === "teacher" ? t("ch.you") : esc(s.name)) + " · " + fmtWhen(m.created)) + "</div></div>";
+        }).join("") : '<div class="empty">' + esc(t("ch.none")) + "</div>") +
+        "</div>" +
+        '<div class="chat-send"><input class="inp" id="ch-text" placeholder="' + esc(t("ch.write")) + '">' +
+        '<button class="btn btn-g btn-icon" data-act="ch-attach" data-id="' + id + '" title="' + esc(t("ch.attach")) + '">📎</button>' +
+        '<button class="btn btn-p" data-act="ch-send" data-id="' + id + '">' + esc(t("ch.send")) + "</button></div>" +
+        "</div></div>" :
+        (API.on ? "" : '<div class="card"><div class="card-b"><div class="empty">' + esc(t("fl.serverOnly")) + "</div></div></div>")) +
+
       '<div class="card"><div class="card-h"><h2>' + esc(t("s.payments")) + '</h2>' +
         '<button class="btn btn-p btn-s" data-act="pay-new" data-id="' + id + '">+ ' + esc(t("p.add")) + "</button></div><div class=\"card-b\">" +
         (pays.length ? pays.map(function(p){
@@ -1550,6 +1615,78 @@ function paymentForm(sid){
   };
 }
 
+/* ---------------------------- файлы и переписка ---------------------------- */
+var CARD = { id: null, files: [], msgs: [] };
+
+function fileIcon(f){
+  if (/^image\//.test(f.mime)) return "🖼";
+  if (f.mime === "application/pdf") return "📄";
+  if (/^audio\//.test(f.mime)) return "🎧";
+  if (/^video\//.test(f.mime)) return "🎬";
+  return "📎";
+}
+function fileSize(n){
+  return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+}
+var pendingPick = null;
+document.getElementById("filePick").addEventListener("change", function(){
+  var cb = pendingPick; pendingPick = null;
+  if (cb) cb(Array.prototype.slice.call(this.files));
+});
+function pickFiles(cb, accept){
+  var inp = document.getElementById("filePick");
+  pendingPick = cb;
+  inp.value = "";
+  inp.accept = accept || "";
+  inp.click();
+}
+function uploadFiles(studentId, list, kind, done){
+  if (!list.length) return done && done();
+  toast(t("fl.uploading"));
+  var left = list.length, failed = 0;
+  list.forEach(function(f){
+    var fr = new FileReader();
+    fr.onload = function(){
+      var b64 = String(fr.result).split(",")[1] || "";
+      apiCall("POST", "/api/files", { studentId: studentId, name: f.name, mime: f.type || "application/octet-stream",
+                                      kind: kind || "file", data: b64 }).then(function(r){
+        if (r.status !== 200) {
+          failed++;
+          toast(r.status === 413 ? (r.data.error === "quota" ? t("fl.quota") : t("fl.tooBig"))
+              : r.status === 415 ? t("fl.badType")
+              : r.status === 402 ? t("pl.needMoney") : t("sv.offline"));
+        }
+        if (!--left) done && done(failed);
+      });
+    };
+    fr.readAsDataURL(f);
+  });
+}
+function loadCard(id, then){
+  if (!API.on || !planLimits().portal) { CARD = { id: id, files: [], msgs: [] }; return then(); }
+  Promise.all([apiCall("GET", "/api/files?studentId=" + encodeURIComponent(id)),
+               apiCall("GET", "/api/messages?studentId=" + encodeURIComponent(id))]).then(function(r){
+    CARD = { id: id,
+             files: (r[0].data && r[0].data.files) || [],
+             msgs: (r[1].data && r[1].data.messages) || [] };
+    then();
+  });
+}
+function viewFile(f){
+  var body = /^image\//.test(f.mime)
+    ? '<img src="' + esc(f.url) + '" alt="' + esc(f.name) + '" style="max-width:100%;border-radius:12px;display:block;margin:0 auto">'
+    : f.mime === "application/pdf"
+      ? '<iframe src="' + esc(f.url) + '" style="width:100%;height:min(70vh,700px);border:1px solid var(--line);border-radius:12px;background:#fff"></iframe>'
+      : '<div class="empty"><b>' + esc(f.name) + "</b>" + esc(fileSize(f.size)) + "</div>";
+  modal(f.name, body,
+    '<a class="btn btn-g" href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(t("fl.newTab")) + "</a>" +
+    '<a class="btn btn-p" href="' + esc(f.url) + '" download="' + esc(f.name) + '">' + esc(t("fl.download")) + "</a>", true);
+}
+function fmtWhen(ts){
+  try { return new Intl.DateTimeFormat(LOC[S.lang], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
+  catch (e) { return ""; }
+}
+
 /* ---------------------------- кабинет ученика ---------------------------- */
 /* Кабинет открывается ссылкой вида …index.html#student=ID и закрыт кодом.
    Пока программа локальная, ссылка работает на этом компьютере; после переезда
@@ -1679,6 +1816,8 @@ function exportData(){
 function importData(){
   var inp = document.createElement("input");
   inp.type = "file"; inp.accept = "application/json,.json";
+  inp.style.position = "fixed"; inp.style.left = "-9999px";
+  document.body.appendChild(inp);
   inp.onchange = function(){
     var f = inp.files[0]; if (!f) return;
     var fr = new FileReader();
@@ -1688,6 +1827,7 @@ function importData(){
         if (!d || !Array.isArray(d.students)) throw 0;
         S = Object.assign(blank(), d); save(); render(); toast(t("c.imported"));
       } catch (e) { toast(t("c.importBad")); }
+      if (inp.parentNode) inp.parentNode.removeChild(inp);
     };
     fr.readAsText(f);
   };
@@ -1793,6 +1933,38 @@ document.addEventListener("click", function(e){
       });
       break;
     }
+    case "file-add": pickFiles(function(list){ uploadFiles(id, list, "file", function(){ CARD.id = null; studentCard(id); }); }); break;
+    case "file-open": {
+      var all = CARD.files.concat(CARD.msgs.map(function(m){ return m.file; }).filter(Boolean));
+      var f = all.filter(function(x){ return x.id === el.dataset.fid; })[0];
+      if (f) viewFile(f);
+      break;
+    }
+    case "file-del": {
+      if (!confirm(t("a.confirm"))) break;
+      apiCall("POST", "/api/files/delete", { id: el.dataset.fid }).then(function(){ CARD.id = null; studentCard(id); });
+      break;
+    }
+    case "ch-send": {
+      var box = document.getElementById("ch-text"), txt = box ? box.value.trim() : "";
+      if (!txt) break;
+      apiCall("POST", "/api/messages", { studentId: id, text: txt }).then(function(r){
+        if (r.status !== 200) return toast(t("sv.offline"));
+        CARD.id = null; studentCard(id);
+      });
+      break;
+    }
+    case "ch-attach": pickFiles(function(list){
+      uploadFiles(id, list, "file", function(){
+        apiCall("GET", "/api/files?studentId=" + encodeURIComponent(id)).then(function(r){
+          var fresh = (r.data.files || [])[0];
+          if (!fresh) { CARD.id = null; return studentCard(id); }
+          apiCall("POST", "/api/messages", { studentId: id, text: "", fileId: fresh.id }).then(function(){
+            CARD.id = null; studentCard(id);
+          });
+        });
+      });
+    }); break;
     case "pack-new": packForm(id); break;
     case "cab-share": cabShare(id); break;
     case "cab-open": closeModal(); location.hash = "#student=" + id; break;
@@ -1889,6 +2061,11 @@ document.addEventListener("drop", function(e){
 
 document.addEventListener("keydown", function(e){
   if (e.key === "Escape") closeModal();
+  if (e.key === "Enter" && e.target && e.target.id === "ch-text") {
+    var b = document.querySelector('[data-act="ch-send"]');
+    if (b) { e.preventDefault(); b.click(); }
+    return;
+  }
   if (e.key === "Enter" && onSubmit && document.getElementById("overlay").classList.contains("on")) {
     if (e.target.tagName !== "TEXTAREA") { e.preventDefault(); onSubmit(); }
   }

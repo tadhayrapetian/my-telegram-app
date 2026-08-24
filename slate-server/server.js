@@ -57,6 +57,20 @@ CREATE TABLE IF NOT EXISTS portal (
   token TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL, updated_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS portal_user ON portal(user_id);
+CREATE TABLE IF NOT EXISTS psessions (
+  id TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL, expires INTEGER
+);
+CREATE TABLE IF NOT EXISTS files (
+  id TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL,
+  name TEXT, mime TEXT, size INTEGER, kind TEXT NOT NULL DEFAULT 'file',
+  author TEXT NOT NULL DEFAULT 'teacher', created_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS files_student ON files(user_id, student_id);
+CREATE TABLE IF NOT EXISTS messages (
+  id TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL,
+  author TEXT NOT NULL, text TEXT, file_id TEXT, created_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS messages_student ON messages(user_id, student_id, created_at);
 `);
 
 const q = {
@@ -83,8 +97,35 @@ const q = {
   addPortal: db.prepare("INSERT INTO portal (token,user_id,student_id,updated_at) VALUES (?,?,?,?) " +
                         "ON CONFLICT(token) DO UPDATE SET user_id=excluded.user_id, student_id=excluded.student_id, updated_at=excluded.updated_at"),
   portalByToken: db.prepare("SELECT * FROM portal WHERE token = ?"),
-  portalOfUser: db.prepare("SELECT * FROM portal WHERE user_id = ?")
+  portalOfUser: db.prepare("SELECT * FROM portal WHERE user_id = ?"),
+
+  addPS: db.prepare("INSERT INTO psessions (id,user_id,student_id,expires) VALUES (?,?,?,?)"),
+  getPS: db.prepare("SELECT * FROM psessions WHERE id = ?"),
+
+  addFile: db.prepare("INSERT INTO files (id,user_id,student_id,name,mime,size,kind,author,created_at) VALUES (?,?,?,?,?,?,?,?,?)"),
+  getFile: db.prepare("SELECT * FROM files WHERE id = ?"),
+  filesOf: db.prepare("SELECT * FROM files WHERE user_id = ? AND student_id = ? ORDER BY created_at DESC"),
+  photoOf: db.prepare("SELECT * FROM files WHERE user_id = ? AND student_id = ? AND kind = 'photo' ORDER BY created_at DESC LIMIT 1"),
+  delFile: db.prepare("DELETE FROM files WHERE id = ? AND user_id = ?"),
+  usedBytes: db.prepare("SELECT COALESCE(SUM(size),0) AS n FROM files WHERE user_id = ?"),
+
+  addMsg: db.prepare("INSERT INTO messages (id,user_id,student_id,author,text,file_id,created_at) VALUES (?,?,?,?,?,?,?)"),
+  msgsOf: db.prepare("SELECT * FROM messages WHERE user_id = ? AND student_id = ? ORDER BY created_at")
 };
+
+/* ---------------------------------------------------------------- файлы --- */
+const FILES_DIR = path.join(DATA_DIR, "files");
+const MAX_FILE = 15 * 1024 * 1024;        /* один файл */
+const MAX_TOTAL = 300 * 1024 * 1024;      /* на преподавателя */
+fs.mkdirSync(FILES_DIR, { recursive: true });
+const filePath = (userId, id) => path.join(FILES_DIR, userId, id);
+/* храним только то, что браузер умеет показать сам, плюс обычные документы */
+const MIME_OK = new Set([
+  "image/jpeg", "image/png", "image/webp", "image/gif", "image/heic",
+  "application/pdf", "text/plain",
+  "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "audio/mpeg", "audio/mp4", "audio/ogg", "video/mp4"
+]);
 
 /* ---------------------------------------------------------------- тарифы --- */
 const PLANS = {
@@ -187,6 +228,21 @@ function sessionUser(req) {
   const s = q.getSession.get(sid);
   if (!s || s.expires < now()) { if (s) q.delSession.run(sid); return null; }
   return q.userById.get(s.user_id) || null;
+}
+
+function portalSession(req) {
+  const psid = cookies(req).psid;
+  if (!psid) return null;
+  const row = q.getPS.get(psid);
+  if (!row || row.expires < now()) return null;
+  return row;
+}
+/* доступ к файлу: либо преподаватель-владелец, либо ученик из своего кабинета */
+function canReadFile(req, file) {
+  const u = sessionUser(req);
+  if (u && u.id === file.user_id) return true;
+  const ps = portalSession(req);
+  return !!(ps && ps.user_id === file.user_id && ps.student_id === file.student_id);
 }
 
 /* Ссылки кабинета: токен на ученика, пересобирается при каждом сохранении. */
@@ -375,6 +431,11 @@ const routes = {
     if (!user || !s) return send(res, 404, { error: "no_portal" });
     if (String(s.code || "") !== code) return send(res, 403, { error: "bad_code" });
 
+    const psid = crypto.randomBytes(24).toString("base64url");
+    q.addPS.run(psid, row.user_id, s.id, now() + 7 * 24 * 3600 * 1000);
+    const setCookie = `psid=${psid}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${7 * 24 * 3600}` +
+                      (secureReq(req) ? "; Secure" : "");
+
     const td = todayISO();
     const upcoming = (doc.lessons || [])
       .filter((l) => l.studentId === s.id && l.date >= td && l.status === "planned")
@@ -386,22 +447,151 @@ const routes = {
       .sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6)
       .map((p) => ({ date: p.date, amount: p.amount, currency: p.currency, lessons: p.lessons }));
 
+    send(res, 200, portalPayload(row.user_id, s, doc, user), { "Set-Cookie": setCookie });
+  },
+
+  /* повторный вход в кабинет — уже по cookie, без кода */
+  "GET /api/portal/data": async (req, res) => {
+    const ps = portalSession(req);
+    if (!ps) return send(res, 401, { error: "no_session" });
+    const user = q.userById.get(ps.user_id);
+    const { doc } = readDoc(ps.user_id);
+    const s = (doc.students || []).find((x) => x.id === ps.student_id);
+    if (!user || !s) return send(res, 404, { error: "no_portal" });
+    send(res, 200, portalPayload(ps.user_id, s, doc, user));
+  },
+
+  /* ученик пишет преподавателю */
+  "POST /api/portal/message": async (req, res) => {
+    const ps = portalSession(req);
+    if (!ps) return send(res, 401, { error: "no_session" });
+    const body = await readBody(req);
+    const text = String(body.text || "").trim().slice(0, 4000);
+    if (!text && !body.fileId) return send(res, 400, { error: "empty" });
+    const id = uid();
+    q.addMsg.run(id, ps.user_id, ps.student_id, "student", text, body.fileId || null, now());
+    send(res, 200, { ok: true, id });
+  },
+
+  /* ученик загружает файл или своё фото */
+  "POST /api/portal/upload": async (req, res) => {
+    const ps = portalSession(req);
+    if (!ps) return send(res, 401, { error: "no_session" });
+    const body = await readBody(req, 22 * 1024 * 1024);
+    return saveUpload(res, ps.user_id, ps.student_id, body, "student");
+  },
+
+  "POST /api/portal/logout": async (req, res) => {
+    send(res, 200, { ok: true }, { "Set-Cookie": "psid=; HttpOnly; Path=/; Max-Age=0" });
+  },
+
+  /* --- файлы и переписка со стороны преподавателя --- */
+  "POST /api/files": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const school = q.schoolById.get(user.school_id), plan = planOf(school);
+    if (!plan.portal) return send(res, 402, { error: "plan_files" });
+    const body = await readBody(req, 22 * 1024 * 1024);
+    return saveUpload(res, user.id, String(body.studentId || ""), body, "teacher");
+  },
+
+  "GET /api/files": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const sid = new URL(req.url, "http://x").searchParams.get("studentId") || "";
     send(res, 200, {
-      student: { name: s.name, subject: s.subject || "", level: s.level || "" },
-      teacher: doc.teacher || user.name || "",
-      lang: doc.lang || "ru",
-      balance: balanceOf(doc, s.id),
-      packUntil: pack ? pack.last : null,
-      upcoming, payments,
-      links: String(s.links || "").split("\n").map((line) => {
-        const i = line.indexOf("|");
-        const title = i < 0 ? line.trim() : line.slice(0, i).trim();
-        const url = i < 0 ? line.trim() : line.slice(i + 1).trim();
-        return url ? { title: title || url, url } : null;
-      }).filter(Boolean)
+      files: q.filesOf.all(user.id, sid).map(fileRow),
+      used: q.usedBytes.get(user.id).n, quota: MAX_TOTAL
     });
-  }
+  },
+
+  "POST /api/files/delete": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const body = await readBody(req);
+    const f = q.getFile.get(String(body.id || ""));
+    if (!f || f.user_id !== user.id) return send(res, 404, { error: "not_found" });
+    q.delFile.run(f.id, user.id);
+    fs.unlink(filePath(user.id, f.id), () => {});
+    send(res, 200, { ok: true });
+  },
+
+  "GET /api/messages": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const sid = new URL(req.url, "http://x").searchParams.get("studentId") || "";
+    send(res, 200, { messages: q.msgsOf.all(user.id, sid).map(msgRow) });
+  },
+
+  "POST /api/messages": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const school = q.schoolById.get(user.school_id), plan = planOf(school);
+    if (!plan.portal) return send(res, 402, { error: "plan_files" });
+    const body = await readBody(req);
+    const text = String(body.text || "").trim().slice(0, 4000);
+    if (!text && !body.fileId) return send(res, 400, { error: "empty" });
+    const id = uid();
+    q.addMsg.run(id, user.id, String(body.studentId || ""), "teacher", text, body.fileId || null, now());
+    send(res, 200, { ok: true, id });
+  },
+
 };
+
+/* ---- общие куски для файлов и кабинета ---- */
+function fileRow(f) {
+  return { id: f.id, name: f.name, mime: f.mime, size: f.size, kind: f.kind,
+           author: f.author, created: f.created_at, url: "/api/file/" + f.id };
+}
+function msgRow(m) {
+  const f = m.file_id ? q.getFile.get(m.file_id) : null;
+  return { id: m.id, author: m.author, text: m.text || "", created: m.created_at,
+           file: f ? fileRow(f) : null };
+}
+function saveUpload(res, userId, studentId, body, author) {
+  const name = String(body.name || "file").slice(0, 200);
+  const mime = String(body.mime || "application/octet-stream");
+  const kind = body.kind === "photo" ? "photo" : "file";
+  if (!MIME_OK.has(mime)) return send(res, 415, { error: "bad_type", mime });
+  let buf;
+  try { buf = Buffer.from(String(body.data || ""), "base64"); }
+  catch (e) { return send(res, 400, { error: "bad_data" }); }
+  if (!buf.length) return send(res, 400, { error: "empty" });
+  if (buf.length > MAX_FILE) return send(res, 413, { error: "too_large", max: MAX_FILE });
+  const used = q.usedBytes.get(userId).n;
+  if (used + buf.length > MAX_TOTAL) return send(res, 413, { error: "quota", used, quota: MAX_TOTAL });
+
+  const id = uid();
+  fs.mkdirSync(path.join(FILES_DIR, userId), { recursive: true });
+  fs.writeFileSync(filePath(userId, id), buf);
+  q.addFile.run(id, userId, studentId, name, mime, buf.length, kind, author, now());
+  send(res, 200, { ok: true, file: fileRow(q.getFile.get(id)) });
+}
+function portalPayload(userId, s, doc, user) {
+  const td = todayISO();
+  const upcoming = (doc.lessons || [])
+    .filter((l) => l.studentId === s.id && l.date >= td && l.status === "planned")
+    .sort((a, b) => (a.date + a.time < b.date + b.time ? -1 : 1)).slice(0, 6)
+    .map((l) => ({ date: l.date, time: l.time, online: !!l.online, hw: l.hw || "", link: l.link || "" }));
+  const pack = (doc.packs || []).filter((p) => p.studentId === s.id)
+    .sort((a, b) => (a.start < b.start ? 1 : -1))[0] || null;
+  const payments = (doc.payments || []).filter((p) => p.studentId === s.id)
+    .sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6)
+    .map((p) => ({ date: p.date, amount: p.amount, currency: p.currency, lessons: p.lessons }));
+  const photo = q.photoOf.get(userId, s.id);
+  return {
+    student: { name: s.name, subject: s.subject || "", level: s.level || "" },
+    teacher: doc.teacher || (user && user.name) || "",
+    lang: doc.lang || "ru",
+    balance: balanceOf(doc, s.id),
+    packUntil: pack ? pack.last : null,
+    upcoming, payments,
+    photo: photo ? fileRow(photo) : null,
+    files: q.filesOf.all(userId, s.id).filter((f) => f.kind !== "photo").map(fileRow),
+    messages: q.msgsOf.all(userId, s.id).map(msgRow),
+    links: String(s.links || "").split("\n").map((line) => {
+      const i = line.indexOf("|");
+      const title = i < 0 ? line.trim() : line.slice(0, i).trim();
+      const url = i < 0 ? line.trim() : line.slice(i + 1).trim();
+      return url ? { title: title || url, url } : null;
+    }).filter(Boolean)
+  };
+}
 
 /* ------------------------------------------------------------- статика ---- */
 const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
@@ -422,6 +612,24 @@ const server = http.createServer(async (req, res) => {
   const p = url.pathname;
 
   try {
+    /* файл: преподавателю — свой, ученику — только свой из кабинета */
+    if (p.startsWith("/api/file/")) {
+      const f = q.getFile.get(p.slice("/api/file/".length));
+      if (!f) return send(res, 404, { error: "not_found" });
+      if (!canReadFile(req, f)) return send(res, 403, { error: "forbidden" });
+      return fs.readFile(filePath(f.user_id, f.id), (err, data) => {
+        if (err) return send(res, 404, { error: "not_found" });
+        res.writeHead(200, {
+          "Content-Type": f.mime || "application/octet-stream",
+          "Content-Length": data.length,
+          "Content-Disposition": "inline; filename*=UTF-8''" + encodeURIComponent(f.name || "file"),
+          "Cache-Control": "private, max-age=86400",
+          "X-Content-Type-Options": "nosniff"
+        });
+        res.end(data);
+      });
+    }
+
     /* кабинет ученика: /s/<token> */
     if (p.startsWith("/s/")) return serveFile(res, path.join(PUBLIC_DIR, "portal.html"));
     /* корень — страница продукта, программа живёт на /app */
