@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slate</title>
+<meta name="theme-color" content="#F4EFE3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233A4429'/%3E%3Crect x='7' y='9' width='18' height='14' rx='2.5' fill='none' stroke='%23E9EBD8' stroke-width='2'/%3E%3Cpath d='M11 15h10M11 19h6' stroke='%23E9EBD8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#F4EFE3; --paper-2:#FBF8F1; --paper-3:#EAE3D2;
+  --olive-100:#DDE3CB; --olive-200:#C3CDA6; --olive-500:#657646; --olive-600:#4F5D34; --olive-700:#3A4429; --olive-800:#2B331F;
+  --ink:#23261C; --ink-2:#484D3C; --ink-3:#787D68;
+  --line:rgba(35,38,28,.12); --line-2:rgba(35,38,28,.07);
+  --clay-soft:#F1E2D2; --clay-ink:#8A5A32; --red:#A6483C; --red-soft:#F3DED9;
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --arm:"Noto Sans Armenian",Mshtakan,"Arial Unicode MS",sans-serif;
+  --sh:0 2px 8px rgba(35,38,28,.06);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+html[lang="hy"] body{font-family:var(--arm)}
+h1,h2{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.15}
+html[lang="hy"] h1,html[lang="hy"] h2{font-family:var(--arm);font-weight:640}
+.wrap{max-width:560px;margin:0 auto;padding:30px 18px 60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:19px;font-weight:600;margin-bottom:22px}
+.brand .m{width:30px;height:30px;border-radius:9px;background:var(--olive-700);display:grid;place-items:center}
+.brand .m svg{width:17px;height:17px}
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);margin-bottom:14px}
+.card-h{padding:13px 17px;border-bottom:1px solid var(--line-2)}
+.card-h h2{font-size:16px}
+.card-b{padding:4px 17px 10px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:0}
+.nm{font-size:14.5px;font-weight:560}
+.sb{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--sh);margin-bottom:14px}
+.kpi .l{font-size:12.5px;color:var(--ink-3)}
+.kpi .v{font-family:var(--serif);font-size:36px;font-weight:600;color:var(--olive-600);line-height:1.05;margin-top:4px}
+html[lang="hy"] .kpi .v{font-family:var(--arm)}
+.kpi .n{font-size:12.5px;color:var(--ink-3);margin-top:5px}
+.kpi.warn .v{color:var(--clay-ink)}
+.kpi.bad .v{color:var(--red)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:999px;
+  border:1px solid transparent;cursor:pointer;font:inherit;font-size:14px;font-weight:550;text-decoration:none;white-space:nowrap}
+.btn-p{background:var(--olive-600);color:var(--paper-2)}
+.btn-p:hover{background:var(--olive-700)}
+.btn-g{background:var(--paper-2);border-color:var(--line);color:var(--ink)}
+.inp{height:44px;width:100%;padding:0 14px;border:1px solid var(--line);border-radius:11px;background:var(--paper-2);font:inherit;color:var(--ink)}
+.inp:focus{outline:0;border-color:var(--olive-500);box-shadow:0 0 0 3px rgba(101,118,70,.16)}
+.f{display:flex;flex-direction:column;gap:12px;padding:14px 0}
+.hint{font-size:13px;color:var(--ink-3)}
+.err{background:var(--red-soft);color:var(--red);padding:10px 14px;border-radius:11px;font-size:13.5px}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.head h1{font-size:25px}
+.head .sub{color:var(--ink-3);font-size:13.5px;margin-top:3px}
+.ava-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:18px}
+.ava-img{width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid var(--olive-200);background:var(--paper-3)}
+.ava-ph{width:104px;height:104px;border-radius:50%;background:var(--paper-3);display:grid;place-items:center;font-size:34px;color:var(--ink-3)}
+.chat{display:flex;flex-direction:column;gap:9px;max-height:340px;overflow-y:auto;padding:12px 0}
+.msg{align-self:flex-start;max-width:80%;background:var(--paper-3);border-radius:14px 14px 14px 4px;padding:9px 12px}
+.msg.me{align-self:flex-end;background:var(--olive-500);color:var(--paper-2);border-radius:14px 14px 4px 14px}
+.msg .tx{font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.msg .wh{font-size:10.5px;opacity:.65;margin-top:4px}
+.msg-file{display:inline-flex;align-items:center;gap:6px;border:0;cursor:pointer;font:inherit;font-size:13px;
+  background:rgba(255,255,255,.65);color:var(--ink);border-radius:9px;padding:6px 10px;margin-top:4px;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg.me .msg-file{background:rgba(251,248,241,.92)}
+.chat-send{display:flex;gap:7px;align-items:center;padding-top:10px;border-top:1px solid var(--line-2)}
+.chat-send .inp{flex:1;height:40px}
+.icon-btn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--paper-2);cursor:pointer;font-size:17px;line-height:1;flex:none}
+.viewer{position:fixed;inset:0;background:rgba(35,38,28,.6);z-index:90;display:none;align-items:center;justify-content:center;padding:16px}
+.viewer.on{display:flex}
+.viewer .box{background:var(--paper);border-radius:16px;max-width:820px;width:100%;max-height:92vh;overflow:auto;padding:14px}
+.viewer .bar{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <span class="m"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span>
+    <span>Slate</span>
+  </div>
+  <div id="view"></div>
+</div>
+<input type="file" id="filePick" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">
+<div class="viewer" id="viewer"><div class="box" id="viewerBox"></div>
+</div>
+
+<script>
+var T = {
+  title:{en:"Your lessons",ru:"Ваши занятия",hy:"Ձեր դասերը"},
+  code:{en:"Code from your teacher",ru:"Код от преподавателя",hy:"Ուսուցչի տված կոդը"},
+  enter:{en:"Open",ru:"Открыть",hy:"Բացել"},
+  wrong:{en:"Wrong code",ru:"Неверный код",hy:"Սխալ կոդ"},
+  gone:{en:"This link no longer works",ru:"Ссылка больше не работает",hy:"Հղումն այլևս չի աշխատում"},
+  balance:{en:"Lessons left",ru:"Осталось занятий",hy:"Մնացել է դաս"},
+  until:{en:"Package runs until",ru:"Абонемент до",hy:"Բաժանորդագրությունը մինչև"},
+  next:{en:"Next lessons",ru:"Ближайшие занятия",hy:"Մոտակա դասերը"},
+  none:{en:"No lessons yet",ru:"Занятий пока нет",hy:"Դասեր դեռ չկան"},
+  join:{en:"Join",ru:"Подключиться",hy:"Միանալ"},
+  links:{en:"Links",ru:"Ссылки",hy:"Հղումներ"},
+  hw:{en:"Homework",ru:"Домашнее задание",hy:"Տնային աշխատանք"},
+  pay:{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+  teacher:{en:"Teacher",ru:"Преподаватель",hy:"Ուսուցիչ"},
+  online:{en:"online",ru:"онлайн",hy:"առցանց"},
+  lessons:{en:"lessons",ru:"занятий",hy:"դաս"},
+  files:{en:"Files",ru:"Файлы",hy:"Ֆայլեր"},
+  addFile:{en:"Send a file",ru:"Отправить файл",hy:"Ուղարկել ֆայլ"},
+  noFiles:{en:"No files yet",ru:"Файлов пока нет",hy:"Ֆայլեր դեռ չկան"},
+  open:{en:"Open",ru:"Открыть",hy:"Բացել"},
+  chat:{en:"Chat with the teacher",ru:"Переписка с преподавателем",hy:"Նամակագրություն ուսուցչի հետ"},
+  write:{en:"Write a message",ru:"Написать сообщение",hy:"Գրել հաղորդագրություն"},
+  send:{en:"Send",ru:"Отправить",hy:"Ուղարկել"},
+  noMsg:{en:"No messages yet",ru:"Сообщений пока нет",hy:"Հաղորդագրություններ դեռ չկան"},
+  you:{en:"You",ru:"Вы",hy:"Դուք"},
+  photo:{en:"Add a photo",ru:"Добавить фото",hy:"Ավելացնել լուսանկար"},
+  changePhoto:{en:"Change photo",ru:"Изменить фото",hy:"Փոխել լուսանկարը"},
+  uploading:{en:"Sending…",ru:"Отправляю…",hy:"Ուղարկում…"},
+  tooBig:{en:"The file is larger than 15 MB",ru:"Файл больше 15 МБ",hy:"Ֆայլը 15 ՄԲ-ից մեծ է"},
+  badType:{en:"This file type is not accepted",ru:"Такой тип файла не принимается",hy:"Այս տեսակի ֆայլը չի ընդունվում"},
+  back:{en:"Back",ru:"Назад",hy:"Հետ"},
+  download:{en:"Download",ru:"Скачать",hy:"Ներբեռնել"}
+};
+var CUR = { AMD:"֏", RUB:"₽", USD:"$" };
+var LOC = { en:"en-GB", ru:"ru-RU", hy:"hy-AM" };
+var lang = (function(){
+  var n = (navigator.languages || [navigator.language || "en"]).join(",").toLowerCase();
+  return n.indexOf("hy") > -1 ? "hy" : n.indexOf("ru") > -1 ? "ru" : "en";
+})();
+var token = location.pathname.replace(/^\/s\//, "");
+var view = document.getElementById("view");
+
+function t(k){ return (T[k] && (T[k][lang] || T[k].en)) || k; }
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function money(n, c){ return (Math.round(n) || 0).toLocaleString(LOC[lang]) + " " + (CUR[c] || ""); }
+function fmtDate(s){
+  try { return new Intl.DateTimeFormat(LOC[lang], { day:"numeric", month:"long" }).format(new Date(s + "T00:00:00")); }
+  catch (e) { return s; }
+}
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : "https://" + String(u).replace(/^\/+/, ""); }
+
+function askCode(err){
+  document.documentElement.lang = lang;
+  view.innerHTML =
+    '<div class="card"><div class="card-h"><h2>' + esc(t("title")) + '</h2></div><div class="card-b"><div class="f">' +
+    (err ? '<div class="err">' + esc(err) + "</div>" : "") +
+    '<input class="inp" id="code" inputmode="numeric" style="font-size:20px;letter-spacing:.2em;text-align:center" placeholder="••••">' +
+    '<button class="btn btn-p" id="go">' + esc(t("enter")) + "</button>" +
+    "</div></div></div>";
+  var i = document.getElementById("code");
+  i.focus();
+  i.addEventListener("keydown", function(e){ if (e.key === "Enter") open(); });
+  document.getElementById("go").addEventListener("click", open);
+}
+
+function open(){
+  var code = (document.getElementById("code") || {}).value || "";
+  fetch("/api/portal", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: token, code: code.trim() })
+  }).then(function(r){
+    if (r.status === 404) return askCode(t("gone"));
+    if (!r.ok) return askCode(t("wrong"));
+    return r.json().then(function(d){
+      try { sessionStorage.setItem("slate-portal-" + token, code.trim()); } catch (e) {}
+      show(d);
+    });
+  }).catch(function(){ askCode(t("wrong")); });
+}
+
+var DATA = null;
+
+function fileIcon(f){
+  if (/^image\//.test(f.mime)) return "🖼";
+  if (f.mime === "application/pdf") return "📄";
+  if (/^audio\//.test(f.mime)) return "🎧";
+  if (/^video\//.test(f.mime)) return "🎬";
+  return "📎";
+}
+function fileSize(n){ return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; }
+function fmtWhen(ts){
+  try { return new Intl.DateTimeFormat(LOC[lang], { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }).format(new Date(ts)); }
+  catch (e) { return ""; }
+}
+function findFile(id){
+  if (!DATA) return null;
+  var all = (DATA.files || []).concat((DATA.messages || []).map(function(m){ return m.file; }).filter(Boolean));
+  if (DATA.photo) all.push(DATA.photo);
+  return all.filter(function(f){ return f.id === id; })[0] || null;
+}
+function openViewer(f){
+  var box = document.getElementById("viewerBox");
+  box.innerHTML =
+    (/^image\//.test(f.mime)
+      ? '<img src="' + esc(f.url) + '" alt="" style="max-width:100%;border-radius:12px;display:block;margin:0 auto">'
+      : f.mime === "application/pdf"
+        ? '<iframe src="' + esc(f.url) + '" style="width:100%;height:min(72vh,680px);border:1px solid var(--line);border-radius:12px;background:#fff"></iframe>'
+        : '<div style="padding:26px;text-align:center"><div style="font-size:34px">' + fileIcon(f) + "</div><b>" + esc(f.name) + "</b></div>") +
+    '<div class="bar"><button class="btn btn-g" id="v-close">' + esc(t("back")) + "</button>" +
+    '<a class="btn btn-g" href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(t("open")) + "</a>" +
+    '<a class="btn btn-p" href="' + esc(f.url) + '" download="' + esc(f.name) + '">' + esc(t("download")) + "</a></div>";
+  document.getElementById("viewer").classList.add("on");
+  document.getElementById("v-close").onclick = function(){ document.getElementById("viewer").classList.remove("on"); };
+}
+function upload(files, kind, done){
+  if (!files.length) return done && done();
+  var left = files.length;
+  files.forEach(function(f){
+    if (f.size > 15 * 1024 * 1024) { alert(t("tooBig")); if (!--left) done && done(); return; }
+    var fr = new FileReader();
+    fr.onload = function(){
+      fetch("/api/portal/upload", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: f.name, mime: f.type || "application/octet-stream",
+                               kind: kind, data: String(fr.result).split(",")[1] || "" })
+      }).then(function(r){
+        if (r.status === 415) alert(t("badType"));
+        else if (r.status === 413) alert(t("tooBig"));
+        if (!--left) done && done();
+      });
+    };
+    fr.readAsDataURL(f);
+  });
+}
+var pendingPick = null;
+document.getElementById("filePick").addEventListener("change", function(){
+  var job = pendingPick; pendingPick = null;
+  if (job) upload(Array.prototype.slice.call(this.files), job.kind, job.done);
+});
+function pick(kind, done){
+  var inp = document.getElementById("filePick");
+  pendingPick = { kind: kind, done: done };
+  inp.value = "";
+  inp.multiple = kind !== "photo";
+  inp.accept = kind === "photo" ? "image/*" : "";
+  inp.click();
+}
+function reload(){
+  fetch("/api/portal/data").then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if (d) show(d); });
+}
+function sendMsg(){
+  var box = document.getElementById("m-text"), txt = box ? box.value.trim() : "";
+  if (!txt) return;
+  box.value = "";
+  fetch("/api/portal/message", { method: "POST", headers: { "Content-Type": "application/json" },
+                                 body: JSON.stringify({ text: txt }) }).then(reload);
+}
+
+function show(d){
+  DATA = d;
+  if (d.lang && T.title[d.lang]) lang = d.lang;
+  document.documentElement.lang = lang;
+  var b = d.balance;
+  view.innerHTML =
+    '<div class="ava-wrap">' +
+      (d.photo ? '<img class="ava-img" src="' + esc(d.photo.url) + '" alt="">' : '<div class="ava-ph">🙂</div>') +
+      '<button class="btn btn-g" id="ph-add">' + esc(d.photo ? t("changePhoto") : t("photo")) + "</button>" +
+    "</div>" +
+    '<div class="head"><div><h1>' + esc(d.student.name) + "</h1>" +
+      '<div class="sub">' + esc([d.student.subject, d.student.level].filter(Boolean).join(" · ")) + "</div></div>" +
+      (d.teacher ? '<div class="sub">' + esc(t("teacher")) + ": " + esc(d.teacher) + "</div>" : "") + "</div>" +
+
+    '<div class="kpi ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "") + '"><div class="l">' + esc(t("balance")) + "</div>" +
+      '<div class="v">' + (b < 0 ? "−" + (-b) : b) + "</div>" +
+      '<div class="n">' + (d.packUntil ? esc(t("until") + " " + fmtDate(d.packUntil)) : "") + "</div></div>" +
+
+    '<div class="card"><div class="card-h"><h2>' + esc(t("next")) + '</h2></div><div class="card-b">' +
+    (d.upcoming.length ? d.upcoming.map(function(l){
+      var url = l.link || (d.links[0] ? d.links[0].url : "");
+      return '<div class="row"><div class="g"><div class="nm">' + esc(fmtDate(l.date) + ", " + l.time) + "</div>" +
+        '<div class="sb">' + esc((l.online ? t("online") : "") + (l.hw ? (l.online ? " · " : "") + l.hw : "")) + "</div></div>" +
+        (url ? '<a class="btn btn-p" href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener">' + esc(t("join")) + "</a>" : "") + "</div>";
+    }).join("") : '<div class="row"><div class="g"><div class="sb">' + esc(t("none")) + "</div></div></div>") +
+    "</div></div>" +
+
+    (d.links.length ? '<div class="card"><div class="card-h"><h2>' + esc(t("links")) + '</h2></div><div class="card-b">' +
+      d.links.map(function(x){
+        return '<div class="row"><div class="g"><div class="nm">' + esc(x.title) + "</div></div>" +
+          '<a class="btn btn-g" href="' + esc(safeUrl(x.url)) + '" target="_blank" rel="noopener">' + esc(t("join")) + "</a></div>";
+      }).join("") + "</div></div>" : "") +
+
+    '<div class="card"><div class="card-h"><h2>' + esc(t("files")) + " · " + (d.files || []).length + "</h2>" +
+      '<button class="btn btn-g" id="f-add">' + esc(t("addFile")) + '</button></div><div class="card-b">' +
+    ((d.files || []).length ? d.files.map(function(f){
+      return '<div class="row"><div class="g"><div class="nm">' + fileIcon(f) + " " + esc(f.name) + "</div>" +
+        '<div class="sb">' + esc(fileSize(f.size) + " · " + fmtWhen(f.created)) + "</div></div>" +
+        '<button class="btn btn-g" data-file="' + esc(f.id) + '">' + esc(t("open")) + "</button></div>";
+    }).join("") : '<div class="row"><div class="g"><div class="sb">' + esc(t("noFiles")) + "</div></div></div>") +
+    "</div></div>" +
+
+    '<div class="card"><div class="card-h"><h2>' + esc(t("chat")) + '</h2></div><div class="card-b">' +
+    '<div class="chat">' +
+    ((d.messages || []).length ? d.messages.map(function(m){
+      return '<div class="msg ' + (m.author === "student" ? "me" : "") + '">' +
+        (m.text ? '<div class="tx">' + esc(m.text) + "</div>" : "") +
+        (m.file ? '<button class="msg-file" data-file="' + esc(m.file.id) + '">' + fileIcon(m.file) + " " + esc(m.file.name) + "</button>" : "") +
+        '<div class="wh">' + esc((m.author === "student" ? t("you") : (d.teacher || t("teacher"))) + " · " + fmtWhen(m.created)) + "</div></div>";
+    }).join("") : '<div class="row"><div class="g"><div class="sb">' + esc(t("noMsg")) + "</div></div></div>") +
+    "</div>" +
+    '<div class="chat-send"><input class="inp" id="m-text" placeholder="' + esc(t("write")) + '">' +
+    '<button class="icon-btn" id="m-file">📎</button>' +
+    '<button class="btn btn-p" id="m-send">' + esc(t("send")) + "</button></div>" +
+    "</div></div>" +
+
+    (d.payments.length ? '<div class="card"><div class="card-h"><h2>' + esc(t("pay")) + '</h2></div><div class="card-b">' +
+      d.payments.map(function(p){
+        return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("lessons")) + "</div>" +
+          '<div class="sb">' + esc(fmtDate(p.date)) + "</div></div></div>";
+      }).join("") + "</div></div>" : "");
+
+  var ph = document.getElementById("ph-add");
+  if (ph) ph.onclick = function(){ pick("photo", reload); };
+  var fa = document.getElementById("f-add");
+  if (fa) fa.onclick = function(){ pick("file", reload); };
+  var ms = document.getElementById("m-send");
+  if (ms) ms.onclick = sendMsg;
+  var mf = document.getElementById("m-file");
+  if (mf) mf.onclick = function(){ pick("file", function(){
+    fetch("/api/portal/data").then(function(r){ return r.json(); }).then(function(fresh){
+      var last = (fresh.files || [])[0];
+      if (!last) return show(fresh);
+      fetch("/api/portal/message", { method: "POST", headers: { "Content-Type": "application/json" },
+                                     body: JSON.stringify({ text: "", fileId: last.id }) }).then(reload);
+    });
+  }); };
+  var mt = document.getElementById("m-text");
+  if (mt) mt.addEventListener("keydown", function(e){ if (e.key === "Enter") sendMsg(); });
+  view.querySelectorAll("[data-file]").forEach(function(b){
+    b.onclick = function(){ var f = findFile(b.getAttribute("data-file")); if (f) openViewer(f); };
+  });
+  var chat = view.querySelector(".chat");
+  if (chat) chat.scrollTop = chat.scrollHeight;
+}
+
+/* если код уже вводили в этой сессии — открываем сразу */
+fetch("/api/portal/data").then(function(r){
+  if (r.ok) return r.json().then(show);
+  startWithCode();
+}).catch(startWithCode);
+
+function startWithCode(){
+var saved = null;
+try { saved = sessionStorage.getItem("slate-portal-" + token); } catch (e) {}
+if (saved) {
+  fetch("/api/portal", { method: "POST", headers: { "Content-Type": "application/json" },
+                         body: JSON.stringify({ token: token, code: saved }) })
+    .then(function(r){ return r.ok ? r.json().then(show) : askCode(); })
+    .catch(function(){ askCode(); });
+} else {
+  askCode();
+}
+}
+</script>
+</body>
+</html>

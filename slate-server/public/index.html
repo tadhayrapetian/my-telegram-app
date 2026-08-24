@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Slate — ученики, занятия, оплаты</title>
+<meta name="theme-color" content="#F4EFE3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%233A4429'/%3E%3Crect x='7' y='9' width='18' height='14' rx='2.5' fill='none' stroke='%23E9EBD8' stroke-width='2'/%3E%3Cpath d='M11 15h10M11 19h6' stroke='%23E9EBD8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#F4EFE3; --paper-2:#FBF8F1; --paper-3:#EAE3D2; --paper-4:#DED5BF;
+  --olive-50:#EDF0E2; --olive-100:#DDE3CB; --olive-200:#C3CDA6; --olive-300:#A2B07E;
+  --olive-400:#7F9159; --olive-500:#657646; --olive-600:#4F5D34; --olive-700:#3A4429; --olive-800:#2B331F;
+  --ink:#23261C; --ink-2:#484D3C; --ink-3:#787D68;
+  --line:rgba(35,38,28,.12); --line-2:rgba(35,38,28,.07);
+  --clay:#B4835B; --clay-soft:#F1E2D2; --clay-ink:#8A5A32;
+  --red:#A6483C; --red-soft:#F3DED9;
+  --r:16px; --r-sm:10px;
+  --sh-xs:0 1px 2px rgba(35,38,28,.06);
+  --sh-sm:0 2px 8px rgba(35,38,28,.07);
+  --sh-md:0 18px 40px -24px rgba(35,38,28,.45),0 2px 8px rgba(35,38,28,.06);
+  --sh-lg:0 40px 80px -40px rgba(43,51,31,.55),0 8px 24px -14px rgba(35,38,28,.25);
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --arm:"Noto Sans Armenian","Noto Serif Armenian",Mshtakan,"Arial Unicode MS",sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+html[lang="hy"] body{font-family:var(--arm)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.15}
+html[lang="hy"] h1,html[lang="hy"] h2,html[lang="hy"] h3{font-family:var(--arm);font-weight:640}
+::selection{background:var(--olive-200)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- каркас ---------- */
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.side{
+  background:var(--olive-700);color:var(--olive-50);padding:20px 16px;display:flex;flex-direction:column;gap:22px;
+  position:sticky;top:0;height:100vh;
+}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:20px;font-weight:600}
+html[lang="hy"] .logo{font-family:var(--serif)}
+.logo .m{width:32px;height:32px;border-radius:10px;background:rgba(233,235,216,.14);display:grid;place-items:center;flex:none}
+.logo .m svg{width:18px;height:18px}
+.logo small{display:block;font-family:var(--sans);font-size:11px;font-weight:500;color:var(--olive-200);letter-spacing:.02em}
+.menu{display:flex;flex-direction:column;gap:3px}
+.menu button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:0;background:transparent;cursor:pointer;
+  padding:10px 12px;border-radius:11px;color:rgba(233,235,216,.82);font-size:14.5px;font-weight:500;
+  transition:background-color .18s,color .18s;
+}
+.menu button:hover{background:rgba(233,235,216,.09);color:#fff}
+.menu button.on{background:var(--olive-50);color:var(--olive-800);font-weight:600}
+.menu svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.menu .cnt{margin-left:auto;font-size:11.5px;font-weight:640;background:rgba(233,235,216,.16);padding:2px 8px;border-radius:999px}
+.menu button.on .cnt{background:var(--olive-200);color:var(--olive-800)}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.lang{display:flex;padding:3px;background:rgba(233,235,216,.12);border-radius:999px;gap:2px}
+.lang button{flex:1;border:0;background:transparent;color:rgba(233,235,216,.75);cursor:pointer;padding:6px 4px;border-radius:999px;font-size:11.5px;font-weight:640;letter-spacing:.03em}
+.lang button.on{background:var(--olive-50);color:var(--olive-800)}
+.side-note{font-size:11.5px;color:rgba(233,235,216,.5);line-height:1.45}
+.acc{font-size:12px;color:rgba(233,235,216,.75)}
+.acc-mail{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px}
+.acc-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acc-use{font-size:11.5px;color:rgba(233,235,216,.6)}
+.acc .chip.ok{background:var(--olive-200);color:var(--olive-800)}
+
+.main{padding:26px 30px 60px;min-width:0}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.top h1{font-size:29px}
+.top .sub{color:var(--ink-3);font-size:14px;margin-top:5px}
+.top-act{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- элементы ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;cursor:pointer;
+  height:38px;padding:0 15px;border-radius:999px;font-size:14px;font-weight:550;white-space:nowrap;
+  transition:background-color .18s,border-color .18s,color .18s,transform .12s;
+}
+.btn:active{transform:translateY(1px)}
+.btn-p{background:var(--olive-600);color:var(--paper-2)}
+.btn-p:hover{background:var(--olive-700)}
+.btn-g{background:var(--paper-2);border-color:var(--line);color:var(--ink)}
+.btn-g:hover{border-color:var(--olive-300);background:#fff}
+.btn-d{background:transparent;border-color:var(--line);color:var(--red)}
+.btn-d:hover{background:var(--red-soft);border-color:var(--red-soft)}
+.btn-s{height:31px;padding:0 11px;font-size:13px}
+.btn-icon{width:34px;height:34px;padding:0;border-radius:10px}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-xs)}
+.card-h{padding:14px 18px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-h h2{font-size:17px}
+.card-b{padding:6px 18px 14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+.kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh-xs)}
+.kpi .l{font-size:12.5px;color:var(--ink-3);letter-spacing:.01em}
+.kpi .v{font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.02em;color:var(--olive-600);margin-top:5px;line-height:1.05}
+html[lang="hy"] .kpi .v{font-family:var(--arm)}
+.kpi .n{font-size:12px;color:var(--ink-3);margin-top:4px}
+.kpi.warn .v{color:var(--clay-ink)}
+.kpi.bad .v{color:var(--red)}
+
+.row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:0}
+.row .nm{font-size:14.5px;font-weight:560;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sb{font-size:12.5px;color:var(--ink-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .act{display:flex;gap:6px;flex:none}
+.ava{width:34px;height:34px;border-radius:50%;background:var(--olive-100);color:var(--olive-600);display:grid;place-items:center;font-size:12.5px;font-weight:660;flex:none}
+.chip{font-size:11.5px;font-weight:620;padding:4px 9px;border-radius:999px;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.chip.ok{background:var(--olive-50);color:var(--olive-600)}
+.chip.warn{background:var(--clay-soft);color:var(--clay-ink)}
+.chip.bad{background:var(--red-soft);color:var(--red)}
+.chip.mut{background:var(--paper-3);color:var(--ink-3)}
+.empty{padding:26px 4px;text-align:center;color:var(--ink-3);font-size:14px}
+.empty b{display:block;color:var(--ink-2);font-size:15px;margin-bottom:5px;font-weight:600}
+
+/* ---------- неделя ---------- */
+.wk-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.wk-title{font-family:var(--serif);font-size:18px;font-weight:600;min-width:190px}
+html[lang="hy"] .wk-title{font-family:var(--arm)}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.day{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r-sm);min-height:150px;display:flex;flex-direction:column;overflow:hidden}
+.day.today{border-color:var(--olive-400);box-shadow:0 0 0 1px var(--olive-300)}
+.day.drop{background:var(--olive-50);border-color:var(--olive-400);border-style:dashed}
+.day-h{padding:8px 10px;border-bottom:1px solid var(--line-2);display:flex;align-items:baseline;justify-content:space-between;gap:6px;background:rgba(234,227,210,.4)}
+.day-h .dn{font-size:11.5px;color:var(--ink-3);text-transform:capitalize}
+.day-h .dd{font-size:13px;font-weight:640}
+.day.today .day-h .dd{color:var(--olive-600)}
+.day-b{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1}
+.lsn{
+  border-radius:9px;padding:7px 9px;cursor:pointer;border:1px solid var(--olive-200);background:var(--olive-50);
+  text-align:left;width:100%;display:block;transition:transform .12s,box-shadow .18s,border-color .18s;
+}
+.lsn:hover{transform:translateY(-1px);box-shadow:var(--sh-sm);border-color:var(--olive-400)}
+.lsn .t{font-size:11px;color:var(--ink-3);font-weight:600}
+.lsn .n{font-size:12.5px;font-weight:600;letter-spacing:-.01em;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsn .s{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsn.done{background:var(--olive-500);border-color:var(--olive-600);color:var(--paper-2)}
+.lsn.done .t,.lsn.done .s{color:rgba(251,248,241,.75)}
+.lsn.cancelled{background:var(--paper-3);border-color:var(--line);opacity:.72}
+.lsn.cancelled .n{text-decoration:line-through}
+.lsn.no_show{background:var(--clay-soft);border-color:#E3C9AF;color:var(--clay-ink)}
+.lsn.no_show .t,.lsn.no_show .s{color:#9C6B41}
+.lsn.dragging{opacity:.45}
+.day-add{border:1px dashed var(--line);background:transparent;color:var(--ink-3);border-radius:9px;padding:6px;cursor:pointer;font-size:12px}
+.day-add:hover{border-color:var(--olive-300);color:var(--olive-600);background:var(--olive-50)}
+
+.wk-bar{align-items:center}
+.segm{display:inline-flex;padding:3px;background:var(--paper-3);border-radius:999px;gap:2px}
+.segm button{border:0;background:transparent;cursor:pointer;padding:7px 14px;border-radius:999px;font-size:13.5px;font-weight:540;color:var(--ink-2)}
+.segm button.on{background:var(--paper-2);color:var(--ink);box-shadow:var(--sh-xs)}
+.lsn.big{padding:10px 11px;border-radius:11px}
+.lsn.big .t{font-size:12px}
+.lsn.big .n{font-size:14.5px;margin-top:2px}
+.lsn.big .s{font-size:12px}
+.day{min-height:190px}
+
+/* месяц */
+.month{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-xs)}
+.mhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:rgba(234,227,210,.5);border-bottom:1px solid var(--line-2)}
+.mh{padding:9px 10px;font-size:11.5px;color:var(--ink-3);font-weight:600;text-transform:capitalize}
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.mc{min-height:118px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);padding:7px;display:flex;flex-direction:column;gap:5px}
+.mc:nth-child(7n){border-right:0}
+.mc.out{background:rgba(234,227,210,.25)}
+.mc.out .mc-d{color:var(--ink-3);opacity:.5}
+.mc.today{background:var(--olive-50)}
+.mc-h{display:flex;align-items:center;justify-content:space-between}
+.mc-d{border:0;background:transparent;cursor:pointer;font:inherit;font-size:12.5px;font-weight:640;color:var(--ink-2);padding:2px 6px;border-radius:7px}
+.mc-d:hover{background:var(--paper-3)}
+.mc.today .mc-d{background:var(--olive-600);color:var(--paper-2)}
+.mc-add{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;border-radius:7px;opacity:0;transition:opacity .15s}
+.mc:hover .mc-add{opacity:1}
+.mc-add:hover{background:var(--paper-3);color:var(--olive-600)}
+.mc-more{border:0;background:transparent;color:var(--ink-3);font:inherit;font-size:11.5px;cursor:pointer;text-align:left;padding:2px 4px}
+.mc-more:hover{color:var(--olive-600)}
+.mc .lsn{padding:5px 7px}
+.mc .lsn .t{font-size:10px}
+.mc .lsn .n{font-size:11.5px}
+.mc .lsn .s{display:none}
+
+/* ---------- формы ---------- */
+.f{display:flex;flex-direction:column;gap:13px}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--ink-3);font-weight:560}
+.inp{
+  height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);
+  font-size:14.5px;color:var(--ink);width:100%;transition:border-color .18s,box-shadow .18s;
+}
+textarea.inp{height:auto;padding:10px 12px;resize:vertical;min-height:70px;line-height:1.5}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23787D68' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;background-size:12px;padding-right:30px}
+.inp:focus{outline:0;border-color:var(--olive-400);box-shadow:0 0 0 3px rgba(127,145,89,.18)}
+.check{display:flex;align-items:center;gap:9px;font-size:14px;cursor:pointer;color:var(--ink-2)}
+.check input{width:17px;height:17px;accent-color:var(--olive-600);cursor:pointer}
+.hint{font-size:12px;color:var(--ink-3)}
+
+/* чат */
+.chat{display:flex;flex-direction:column;gap:9px;max-height:320px;overflow-y:auto;padding:10px 0}
+.msg{align-self:flex-start;max-width:78%;background:var(--paper-3);border-radius:14px 14px 14px 4px;padding:9px 12px}
+.msg.me{align-self:flex-end;background:var(--olive-500);color:var(--paper-2);border-radius:14px 14px 4px 14px}
+.msg .tx{font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.msg .wh{font-size:10.5px;opacity:.65;margin-top:4px}
+.msg-file{display:inline-flex;align-items:center;gap:6px;border:0;cursor:pointer;font:inherit;font-size:13px;
+  background:rgba(255,255,255,.6);color:var(--ink);border-radius:9px;padding:6px 10px;margin-top:4px;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg.me .msg-file{background:rgba(251,248,241,.9)}
+.chat-send{display:flex;gap:7px;align-items:center;padding-top:10px;border-top:1px solid var(--line-2)}
+.chat-send .inp{flex:1}
+
+/* ---------- модалка ---------- */
+.overlay{position:fixed;inset:0;background:rgba(35,38,28,.42);backdrop-filter:blur(3px);z-index:80;display:none;align-items:flex-start;justify-content:center;padding:34px 16px;overflow-y:auto}
+.overlay.on{display:flex}
+.modal{background:var(--paper);border-radius:20px;box-shadow:var(--sh-lg);width:100%;max-width:520px;overflow:hidden;animation:pop .2s cubic-bezier(.2,.7,.3,1)}
+.modal.wide{max-width:660px}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+.modal-h{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--paper-2)}
+.modal-h h3{font-size:18px}
+.modal-b{padding:20px;max-height:calc(100vh - 220px);overflow-y:auto}
+.modal-f{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end;background:var(--paper-2);flex-wrap:wrap}
+.x{width:32px;height:32px;border-radius:9px;border:0;background:transparent;cursor:pointer;color:var(--ink-3);font-size:19px;line-height:1}
+.x:hover{background:var(--paper-3);color:var(--ink)}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);z-index:120;
+  background:var(--olive-700);color:var(--olive-50);padding:11px 18px;border-radius:999px;font-size:14px;
+  box-shadow:var(--sh-md);opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- таблица/отчёты ---------- */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);font-weight:640;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:10px;border-bottom:1px solid var(--line-2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding:8px 4px 0}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+.bars .bar{width:100%;background:linear-gradient(180deg,var(--olive-300),var(--olive-500));border-radius:7px 7px 3px 3px;min-height:3px;transition:height .4s cubic-bezier(.2,.7,.3,1)}
+.bars .bl{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.bars .bv{font-size:11.5px;font-weight:620;color:var(--olive-600)}
+
+.banner{background:var(--clay-soft);border:1px solid #E3C9AF;color:var(--clay-ink);padding:11px 15px;border-radius:12px;font-size:13.5px;margin-bottom:16px}
+
+/* ---------- кабинет ученика ---------- */
+.app.cab-mode{grid-template-columns:1fr}
+.app.cab-mode .side,.app.cab-mode .mob-top{display:none}
+.app.cab-mode .main{padding:34px 22px 60px}
+.cab-wrap{max-width:640px;margin:0 auto}
+.cab-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}
+.cab-head h1{font-size:27px}
+.cab-head .sub{color:var(--ink-3);font-size:14px;margin-top:4px}
+.cab-wrap .row a.btn{text-decoration:none}
+
+/* ---------- телефон ---------- */
+.mob-top{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{
+    position:fixed;left:0;right:0;bottom:0;top:auto;height:auto;flex-direction:row;align-items:center;gap:6px;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:70;border-radius:18px 18px 0 0;box-shadow:var(--sh-lg);
+  }
+  .side .logo,.side-note,.side-foot{display:none}
+  .menu{flex-direction:row;width:100%;gap:2px}
+  .menu button{flex-direction:column;gap:3px;font-size:10.5px;padding:7px 2px;border-radius:12px;text-align:center;justify-content:center}
+  .menu .cnt{display:none}
+  .menu svg{width:19px;height:19px}
+  .main{padding:18px 16px 110px}
+  .mob-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .mob-top .lang{background:var(--paper-3)}
+  .mob-top .lang button{color:var(--ink-3);padding:6px 10px}
+  .mob-top .lang button.on{background:var(--paper-2);color:var(--olive-700)}
+  .grid-4{grid-template-columns:1fr 1fr}
+  .grid-3,.grid-2{grid-template-columns:1fr}
+  .week{grid-template-columns:1fr;gap:6px}
+  .mgrid{grid-template-columns:repeat(7,minmax(0,1fr))}
+  .mc{min-height:74px;padding:4px}
+  .mc .lsn .n{font-size:10px}
+  .mc .lsn .t{font-size:9px}
+  .mc-h{margin-bottom:2px}
+  .mc-add{display:none}
+  .mh{padding:6px 4px;font-size:10px;text-align:center}
+  .day{min-height:0}
+  .top h1{font-size:24px}
+  .f-row{grid-template-columns:1fr}
+  .modal-b{max-height:calc(100vh - 190px)}
+}
+@media print{
+  .side,.top-act,.mob-top,.btn{display:none!important}
+  .app{grid-template-columns:1fr}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <span class="m"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span>Slate<small data-i="brand.sub">для репетиторов</small></span>
+    </div>
+
+    <nav class="menu" id="menu"></nav>
+
+    <div class="side-foot">
+      <div class="lang" id="lang">
+        <button data-lang="en">EN</button><button data-lang="ru">RU</button><button data-lang="hy">ՀԱՅ</button>
+      </div>
+      <div id="account"></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="mob-top">
+      <div class="logo" style="color:var(--olive-700)"><span class="m" style="background:var(--olive-700)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.6" fill="none" stroke="#E9EBD8" stroke-width="2"/><path d="M7 11h10M7 15h6" stroke="#E9EBD8" stroke-width="2" stroke-linecap="round"/></svg></span><span>Slate</span></div>
+      <div class="lang" id="lang2">
+        <button data-lang="en">EN</button><button data-lang="ru">RU</button><button data-lang="hy">ՀԱՅ</button>
+      </div>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="filePick" multiple style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">
+
+<script>
+/* =========================================================================
+   SLATE — учёт учеников, занятий и оплат для репетитора.
+   Один файл, без сервера. Данные лежат в localStorage этого браузера.
+   ========================================================================= */
+
+/* ---------------------------- переводы ---------------------------- */
+var T = {
+"brand.sub":{en:"for tutors",ru:"для репетиторов",hy:"կրկնուսույցների համար"},
+"side.note":{en:"Data is stored on this computer only",ru:"Данные хранятся только на этом компьютере",hy:"Տվյալները պահվում են միայն այս համակարգչում"},
+
+"nav.today":{en:"Today",ru:"Сегодня",hy:"Այսօր"},
+"nav.week":{en:"Schedule",ru:"Расписание",hy:"Ժամանակացույց"},
+"nav.students":{en:"Students",ru:"Ученики",hy:"Աշակերտներ"},
+"nav.money":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+"nav.reports":{en:"Reports",ru:"Отчёты",hy:"Հաշվետվություններ"},
+"nav.settings":{en:"Settings",ru:"Настройки",hy:"Կարգավորումներ"},
+
+"a.add":{en:"Add",ru:"Добавить",hy:"Ավելացնել"},
+"a.save":{en:"Save",ru:"Сохранить",hy:"Պահպանել"},
+"a.cancel":{en:"Cancel",ru:"Отмена",hy:"Չեղարկել"},
+"a.delete":{en:"Delete",ru:"Удалить",hy:"Ջնջել"},
+"a.edit":{en:"Edit",ru:"Изменить",hy:"Խմբագրել"},
+"a.close":{en:"Close",ru:"Закрыть",hy:"Փակել"},
+"a.today":{en:"Today",ru:"Сегодня",hy:"Այսօր"},
+"a.copy":{en:"Copy",ru:"Скопировать",hy:"Պատճենել"},
+"a.copied":{en:"Copied",ru:"Скопировано",hy:"Պատճենվեց"},
+"a.saved":{en:"Saved",ru:"Сохранено",hy:"Պահպանվեց"},
+"a.deleted":{en:"Deleted",ru:"Удалено",hy:"Ջնջվեց"},
+"a.confirm":{en:"Delete this? It cannot be undone.",ru:"Удалить? Отменить это будет нельзя.",hy:"Ջնջե՞լ։ Հետարկել հնարավոր չի լինի։"},
+
+"l.new":{en:"New lesson",ru:"Новое занятие",hy:"Նոր պարապմունք"},
+"l.edit":{en:"Lesson",ru:"Занятие",hy:"Պարապմունք"},
+"l.student":{en:"Student",ru:"Ученик",hy:"Աշակերտ"},
+"l.date":{en:"Date",ru:"Дата",hy:"Ամսաթիվ"},
+"l.time":{en:"Time",ru:"Время",hy:"Ժամ"},
+"l.dur":{en:"Duration, min",ru:"Длительность, мин",hy:"Տևողություն, րոպե"},
+"l.repeat":{en:"Repeat weekly",ru:"Повторять еженедельно",hy:"Կրկնել շաբաթական"},
+"l.repeatN":{en:"weeks",ru:"недель",hy:"շաբաթ"},
+"l.online":{en:"Online lesson",ru:"Онлайн-занятие",hy:"Առցանց դաս"},
+"l.note":{en:"Note",ru:"Заметка",hy:"Նշում"},
+"l.hw":{en:"Homework",ru:"Домашнее задание",hy:"Տնային աշխատանք"},
+"l.done":{en:"Held",ru:"Проведено",hy:"Անցկացվել է"},
+"l.planned":{en:"Planned",ru:"Запланировано",hy:"Պլանավորված"},
+"l.cancelled":{en:"Cancelled",ru:"Отменено",hy:"Չեղարկված"},
+"l.no_show":{en:"No-show",ru:"Не пришёл",hy:"Չի եկել"},
+"l.mark":{en:"Mark as held",ru:"Отметить проведённым",hy:"Նշել որպես անցկացված"},
+"l.unmark":{en:"Back to planned",ru:"Вернуть в план",hy:"Վերադարձնել պլան"},
+"l.markNo":{en:"No-show",ru:"Не пришёл",hy:"Չի եկել"},
+"l.markCancel":{en:"Cancel lesson",ru:"Отменить занятие",hy:"Չեղարկել դասը"},
+"l.deleteSeries":{en:"Delete all future repeats too",ru:"Удалить и все будущие повторы",hy:"Ջնջել նաև բոլոր ապագա կրկնությունները"},
+"l.none":{en:"No lessons",ru:"Занятий нет",hy:"Դասեր չկան"},
+"l.noneToday":{en:"Nothing scheduled for today",ru:"На сегодня занятий нет",hy:"Այսօրվա համար դասեր չկան"},
+"l.count":{en:"lessons",ru:"занятий",hy:"դաս"},
+"l.willCharge":{en:"A held lesson is deducted from the balance",ru:"Проведённое занятие списывается с баланса",hy:"Անցկացված դասը դուրս է գրվում մնացորդից"},
+
+"s.new":{en:"New student",ru:"Новый ученик",hy:"Նոր աշակերտ"},
+"s.name":{en:"Name",ru:"Имя",hy:"Անուն"},
+"s.subject":{en:"Subject",ru:"Предмет",hy:"Առարկա"},
+"s.level":{en:"Level / grade",ru:"Уровень или класс",hy:"Մակարդակ / դասարան"},
+"s.rate":{en:"Rate per lesson",ru:"Ставка за занятие",hy:"Սակագին մեկ դասի համար"},
+"s.contact":{en:"Contact",ru:"Контакт",hy:"Կոնտակտ"},
+"s.parent":{en:"Parent",ru:"Родитель",hy:"Ծնող"},
+"s.notes":{en:"Notes",ru:"Заметки",hy:"Նշումներ"},
+"s.balance":{en:"Balance",ru:"Баланс",hy:"Մնացորդ"},
+"s.paidL":{en:"paid lessons",ru:"оплачено занятий",hy:"վճարված դաս"},
+"s.usedL":{en:"held",ru:"проведено",hy:"անցկացված"},
+"s.debt":{en:"in debt",ru:"долг",hy:"պարտք"},
+"s.left":{en:"left",ru:"осталось",hy:"մնացել է"},
+"s.none":{en:"No students yet",ru:"Учеников пока нет",hy:"Աշակերտներ դեռ չկան"},
+"s.noneSub":{en:"Add the first one — it takes half a minute.",ru:"Добавьте первого — это полминуты.",hy:"Ավելացրեք առաջինին՝ դա կես րոպե է։"},
+"s.card":{en:"Student card",ru:"Карточка ученика",hy:"Աշակերտի քարտ"},
+"s.upcoming":{en:"Upcoming lessons",ru:"Ближайшие занятия",hy:"Մոտակա դասերը"},
+"s.history":{en:"Recent lessons",ru:"Последние занятия",hy:"Վերջին դասերը"},
+"s.payments":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+"s.forStudent":{en:"Text for the student",ru:"Текст для ученика",hy:"Տեքստ աշակերտի համար"},
+"s.archive":{en:"Archive",ru:"В архив",hy:"Արխիվ"},
+"s.unarchive":{en:"Restore",ru:"Вернуть",hy:"Վերականգնել"},
+"s.archived":{en:"Archived",ru:"В архиве",hy:"Արխիվում"},
+"s.showArchived":{en:"Show archived",ru:"Показать архив",hy:"Ցույց տալ արխիվը"},
+"s.total":{en:"students",ru:"учеников",hy:"աշակերտ"},
+
+"p.new":{en:"New payment",ru:"Новая оплата",hy:"Նոր վճարում"},
+"p.amount":{en:"Amount",ru:"Сумма",hy:"Գումար"},
+"p.lessons":{en:"Lessons paid for",ru:"Оплачено занятий",hy:"Վճարված դասեր"},
+"p.date":{en:"Date",ru:"Дата",hy:"Ամսաթիվ"},
+"p.none":{en:"No payments yet",ru:"Оплат пока нет",hy:"Վճարումներ դեռ չկան"},
+"p.add":{en:"Record payment",ru:"Записать оплату",hy:"Գրանցել վճարում"},
+"p.autoAmount":{en:"Amount is suggested from the student's rate",ru:"Сумма подставляется из ставки ученика",hy:"Գումարը լրացվում է աշակերտի սակագնից"},
+"p.month":{en:"This month",ru:"За этот месяц",hy:"Այս ամիս"},
+
+"t.title":{en:"Today",ru:"Сегодня",hy:"Այսօր"},
+"t.week":{en:"This week",ru:"На этой неделе",hy:"Այս շաբաթ"},
+"t.income":{en:"Income this month",ru:"Доход за месяц",hy:"Այս ամսվա եկամուտը"},
+"t.debts":{en:"Students in debt",ru:"Ученики с долгом",hy:"Պարտք ունեցող աշակերտներ"},
+"t.lowBalance":{en:"Running out of lessons",ru:"Заканчиваются занятия",hy:"Դասերն ավարտվում են"},
+"t.lowNone":{en:"Everyone has lessons left",ru:"У всех есть оплаченные занятия",hy:"Բոլորն ունեն վճարված դասեր"},
+"t.next":{en:"Next up",ru:"Дальше",hy:"Հաջորդը"},
+"t.lessonsWeek":{en:"lessons this week",ru:"занятий на неделе",hy:"դաս այս շաբաթ"},
+
+"w.title":{en:"Schedule",ru:"Расписание",hy:"Ժամանակացույց"},
+"w.hint":{en:"Drag a lesson to another day to move it",ru:"Перетащите занятие на другой день, чтобы перенести",hy:"Քաշեք դասը այլ օր՝ տեղափոխելու համար"},
+"w.moved":{en:"Lesson moved",ru:"Занятие перенесено",hy:"Դասը տեղափոխվեց"},
+
+"r.title":{en:"Reports",ru:"Отчёты",hy:"Հաշվետվություններ"},
+"r.income6":{en:"Income, last 6 months",ru:"Доход за 6 месяцев",hy:"Եկամուտը վերջին 6 ամսում"},
+"r.byStudent":{en:"By student, this month",ru:"По ученикам за месяц",hy:"Ըստ աշակերտների՝ այս ամիս"},
+"r.held":{en:"Held",ru:"Проведено",hy:"Անցկացված"},
+"r.hours":{en:"Hours",ru:"Часы",hy:"Ժամեր"},
+"r.paid":{en:"Paid",ru:"Оплачено",hy:"Վճարված"},
+"r.noData":{en:"No data for this period yet",ru:"За этот период данных пока нет",hy:"Այս ժամանակահատվածի տվյալներ դեռ չկան"},
+
+"c.title":{en:"Settings",ru:"Настройки",hy:"Կարգավորումներ"},
+"c.lang":{en:"Language",ru:"Язык",hy:"Լեզու"},
+"c.currency":{en:"Currency symbol",ru:"Символ валюты",hy:"Արժույթի նշան"},
+"c.defRate":{en:"Default rate",ru:"Ставка по умолчанию",hy:"Կանխադրված սակագին"},
+"c.defDur":{en:"Default duration, min",ru:"Длительность по умолчанию, мин",hy:"Կանխադրված տևողություն, րոպե"},
+"c.noShow":{en:"A no-show counts as a held lesson",ru:"Неявка считается проведённым занятием",hy:"Չներկայանալը հաշվվում է որպես անցկացված դաս"},
+"c.data":{en:"Your data",ru:"Ваши данные",hy:"Ձեր տվյալները"},
+"c.export":{en:"Export to file",ru:"Выгрузить в файл",hy:"Արտահանել ֆայլ"},
+"c.import":{en:"Import from file",ru:"Загрузить из файла",hy:"Ներմուծել ֆայլից"},
+"c.demo":{en:"Load demo data",ru:"Загрузить демо-данные",hy:"Բեռնել դեմո տվյալներ"},
+"c.wipe":{en:"Erase everything",ru:"Стереть всё",hy:"Ջնջել ամեն ինչ"},
+"c.wipeAsk":{en:"Erase all students, lessons and payments?",ru:"Стереть всех учеников, занятия и оплаты?",hy:"Ջնջե՞լ բոլոր աշակերտներին, դասերն ու վճարումները։"},
+"c.dataNote":{en:"Everything lives in this browser. Export regularly — that file is your backup.",ru:"Всё лежит в этом браузере. Выгружайте файл время от времени — это ваш бэкап.",hy:"Ամեն ինչ պահվում է այս դիտարկիչում։ Պարբերաբար արտահանեք ֆայլը՝ դա ձեր պահուստն է։"},
+"c.imported":{en:"Data imported",ru:"Данные загружены",hy:"Տվյալները ներմուծվեցին"},
+"c.importBad":{en:"That file is not a Slate backup",ru:"Это не файл с данными Slate",hy:"Սա Slate-ի տվյալների ֆայլ չէ"},
+"c.storageBad":{en:"This browser does not save data on file:// — open the app through a local server (see README) or the entries will be lost when you close the tab.",ru:"Этот браузер не сохраняет данные при открытии файла напрямую — запустите приложение через локальный сервер (см. README), иначе записи пропадут при закрытии вкладки.",hy:"Այս դիտարկիչը չի պահում տվյալները ֆայլն ուղիղ բացելիս — գործարկեք հավելվածը տեղական սերվերով (տես README), այլապես գրառումները կկորչեն։"},
+
+"c.teacher":{en:"Your name (the student sees it)",ru:"Ваше имя (его видит ученик)",hy:"Ձեր անունը (աշակերտը տեսնում է)"},
+"au.title":{en:"Sign in to Slate",ru:"Вход в Slate",hy:"Մուտք Slate"},
+"au.email":{en:"Your email",ru:"Ваша почта",hy:"Ձեր էլ. փոստը"},
+"au.send":{en:"Get the code",ru:"Получить код",hy:"Ստանալ կոդը"},
+"au.code":{en:"Code from the email",ru:"Код из письма",hy:"Կոդը նամակից"},
+"au.enter":{en:"Sign in",ru:"Войти",hy:"Մուտք"},
+"au.back":{en:"Change email",ru:"Другая почта",hy:"Այլ էլ. փոստ"},
+"au.hint":{en:"First sign-in creates your account.",ru:"Первый вход создаёт ваш аккаунт.",hy:"Առաջին մուտքը ստեղծում է ձեր հաշիվը։"},
+"au.devCode":{en:"Delivery is not connected yet, so the code is shown here:",ru:"Доставка кодов ещё не подключена, поэтому код показан здесь:",hy:"Կոդերի առաքումը դեռ միացված չէ, ուստի կոդը ցուցադրվում է այստեղ՝"},
+"au.bad":{en:"Wrong or expired code",ru:"Неверный или устаревший код",hy:"Սխալ կամ ժամկետանց կոդ"},
+"au.out":{en:"Sign out",ru:"Выйти",hy:"Դուրս գալ"},
+"au.local":{en:"Offline copy",ru:"Локальная копия",hy:"Տեղային պատճեն"},
+"pl.free":{en:"Free",ru:"Бесплатный",hy:"Անվճար"},
+"pl.pro":{en:"Pro",ru:"Pro",hy:"Pro"},
+"pl.studio":{en:"Studio",ru:"Studio",hy:"Studio"},
+"pl.plan":{en:"Plan",ru:"Тариф",hy:"Սակագին"},
+"pl.limitStudents":{en:"The Free plan holds 2 students. Upgrade to Pro for 15.",ru:"На бесплатном тарифе помещается 2 ученика. На Pro — 15.",hy:"Անվճար սակագնում տեղավորվում է 2 աշակերտ։ Pro-ում՝ 15։"},
+"pl.limitPro":{en:"Pro holds 15 students. Studio has no limit.",ru:"На Pro помещается 15 учеников. На Studio ограничения нет.",hy:"Pro-ում տեղավորվում է 15 աշակերտ։ Studio-ում սահմանափակում չկա։"},
+"pl.needMoney":{en:"Payments and packages are on Pro and above.",ru:"Оплаты и абонементы — на тарифе Pro и выше.",hy:"Վճարումներն ու փաթեթները՝ Pro և ավելի բարձր սակագներում։"},
+"pl.needTeachers":{en:"Several teachers work on Studio.",ru:"Несколько преподавателей — на тарифе Studio.",hy:"Մի քանի դասավանդող՝ Studio սակագնում։"},
+"pl.change":{en:"Change plan",ru:"Сменить тариф",hy:"Փոխել սակագինը"},
+"pl.noBilling":{en:"Payment is not connected yet, so the plan switches by hand.",ru:"Оплата ещё не подключена, поэтому тариф переключается вручную.",hy:"Վճարումը դեռ միացված չէ, ուստի սակագինը փոխվում է ձեռքով։"},
+"nav.school":{en:"School",ru:"Школа",hy:"Դպրոց"},
+"sc.title":{en:"School",ru:"Школа",hy:"Դպրոց"},
+"sc.teachers":{en:"Teachers",ru:"Преподаватели",hy:"Դասավանդողներ"},
+"sc.add":{en:"Add a teacher",ru:"Добавить преподавателя",hy:"Ավելացնել դասավանդող"},
+"sc.email":{en:"Their email",ru:"Его почта",hy:"Նրա էլ. փոստը"},
+"sc.owner":{en:"owner",ru:"владелец",hy:"սեփականատեր"},
+"sc.teacher":{en:"teacher",ru:"преподаватель",hy:"դասավանդող"},
+"sc.held":{en:"held this month",ru:"проведено за месяц",hy:"անցկացված այս ամիս"},
+"sc.remove":{en:"Remove",ru:"Убрать",hy:"Հեռացնել"},
+"sc.hint":{en:"Each teacher signs in with their own email and sees only their own students.",ru:"Каждый преподаватель входит по своей почте и видит только своих учеников.",hy:"Յուրաքանչյուր դասավանդող մուտք է գործում իր փոստով և տեսնում է միայն իր աշակերտներին։"},
+"sv.saving":{en:"Saving…",ru:"Сохраняю…",hy:"Պահպանում…"},
+"sv.saved":{en:"Saved on the server",ru:"Сохранено на сервере",hy:"Պահպանվեց սերվերում"},
+"sv.conflict":{en:"The data changed in another tab — reloaded",ru:"Данные изменились в другой вкладке — перечитал",hy:"Տվյալները փոխվել են այլ ներդիրում՝ վերընթերցվեց"},
+"sv.offline":{en:"No connection to the server",ru:"Нет связи с сервером",hy:"Կապ չկա սերվերի հետ"},
+"w.week":{en:"Week",ru:"Неделя",hy:"Շաբաթ"},
+"w.month":{en:"Month",ru:"Месяц",hy:"Ամիս"},
+"w.more":{en:"more",ru:"ещё",hy:"ևս"},
+"w.hintMonth":{en:"Click a lesson to open it, click a date to see that week",ru:"Клик по занятию открывает его, клик по дате — эту неделю",hy:"Սեղմեք դասին՝ բացելու, սեղմեք ամսաթվին՝ այդ շաբաթը տեսնելու"},
+"u.title":{en:"Not marked yet",ru:"Не отмечены",hy:"Դեռ նշված չեն"},
+"u.sub":{en:"Past lessons still waiting for you to say what happened",ru:"Прошедшие занятия, по которым не сказано, что было",hy:"Անցած դասեր, որոնց մասին դեռ նշված չէ, թե ինչ եղավ"},
+"u.none":{en:"Everything from the past is marked",ru:"Всё прошедшее отмечено",hy:"Անցածն ամբողջությամբ նշված է"},
+"u.allHeld":{en:"Mark all as held",ru:"Все проведены",hy:"Բոլորը՝ անցկացված"},
+"u.allAsk":{en:"Mark every past lesson as held?",ru:"Отметить все прошедшие занятия проведёнными?",hy:"Նշե՞լ բոլոր անցած դասերը որպես անցկացված։"},
+"u.count":{en:"waiting",ru:"ждут отметки",hy:"սպասում են նշման"},
+"u.open":{en:"Mark past lessons",ru:"Отметить прошедшие",hy:"Նշել անցածները"},
+"s.thenPack":{en:"Add a package for them now?",ru:"Сразу добавить абонемент?",hy:"Անմիջապես ավելացնե՞լ բաժանորդագրություն"},
+"s.thenPackYes":{en:"Add a package",ru:"Добавить абонемент",hy:"Ավելացնել բաժանորդագրություն"},
+"s.thenPackNo":{en:"Later",ru:"Позже",hy:"Ավելի ուշ"},
+"s.added":{en:"Student added",ru:"Ученик добавлен",hy:"Աշակերտն ավելացվեց"},
+"fl.title":{en:"Files",ru:"Файлы",hy:"Ֆայլեր"},
+"fl.add":{en:"Add files",ru:"Добавить файлы",hy:"Ավելացնել ֆայլեր"},
+"fl.none":{en:"No files yet",ru:"Файлов пока нет",hy:"Ֆայլեր դեռ չկան"},
+"fl.open":{en:"Open",ru:"Открыть",hy:"Բացել"},
+"fl.download":{en:"Download",ru:"Скачать",hy:"Ներբեռնել"},
+"fl.newTab":{en:"Open in a new tab",ru:"Открыть в новой вкладке",hy:"Բացել նոր ներդիրում"},
+"fl.byStudent":{en:"from the student",ru:"от ученика",hy:"աշակերտից"},
+"fl.tooBig":{en:"The file is larger than 15 MB",ru:"Файл больше 15 МБ",hy:"Ֆայլը 15 ՄԲ-ից մեծ է"},
+"fl.badType":{en:"This file type is not accepted",ru:"Такой тип файла не принимается",hy:"Այս տեսակի ֆայլը չի ընդունվում"},
+"fl.quota":{en:"Storage is full — delete something first",ru:"Место закончилось — удалите что-нибудь",hy:"Տեղն սպառվել է՝ ջնջեք որևէ բան"},
+"fl.uploading":{en:"Uploading…",ru:"Загружаю…",hy:"Բեռնում…"},
+"fl.serverOnly":{en:"Files and chat work when the app runs on a server",ru:"Файлы и переписка работают, когда программа стоит на сервере",hy:"Ֆայլերն ու նամակագրությունն աշխատում են, երբ ծրագիրը սերվերի վրա է"},
+"ch.title":{en:"Chat with the student",ru:"Переписка с учеником",hy:"Նամակագրություն աշակերտի հետ"},
+"ch.write":{en:"Write a message",ru:"Написать сообщение",hy:"Գրել հաղորդագրություն"},
+"ch.send":{en:"Send",ru:"Отправить",hy:"Ուղարկել"},
+"ch.none":{en:"No messages yet",ru:"Сообщений пока нет",hy:"Հաղորդագրություններ դեռ չկան"},
+"ch.you":{en:"You",ru:"Вы",hy:"Դուք"},
+"ch.attach":{en:"Attach a file",ru:"Прикрепить файл",hy:"Կցել ֆայլ"},
+"ph.photo":{en:"Photo",ru:"Фото",hy:"Լուսանկար"},
+"cur.title":{en:"Currency",ru:"Валюта",hy:"Արժույթ"},
+"cur.AMD":{en:"Dram",ru:"Драм",hy:"Դրամ"},
+"cur.RUB":{en:"Rouble",ru:"Рубль",hy:"Ռուբլի"},
+"cur.USD":{en:"Dollar",ru:"Доллар",hy:"Դոլար"},
+"cur.student":{en:"Student's currency",ru:"Валюта ученика",hy:"Աշակերտի արժույթը"},
+
+"pk.title":{en:"Package",ru:"Абонемент",hy:"Բաժանորդագրություն"},
+"pk.new":{en:"New package",ru:"Новый абонемент",hy:"Նոր բաժանորդագրություն"},
+"pk.size":{en:"Lessons in the package",ru:"Занятий в абонементе",hy:"Դասերի քանակը"},
+"pk.start":{en:"Starts on",ru:"Дата начала",hy:"Սկսվում է"},
+"pk.days":{en:"Days of the week",ru:"Дни недели",hy:"Շաբաթվա օրերը"},
+"pk.time":{en:"Lesson time",ru:"Время занятия",hy:"Դասի ժամը"},
+"pk.last":{en:"Last lesson",ru:"Последнее занятие",hy:"Վերջին դասը"},
+"pk.price":{en:"Price",ru:"Стоимость",hy:"Արժեքը"},
+"pk.paid":{en:"Mark as paid right away",ru:"Сразу отметить оплаченным",hy:"Անմիջապես նշել վճարված"},
+"pk.active":{en:"Active package",ru:"Активный абонемент",hy:"Ակտիվ բաժանորդագրություն"},
+"pk.none":{en:"No package",ru:"Абонемента нет",hy:"Բաժանորդագրություն չկա"},
+"pk.pickDays":{en:"Pick at least one day",ru:"Выберите хотя бы один день",hy:"Ընտրեք գոնե մեկ օր"},
+"pk.created":{en:"Package created",ru:"Абонемент создан",hy:"Բաժանորդագրությունը ստեղծվեց"},
+"pk.willBe":{en:"Lessons will be added to the schedule automatically",ru:"Занятия сами встанут в расписание",hy:"Դասերն ինքնաբերաբար կավելանան ժամանակացույցում"},
+"pk.from":{en:"from",ru:"с",hy:"սկսած"},
+"pk.to":{en:"to",ru:"по",hy:"մինչև"},
+
+"cab.title":{en:"Student portal",ru:"Кабинет ученика",hy:"Աշակերտի անձնական էջ"},
+"cab.link":{en:"Link to sign in",ru:"Ссылка для входа",hy:"Մուտքի հղում"},
+"cab.code":{en:"Code",ru:"Код",hy:"Կոդ"},
+"cab.open":{en:"Open the portal",ru:"Открыть кабинет",hy:"Բացել էջը"},
+"cab.enter":{en:"Sign in",ru:"Войти",hy:"Մուտք"},
+"cab.wrong":{en:"Wrong code",ru:"Неверный код",hy:"Սխալ կոդ"},
+"cab.exit":{en:"Exit",ru:"Выход",hy:"Ելք"},
+"cab.codeHint":{en:"Enter the code your teacher gave you",ru:"Введите код, который дал преподаватель",hy:"Մուտքագրեք ուսուցչի տված կոդը"},
+"cab.balance":{en:"Lessons left",ru:"Осталось занятий",hy:"Մնացել է դաս"},
+"cab.until":{en:"Package runs until",ru:"Абонемент до",hy:"Բաժանորդագրությունը մինչև"},
+"cab.next":{en:"Your next lessons",ru:"Ваши ближайшие занятия",hy:"Ձեր մոտակա դասերը"},
+"cab.links":{en:"Links",ru:"Ссылки",hy:"Հղումներ"},
+"cab.join":{en:"Join",ru:"Подключиться",hy:"Միանալ"},
+"cab.pay":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
+"cab.teacher":{en:"Teacher",ru:"Преподаватель",hy:"Ուսուցիչ"},
+"cab.forTeacher":{en:"Back to the app",ru:"Вернуться в программу",hy:"Վերադառնալ ծրագիր"},
+"cab.copyLink":{en:"Copy link and code",ru:"Скопировать ссылку и код",hy:"Պատճենել հղումն ու կոդը"},
+"cab.localNote":{en:"The link works on this computer. Once the app is on a server, the same link will work anywhere.",ru:"Ссылка работает на этом компьютере. Когда программа переедет на сервер, эта же ссылка заработает откуда угодно.",hy:"Հղումն աշխատում է այս համակարգչում։ Երբ ծրագիրը տեղափոխվի սերվեր, նույն հղումը կաշխատի ամենուր։"},
+
+"s.links":{en:"Links (title | address, one per line)",ru:"Ссылки (название | адрес, по одной в строке)",hy:"Հղումներ (անուն | հասցե, տողում մեկը)"},
+"l.link":{en:"Lesson link",ru:"Ссылка на занятие",hy:"Դասի հղումը"},
+"r.byCurrency":{en:"Income by currency",ru:"Доход по валютам",hy:"Եկամուտն ըստ արժույթների"},
+
+"d.mon":{en:"Mon",ru:"Пн",hy:"Երկ"},"d.tue":{en:"Tue",ru:"Вт",hy:"Երք"},"d.wed":{en:"Wed",ru:"Ср",hy:"Չրք"},
+"d.thu":{en:"Thu",ru:"Чт",hy:"Հնգ"},"d.fri":{en:"Fri",ru:"Пт",hy:"Ուրբ"},"d.sat":{en:"Sat",ru:"Сб",hy:"Շբթ"},"d.sun":{en:"Sun",ru:"Вс",hy:"Կիր"}
+};
+
+var LANGS = ["en","ru","hy"], LOC = {en:"en-GB",ru:"ru-RU",hy:"hy-AM"};
+function t(k){ var e = T[k]; return e ? (e[S.lang] || e.en) : k; }
+
+/* валюты: драм, рубль, доллар */
+var CUR = { AMD:"֏", RUB:"₽", USD:"$" }, CUR_LIST = ["AMD","RUB","USD"];
+
+/* ---------------------------- хранилище ---------------------------- */
+var KEY = "slate-data-v1", storageOK = true;
+function blank(){
+  var lang = "en";
+  try {
+    var n = (navigator.languages || [navigator.language || "en"]).join(",").toLowerCase();
+    lang = n.indexOf("hy") > -1 ? "hy" : (n.indexOf("ru") > -1 ? "ru" : "en");
+  } catch (e) {}
+  return { v:2, lang:lang, cur:"AMD", teacher:"", defRate:5000, defDur:60, countNoShow:true,
+           students:[], lessons:[], payments:[], packs:[] };
+}
+/* приводим данные старых версий к текущей структуре */
+function migrate(d){
+  if (d.currency && !d.cur) d.cur = ({ "₽":"RUB", "֏":"AMD", "$":"USD" })[d.currency] || "AMD";
+  if (!CUR[d.cur]) d.cur = "AMD";
+  d.packs = d.packs || [];
+  (d.students || []).forEach(function(s){
+    if (!CUR[s.currency]) s.currency = d.cur;
+    if (!s.code) s.code = String(Math.floor(1000 + Math.random() * 9000));
+    if (typeof s.links !== "string") s.links = s.links || "";
+  });
+  (d.payments || []).forEach(function(p){ if (!CUR[p.currency]) p.currency = d.cur; });
+  (d.lessons || []).forEach(function(l){ if (typeof l.link !== "string") l.link = ""; });
+  return d;
+}
+function load(){
+  try {
+    var raw = localStorage.getItem(KEY);
+    localStorage.setItem(KEY + "-probe", "1"); localStorage.removeItem(KEY + "-probe");
+    if (raw) { var d = JSON.parse(raw); if (d && d.students) return migrate(Object.assign(blank(), d)); }
+  } catch (e) { storageOK = false; }
+  return blank();
+}
+function save(){
+  if (API.on) {                                   /* серверный режим: отложенная отправка */
+    clearTimeout(API.timer);
+    API.timer = setTimeout(pushState, 400);
+    return;
+  }
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch (e) { storageOK = false; }
+}
+var S = load();
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+
+/* ---------------------------- даты ---------------------------- */
+function iso(d){ return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function parse(s){ var p = String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+function today(){ return iso(new Date()); }
+function addDays(s, n){ var d = parse(s); d.setDate(d.getDate() + n); return iso(d); }
+function weekStart(s){ var d = parse(s), w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return iso(d); }
+function fmtDay(s){ return parse(s).getDate() + "." + String(parse(s).getMonth()+1).padStart(2,"0"); }
+function fmtLong(s){
+  try { return new Intl.DateTimeFormat(LOC[S.lang], { day:"numeric", month:"long" }).format(parse(s)); }
+  catch (e) { return s; }
+}
+function fmtMonth(y, m){
+  try { return new Intl.DateTimeFormat(LOC[S.lang], { month:"short" }).format(new Date(y, m, 1)); }
+  catch (e) { return (m+1) + "." + y; }
+}
+var DKEYS = ["d.mon","d.tue","d.wed","d.thu","d.fri","d.sat","d.sun"];
+
+/* ---------------------------- вычисления ---------------------------- */
+function student(id){ for (var i = 0; i < S.students.length; i++) if (S.students[i].id === id) return S.students[i]; return null; }
+function lesson(id){ for (var i = 0; i < S.lessons.length; i++) if (S.lessons[i].id === id) return S.lessons[i]; return null; }
+function isUsed(l){ return l.status === "done" || (l.status === "no_show" && S.countNoShow); }
+function paidLessons(sid){ var n = 0; S.payments.forEach(function(p){ if (p.studentId === sid) n += (+p.lessons || 0); }); return n; }
+function usedLessons(sid){ var n = 0; S.lessons.forEach(function(l){ if (l.studentId === sid && isUsed(l)) n++; }); return n; }
+function balance(sid){ return paidLessons(sid) - usedLessons(sid); }
+function lessonsOn(date){
+  return S.lessons.filter(function(l){ return l.date === date; })
+    .sort(function(a,b){ return a.time < b.time ? -1 : 1; });
+}
+function lessonsBetween(a, b){
+  return S.lessons.filter(function(l){ return l.date >= a && l.date <= b; })
+    .sort(function(x,y){ return (x.date + x.time) < (y.date + y.time) ? -1 : 1; });
+}
+/* прошедшие занятия, по которым не сказано, что было — их и надо отметить */
+function unmarked(){
+  var td = today();
+  return S.lessons.filter(function(l){ return l.status === "planned" && l.date < td; })
+    .sort(function(a,b){ return (a.date + a.time) < (b.date + b.time) ? 1 : -1; });
+}
+function unmarkedModal(){
+  var list = unmarked();
+  modal(t("u.title"),
+    '<p class="hint" style="padding-bottom:12px">' + esc(t("u.sub")) + "</p>" +
+    '<div class="card"><div class="card-b">' +
+    (list.length ? list.map(function(l){
+      var st = student(l.studentId) || { name: "—" };
+      return '<div class="row" data-row="' + l.id + '"><span class="ava">' + esc(initials(st.name)) + "</span>" +
+        '<div class="g"><div class="nm">' + esc(st.name) + "</div>" +
+        '<div class="sb">' + esc(fmtLong(l.date) + ", " + l.time + (st.subject ? " · " + st.subject : "")) + "</div></div>" +
+        '<div class="act">' +
+        '<button class="btn btn-p btn-s" data-act="mark" data-st="done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button>" +
+        '<button class="btn btn-g btn-s" data-act="mark" data-st="no_show" data-id="' + l.id + '">' + esc(t("l.markNo")) + "</button>" +
+        '<button class="btn btn-g btn-s" data-act="mark" data-st="cancelled" data-id="' + l.id + '">' + esc(t("l.markCancel")) + "</button>" +
+        "</div></div>";
+    }).join("") : '<div class="empty">' + esc(t("u.none")) + "</div>") +
+    "</div></div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    (list.length ? '<button class="btn btn-p" data-act="mark-all">' + esc(t("u.allHeld")) + "</button>" : ""), true);
+}
+
+function upcoming(sid, n){
+  var td = today();
+  return S.lessons.filter(function(l){ return l.studentId === sid && l.date >= td && l.status === "planned"; })
+    .sort(function(a,b){ return (a.date + a.time) < (b.date + b.time) ? -1 : 1; }).slice(0, n || 3);
+}
+function money(n, c){
+  return (Math.round(n) || 0).toLocaleString(LOC[S.lang] || "en") + " " + (CUR[c || S.cur] || "");
+}
+/* доход не складывается между валютами — считаем по каждой отдельно */
+function incomeMap(from, to){
+  var m = {};
+  S.payments.forEach(function(p){
+    if (p.date >= from && p.date <= to) { var c = p.currency || S.cur; m[c] = (m[c] || 0) + (+p.amount || 0); }
+  });
+  return m;
+}
+function incomeIn(from, to, c){ return incomeMap(from, to)[c || S.cur] || 0; }
+function fmtMap(m){
+  var ks = CUR_LIST.filter(function(k){ return m[k]; });
+  return ks.length ? ks.map(function(k){ return money(m[k], k); }).join(" · ") : money(0);
+}
+/* ---- абонементы ---- */
+function dayOf(dateStr){ return ((parse(dateStr).getDay() + 6) % 7) + 1; } /* 1 = понедельник */
+function packDates(start, days, size){
+  var out = [], d = start, guard = 0;
+  if (!days.length || size <= 0) return out;
+  while (out.length < size && guard++ < 800) {
+    if (days.indexOf(dayOf(d)) > -1) out.push(d);
+    d = addDays(d, 1);
+  }
+  return out;
+}
+function packOf(sid){
+  var td = today();
+  return S.packs.filter(function(p){ return p.studentId === sid; })
+    .sort(function(a,b){ return a.start < b.start ? 1 : -1; })
+    .filter(function(p){ return p.last >= td || p.start >= td; })[0] ||
+    S.packs.filter(function(p){ return p.studentId === sid; })
+      .sort(function(a,b){ return a.start < b.start ? 1 : -1; })[0] || null;
+}
+function studentLinks(s){
+  return String(s.links || "").split("\n").map(function(line){
+    var i = line.indexOf("|");
+    if (i < 0) { var u = line.trim(); return u ? { title: u, url: u } : null; }
+    var title = line.slice(0, i).trim(), url = line.slice(i + 1).trim();
+    return url ? { title: title || url, url: url } : null;
+  }).filter(Boolean);
+}
+function safeUrl(u){ return /^https?:\/\//i.test(u) ? u : "https://" + String(u).replace(/^\/+/, ""); }
+function monthRange(off){
+  var d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + (off || 0));
+  var from = iso(d); d.setMonth(d.getMonth() + 1); d.setDate(0);
+  return { from: from, to: iso(d), y: parse(from).getFullYear(), m: parse(from).getMonth() };
+}
+function initials(name){
+  var p = String(name).trim().split(/\s+/);
+  return ((p[0] || "?")[0] + (p[1] ? p[1][0] : "")).toUpperCase();
+}
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function activeStudents(){ return S.students.filter(function(s){ return !s.archived; }); }
+
+
+/* ---------------------------- сервер ---------------------------- */
+/* Программа работает в двух режимах: локально (файл, localStorage) и на сервере
+   (аккаунт, изоляция данных, лимиты тарифа). Режим определяется при запуске. */
+var API = { on: false, me: null, ver: 0, portal: {}, timer: null, busy: false, again: false };
+
+function apiCall(method, url, body){
+  return fetch(url, {
+    method: method,
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    body: body === undefined ? undefined : JSON.stringify(body)
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(d){ return { status: r.status, data: d }; });
+  });
+}
+function planLimits(){ return (API.me && API.me.limits) || { students: null, teachers: 1, money: true, portal: true, reports: true }; }
+function planName(){ return (API.me && API.me.school && API.me.school.plan) || "free"; }
+function isOwner(){ return !!(API.me && API.me.user && API.me.user.role === "owner"); }
+
+function pushState(){
+  if (!API.on) return;
+  if (API.busy) { API.again = true; return; }
+  API.busy = true;
+  apiCall("PUT", "/api/state", { version: API.ver, doc: S }).then(function(r){
+    API.busy = false;
+    if (r.status === 200) {
+      API.ver = r.data.version; API.portal = r.data.portal || {};
+      if (API.again) { API.again = false; pushState(); }
+      return;
+    }
+    if (r.status === 409) {                    /* кто-то сохранил раньше — перечитываем */
+      S = migrate(Object.assign(blank(), r.data.doc)); API.ver = r.data.version;
+      render(); toast(t("sv.conflict")); return;
+    }
+    if (r.status === 402) {                    /* тариф не позволяет — откатываем */
+      var msg = r.data.error === "plan_money" ? t("pl.needMoney")
+              : planName() === "free" ? t("pl.limitStudents") : t("pl.limitPro");
+      pullState().then(function(){ render(); planWall(msg); });
+      return;
+    }
+    if (r.status === 401) { location.reload(); return; }
+    toast(t("sv.offline"));
+  }, function(){ API.busy = false; toast(t("sv.offline")); });
+}
+function pullState(){
+  return apiCall("GET", "/api/state").then(function(r){
+    if (r.status !== 200) return;
+    S = migrate(Object.assign(blank(), r.data.doc));
+    API.ver = r.data.version; API.portal = r.data.portal || {};
+  });
+}
+function planWall(msg){
+  modal(t("pl.plan"), '<p class="lead" style="font-size:15px">' + esc(msg) + "</p>" +
+    (isOwner() ? '<p class="hint" style="margin-top:12px">' + esc(t("pl.noBilling")) + "</p>" : ""),
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    (isOwner() ? '<button class="btn btn-p" data-act="go-settings">' + esc(t("pl.change")) + "</button>" : ""));
+}
+
+/* ---- экран входа ---- */
+var authEmail = "", authStage = "email", authDev = "";
+function renderAuth(){
+  document.querySelector(".app").classList.add("cab-mode");
+  document.getElementById("view").innerHTML =
+    '<div class="cab-wrap"><div class="card" style="max-width:400px;margin:56px auto">' +
+    '<div class="card-h"><h2>' + esc(t("au.title")) + "</h2></div><div class=\"card-b\">" +
+    '<div class="f" style="padding:14px 0">' +
+    (authStage === "email"
+      ? '<label class="fl">' + esc(t("au.email")) + '<input class="inp" id="au-email" type="email" autocomplete="email" value="' + esc(authEmail) + '" placeholder="you@mail.com"></label>' +
+        '<button class="btn btn-p" data-act="au-send">' + esc(t("au.send")) + "</button>" +
+        '<p class="hint">' + esc(t("au.hint")) + "</p>"
+      : '<p class="hint">' + esc(authEmail) + "</p>" +
+        (authDev ? '<div class="banner" style="margin:0">' + esc(t("au.devCode")) + " <b>" + esc(authDev) + "</b></div>" : "") +
+        '<label class="fl">' + esc(t("au.code")) + '<input class="inp tnum" id="au-code" inputmode="numeric" style="font-size:22px;letter-spacing:.2em;text-align:center" placeholder="••••••"></label>' +
+        '<button class="btn btn-p" data-act="au-verify">' + esc(t("au.enter")) + "</button>" +
+        '<button class="btn btn-g" data-act="au-back">' + esc(t("au.back")) + "</button>") +
+    "</div></div></div></div>";
+  var f = document.getElementById(authStage === "email" ? "au-email" : "au-code");
+  if (f) { f.focus(); f.addEventListener("keydown", function(e){ if (e.key === "Enter") (authStage === "email" ? authSend() : authVerify()); }); }
+}
+function authSend(){
+  var email = (document.getElementById("au-email") || {}).value || "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return;
+  authEmail = email.trim();
+  apiCall("POST", "/api/auth/request", { email: authEmail }).then(function(r){
+    if (r.status !== 200) return toast(t("sv.offline"));
+    authDev = r.data.devCode || ""; authStage = "code"; renderAuth();
+  });
+}
+function authVerify(){
+  var code = (document.getElementById("au-code") || {}).value || "";
+  apiCall("POST", "/api/auth/verify", { email: authEmail, code: code.trim() }).then(function(r){
+    if (r.status !== 200) return toast(t("au.bad"));
+    location.reload();
+  });
+}
+function boot(){
+  if (location.protocol === "file:") { API.on = false; route(); return; }  /* офлайн-копия */
+  fetch("/api/me", { credentials: "same-origin" }).then(function(r){
+    API.on = true;
+    if (r.status === 401) { renderAuth(); return; }
+    if (!r.ok) throw new Error("no api");
+    return r.json().then(function(me){
+      API.me = me;
+      if (me.user && !S.teacher) { /* имя для кабинета ученика */ }
+      return pullState().then(function(){ route(); });
+    });
+  }).catch(function(){ API.on = false; route(); });
+}
+
+/* ---------------------------- каркас ---------------------------- */
+var ICONS = {
+  today:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></svg>',
+  week:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  students:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c.6-3.5 3.3-5.4 7-5.4s6.4 1.9 7 5.4"/></svg>',
+  money:'<svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="13" rx="3"/><path d="M2.5 11h19M6.5 15.5h4"/></svg>',
+  reports:'<svg viewBox="0 0 24 24"><path d="M4 20V11M10 20V4M16 20v-6M22 20H2"/></svg>',
+  school:'<svg viewBox="0 0 24 24"><path d="M3 10.5L12 5l9 5.5"/><path d="M5 12v7h14v-7"/><path d="M9.5 19v-4.2h5V19"/></svg>',
+  settings:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2v.2a2 2 0 11-4 0v-.1a1.7 1.7 0 00-2.9-1.2l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00-1.2-2.9H3a2 2 0 110-4h.1a1.7 1.7 0 001.2-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 002.9-1.2V3a2 2 0 114 0v.1a1.7 1.7 0 002.9 1.2l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 001.2 2.9h.2a2 2 0 110 4h-.1a1.7 1.7 0 00-1.6 1.2z"/></svg>'
+};
+var TABS_ALL = ["today","week","students","money","reports","school","settings"];
+function TABS(){
+  var lim = planLimits();
+  return TABS_ALL.filter(function(k){
+    if (k === "school") return API.on && isOwner() && planLimits().teachers > 1;
+    if (k === "money") return !API.on || lim.money;
+    if (k === "reports") return !API.on || lim.reports;
+    return true;
+  });
+}
+var tab = "today", weekOf = weekStart(today()), calMode = "week";
+
+function renderMenu(){
+  document.getElementById("menu").innerHTML = TABS().map(function(k){
+    var cnt = "";
+    if (k === "students") cnt = '<span class="cnt">' + activeStudents().length + "</span>";
+    if (k === "today") { var n = lessonsOn(today()).length; if (n) cnt = '<span class="cnt">' + n + "</span>"; }
+    return '<button data-tab="' + k + '" class="' + (tab === k ? "on" : "") + '">' + ICONS[k] +
+           "<span>" + esc(t("nav." + k)) + "</span>" + cnt + "</button>";
+  }).join("");
+  document.querySelectorAll("#lang button,#lang2 button").forEach(function(b){
+    b.classList.toggle("on", b.dataset.lang === S.lang);
+  });
+  document.querySelectorAll("[data-i]").forEach(function(el){ el.textContent = t(el.dataset.i); });
+  document.documentElement.lang = S.lang;
+  renderAccount();
+}
+/* блок аккаунта в боковой панели */
+function renderAccount(){
+  var box = document.getElementById("account");
+  if (!box) return;
+  if (!API.on) { box.innerHTML = '<div class="side-note">' + esc(t("au.local")) + "</div>"; return; }
+  var lim = planLimits(), used = activeStudents().length;
+  box.innerHTML =
+    '<div class="acc"><div class="acc-mail">' + esc((API.me && API.me.user.email) || "") + "</div>" +
+    '<div class="acc-row"><span class="chip ok">' + esc(t("pl." + planName())) + "</span>" +
+    '<span class="acc-use tnum">' + used + (lim.students ? " / " + lim.students : "") + " " + esc(t("nav.students").toLowerCase()) + "</span></div>" +
+    '<button class="btn btn-g btn-s" data-act="logout" style="width:100%;margin-top:9px">' + esc(t("au.out")) + "</button></div>";
+}
+
+function head(title, sub, actions){
+  return '<div class="top"><div><h1>' + esc(title) + "</h1>" +
+         (sub ? '<div class="sub">' + esc(sub) + "</div>" : "") + "</div>" +
+         '<div class="top-act">' + (actions || "") + "</div></div>" +
+         (storageOK ? "" : '<div class="banner">' + esc(t("c.storageBad")) + "</div>");
+}
+
+function render(){
+  renderMenu();
+  var v = document.getElementById("view");
+  var views = { today: viewToday, week: viewWeek, students: viewStudents,
+                money: viewMoney, reports: viewReports, school: viewSchool, settings: viewSettings };
+  if (!views[tab] || TABS().indexOf(tab) < 0) tab = "today";
+  v.innerHTML = views[tab]();
+  v.scrollTop = 0;
+}
+function go(k){ tab = k; render(); }
+
+/* ---------------------------- вид: сегодня ---------------------------- */
+function viewToday(){
+  var td = today(), ws = weekStart(td), we = addDays(ws, 6), mr = monthRange(0);
+  var todays = lessonsOn(td);
+  var week = lessonsBetween(ws, we);
+  var debtors = activeStudents().filter(function(s){ return balance(s.id) < 0; });
+  var low = activeStudents().filter(function(s){ var b = balance(s.id); return b >= 0 && b <= 1; });
+
+  var kpis = '<div class="grid-4">' +
+    kpi(t("t.week"), week.length, t("t.lessonsWeek")) +
+    kpi(t("t.income"), fmtMap(incomeMap(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
+    kpi(t("nav.students"), activeStudents().length, t("s.total")) +
+    kpi(t("t.debts"), debtors.length, debtors.length ? debtors.map(function(s){ return s.name; }).slice(0,2).join(", ") : "—", debtors.length ? "bad" : "") +
+    "</div>";
+
+  var todayCard = '<div class="card"><div class="card-h"><h2>' + esc(t("t.title")) + " · " + esc(fmtLong(td)) + "</h2>" +
+    '<button class="btn btn-p btn-s" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button></div><div class=\"card-b\">" +
+    (todays.length ? todays.map(lessonRow).join("") :
+      '<div class="empty"><b>' + esc(t("l.noneToday")) + "</b>" + esc(t("t.next")) + ": " +
+      (function(){ var n = S.lessons.filter(function(l){ return l.date > td && l.status === "planned"; })
+                     .sort(function(a,b){ return (a.date+a.time) < (b.date+b.time) ? -1 : 1; })[0];
+                   return n ? esc(fmtLong(n.date) + ", " + n.time + " · " + (student(n.studentId) || {}).name) : "—"; })() +
+      "</div>") + "</div></div>";
+
+  var lowCard = '<div class="card"><div class="card-h"><h2>' + esc(t("t.lowBalance")) + "</h2></div><div class=\"card-b\">" +
+    ((low.length + debtors.length) ? debtors.concat(low).map(function(s){
+      var b = balance(s.id);
+      return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
+        '<div class="g"><div class="nm">' + esc(s.name) + '</div><div class="sb">' + esc(s.subject || "") + "</div></div>" +
+        '<span class="chip ' + (b < 0 ? "bad" : "warn") + '">' + (b < 0 ? esc(t("s.debt")) + " " + (-b) : b + " " + esc(t("s.left"))) + "</span>" +
+        '<div class="act"><button class="btn btn-g btn-s" data-act="pay-new" data-id="' + s.id + '">+ ' + esc(t("p.add")) + "</button></div></div>";
+    }).join("") : '<div class="empty">' + esc(t("t.lowNone")) + "</div>") + "</div></div>";
+
+  var wait = unmarked();
+  var waitCard = wait.length
+    ? '<div class="card" style="margin-bottom:16px;border-color:var(--clay-soft)">' +
+      '<div class="card-h"><h2>' + esc(t("u.title")) + " · " + wait.length + "</h2>" +
+      '<button class="btn btn-p btn-s" data-act="unmarked">' + esc(t("u.open")) + "</button></div>" +
+      '<div class="card-b">' + wait.slice(0, 3).map(function(l){
+        var st = student(l.studentId) || { name: "—" };
+        return '<div class="row"><span class="ava">' + esc(initials(st.name)) + "</span>" +
+          '<div class="g"><div class="nm">' + esc(st.name) + "</div>" +
+          '<div class="sb">' + esc(fmtLong(l.date) + ", " + l.time) + "</div></div>" +
+          '<div class="act"><button class="btn btn-p btn-s" data-act="mark" data-st="done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button></div></div>";
+      }).join("") + "</div></div>"
+    : "";
+
+  return head(t("t.title"), fmtLong(td), '<button class="btn btn-g" data-act="student-new">+ ' + esc(t("s.new")) + '</button><button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
+    waitCard + '<div class="stack">' + kpis + '<div class="grid-2">' + todayCard + lowCard + "</div></div>";
+}
+function kpi(label, value, note, mod){
+  return '<div class="kpi ' + (mod || "") + '"><div class="l">' + esc(label) + '</div><div class="v tnum">' + esc(value) + "</div>" +
+         '<div class="n">' + esc(note || "") + "</div></div>";
+}
+function lessonRow(l){
+  var s = student(l.studentId) || { name: "—" };
+  var st = l.status;
+  return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
+    '<div class="g"><div class="nm">' + esc(l.time) + " · " + esc(s.name) + "</div>" +
+    '<div class="sb">' + esc((s.subject || "") + (l.online ? " · online" : "") + (l.note ? " · " + l.note : "")) + "</div></div>" +
+    '<span class="chip ' + (st === "done" ? "ok" : st === "no_show" ? "warn" : st === "cancelled" ? "mut" : "mut") + '">' + esc(t("l." + st)) + "</span>" +
+    '<div class="act">' + (st === "planned" ? '<button class="btn btn-p btn-s" data-act="lesson-done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button>" : "") +
+    '<button class="btn btn-g btn-s" data-act="lesson-open" data-id="' + l.id + '">' + esc(t("a.edit")) + "</button></div></div>";
+}
+
+/* ---------------------------- вид: неделя ---------------------------- */
+/* карточка занятия в сетке */
+function lessonCell(l, big){
+  var s = student(l.studentId) || { name: "—" };
+  return '<div class="lsn ' + l.status + (big ? " big" : "") + '" draggable="true" data-act="lesson-open" data-id="' + l.id + '">' +
+    '<div class="t tnum">' + esc(l.time) + (l.online ? " · online" : "") + "</div>" +
+    '<div class="n">' + esc(s.name) + "</div>" +
+    '<div class="s">' + esc(s.subject || t("l." + l.status)) + "</div></div>";
+}
+function calBar(title){
+  return '<div class="wk-bar"><span class="wk-title">' + esc(title) + "</span>" +
+    '<span class="segm">' +
+      '<button class="' + (calMode === "week" ? "on" : "") + '" data-act="cal-mode" data-mode="week">' + esc(t("w.week")) + "</button>" +
+      '<button class="' + (calMode === "month" ? "on" : "") + '" data-act="cal-mode" data-mode="month">' + esc(t("w.month")) + "</button>" +
+    "</span>" +
+    (unmarked().length ? '<button class="btn btn-g btn-s" data-act="unmarked">' + esc(t("u.open")) +
+       ' <span class="chip warn">' + unmarked().length + "</span></button>" : "") + "</div>";
+}
+function viewMonth(){
+  var td = today(), first = weekOf;
+  /* месяц считаем по месяцу, в который попадает текущая неделя */
+  var anchor = parse(addDays(weekOf, 3)), y = anchor.getFullYear(), m = anchor.getMonth();
+  var firstOfMonth = iso(new Date(y, m, 1)), gridStart = weekStart(firstOfMonth);
+  var title = (function(){
+    try { return new Intl.DateTimeFormat(LOC[S.lang], { month: "long", year: "numeric" }).format(new Date(y, m, 1)); }
+    catch (e) { return (m + 1) + "." + y; }
+  })();
+
+  var headRow = DKEYS.map(function(k){ return '<div class="mh">' + esc(t(k)) + "</div>"; }).join("");
+  var cells = "";
+  for (var i = 0; i < 42; i++) {
+    var d = addDays(gridStart, i), dt = parse(d);
+    if (i >= 35 && dt.getMonth() !== m) break;
+    var ls = lessonsOn(d), out = dt.getMonth() !== m;
+    cells += '<div class="mc ' + (d === td ? "today" : "") + (out ? " out" : "") + '" data-day="' + d + '">' +
+      '<div class="mc-h"><button class="mc-d" data-act="week-of" data-date="' + d + '">' + dt.getDate() + "</button>" +
+      '<button class="mc-add" data-act="lesson-new" data-date="' + d + '">+</button></div>' +
+      ls.slice(0, 4).map(function(l){ return lessonCell(l); }).join("") +
+      (ls.length > 4 ? '<button class="mc-more" data-act="week-of" data-date="' + d + '">+' + (ls.length - 4) + " " + esc(t("w.more")) + "</button>" : "") +
+      "</div>";
+  }
+  return head(t("w.title"), t("w.hintMonth"),
+      '<button class="btn btn-g btn-icon" data-act="week-prev">‹</button>' +
+      '<button class="btn btn-g" data-act="week-today">' + esc(t("a.today")) + "</button>" +
+      '<button class="btn btn-g btn-icon" data-act="week-next">›</button>' +
+      '<button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
+    calBar(title) +
+    '<div class="month"><div class="mhead">' + headRow + "</div>" +
+    '<div class="mgrid">' + cells + "</div></div>";
+}
+
+function viewWeek(){
+  if (calMode === "month") return viewMonth();
+  var ws = weekOf, td = today();
+  var title = fmtLong(ws) + " — " + fmtLong(addDays(ws, 6));
+  var days = "";
+  for (var i = 0; i < 7; i++) {
+    var d = addDays(ws, i), ls = lessonsOn(d);
+    days += '<div class="day ' + (d === td ? "today" : "") + '" data-day="' + d + '">' +
+      '<div class="day-h"><span class="dn">' + esc(t(DKEYS[i])) + '</span><span class="dd">' + esc(fmtDay(d)) + "</span></div>" +
+      '<div class="day-b">' +
+      ls.map(function(l){ return lessonCell(l, true); }).join("") +
+      '<button class="day-add" data-act="lesson-new" data-date="' + d + '">+</button>' +
+      "</div></div>";
+  }
+  return head(t("w.title"), t("w.hint"),
+      '<button class="btn btn-g btn-icon" data-act="week-prev">‹</button>' +
+      '<button class="btn btn-g" data-act="week-today">' + esc(t("a.today")) + "</button>" +
+      '<button class="btn btn-g btn-icon" data-act="week-next">›</button>' +
+      '<button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
+    calBar(title) +
+    '<div class="week">' + days + "</div>";
+}
+
+/* ---------------------------- вид: ученики ---------------------------- */
+var showArchived = false;
+function viewStudents(){
+  var list = S.students.filter(function(s){ return showArchived ? true : !s.archived; })
+    .sort(function(a,b){ return a.name.localeCompare(b.name); });
+
+  var body = list.length ? list.map(function(s){
+    var b = balance(s.id), up = upcoming(s.id, 1)[0];
+    return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
+      '<div class="g"><div class="nm">' + esc(s.name) + (s.archived ? ' <span class="chip mut">' + esc(t("s.archived")) + "</span>" : "") + "</div>" +
+      '<div class="sb">' + esc([s.subject, s.level, s.rate ? money(s.rate, s.currency) : ""].filter(Boolean).join(" · ")) +
+      (up ? " · " + esc(fmtLong(up.date) + " " + up.time) : "") +
+      (function(){ var pk = packOf(s.id); return pk ? ' · <span>' + esc(t("pk.to") + " " + fmtLong(pk.last)) + "</span>" : ""; })() + "</div></div>" +
+      '<span class="chip ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "ok") + '">' + (b < 0 ? esc(t("s.debt")) + " " + (-b) : b + " " + esc(t("s.left"))) + "</span>" +
+      '<div class="act">' +
+      '<button class="btn btn-g btn-s" data-act="student-card" data-id="' + s.id + '">' + esc(t("s.card")) + "</button>" +
+      '<button class="btn btn-g btn-s" data-act="pay-new" data-id="' + s.id + '">+ ' + esc(t("nav.money")) + "</button>" +
+      "</div></div>";
+  }).join("") : '<div class="empty"><b>' + esc(t("s.none")) + "</b>" + esc(t("s.noneSub")) + "</div>";
+
+  return head(t("nav.students"), activeStudents().length + " " + t("s.total"),
+      '<button class="btn btn-g" data-act="toggle-archived">' + esc(showArchived ? t("nav.students") : t("s.showArchived")) + "</button>" +
+      '<button class="btn btn-g" data-act="pack-new">+ ' + esc(t("pk.title")) + "</button>" +
+      '<button class="btn btn-p" data-act="student-new">+ ' + esc(t("s.new")) + "</button>") +
+    '<div class="card"><div class="card-b">' + body + "</div></div>";
+}
+
+/* ---------------------------- вид: оплаты ---------------------------- */
+function viewMoney(){
+  var mr = monthRange(0);
+  var list = S.payments.slice().sort(function(a,b){ return a.date < b.date ? 1 : -1; }).slice(0, 60);
+  var body = list.length ? list.map(function(p){
+    var s = student(p.studentId) || { name: "—" };
+    return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
+      '<div class="g"><div class="nm">' + esc(s.name) + " · " + esc(money(p.amount, p.currency)) + "</div>" +
+      '<div class="sb">' + esc(fmtLong(p.date) + " · " + p.lessons + " " + t("l.count") + (p.note ? " · " + p.note : "")) + "</div></div>" +
+      '<div class="act"><button class="btn btn-d btn-s" data-act="pay-del" data-id="' + p.id + '">' + esc(t("a.delete")) + "</button></div></div>";
+  }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>";
+
+  return head(t("nav.money"), t("p.month") + ": " + fmtMap(incomeMap(mr.from, mr.to)),
+      '<button class="btn btn-p" data-act="pay-new">+ ' + esc(t("p.add")) + "</button>") +
+    '<div class="card"><div class="card-b">' + body + "</div></div>";
+}
+
+/* ---------------------------- вид: отчёты ---------------------------- */
+var chartCur = null;
+function viewReports(){
+  if (!CUR[chartCur]) chartCur = S.cur;
+  var months = [], max = 0;
+  for (var i = 5; i >= 0; i--) {
+    var r = monthRange(-i), sum = incomeIn(r.from, r.to, chartCur);
+    months.push({ label: fmtMonth(r.y, r.m), v: sum });
+    if (sum > max) max = sum;
+  }
+  var short = function(v){
+    if (!v) return "";
+    return max >= 10000 ? Math.round(v / 1000) + "k" : String(Math.round(v));
+  };
+  var bars = '<div class="bars">' + months.map(function(m){
+    var h = max ? Math.max(3, Math.round(m.v / max * 118)) : 3;
+    return '<div class="b"><div class="bv tnum">' + esc(short(m.v)) + "</div>" +
+      '<div class="bar" style="height:' + h + 'px"></div><div class="bl">' + esc(m.label) + "</div></div>";
+  }).join("") + "</div>";
+  var curPicker = '<select class="inp" id="chart-cur" data-act="chart-cur" style="height:32px;width:auto;font-size:13px">' +
+    CUR_LIST.map(function(c){ return '<option value="' + c + '"' + (chartCur === c ? " selected" : "") + ">" + CUR[c] + " " + esc(t("cur." + c)) + "</option>"; }).join("") + "</select>";
+
+  var mr = monthRange(0);
+  var rows = activeStudents().map(function(s){
+    var held = 0, mins = 0, paid = {};
+    S.lessons.forEach(function(l){
+      if (l.studentId === s.id && l.date >= mr.from && l.date <= mr.to && isUsed(l)) { held++; mins += (+l.dur || 60); }
+    });
+    S.payments.forEach(function(p){
+      if (p.studentId === s.id && p.date >= mr.from && p.date <= mr.to) {
+        var c = p.currency || S.cur; paid[c] = (paid[c] || 0) + (+p.amount || 0);
+      }
+    });
+    var main = paid[chartCur] || 0;
+    return { s: s, held: held, hours: (mins / 60), paid: paid, main: main, bal: balance(s.id) };
+  }).filter(function(r){ return r.held || Object.keys(r.paid).length; }).sort(function(a,b){ return b.main - a.main || b.held - a.held; });
+
+  var table = rows.length ? '<div class="tw"><table><thead><tr><th>' + esc(t("l.student")) + "</th><th>" + esc(t("r.held")) +
+    "</th><th>" + esc(t("r.hours")) + "</th><th>" + esc(t("r.paid")) + "</th><th>" + esc(t("s.balance")) + "</th></tr></thead><tbody>" +
+    rows.map(function(r){
+      return "<tr><td>" + esc(r.s.name) + '</td><td class="tnum">' + r.held + '</td><td class="tnum">' + r.hours.toFixed(1) +
+        '</td><td class="tnum">' + esc(fmtMap(r.paid)) + '</td><td class="tnum">' + r.bal + "</td></tr>";
+    }).join("") + "</tbody></table></div>" : '<div class="empty">' + esc(t("r.noData")) + "</div>";
+
+  var totalHeld = 0, totalMin = 0;
+  S.lessons.forEach(function(l){ if (l.date >= mr.from && l.date <= mr.to && isUsed(l)) { totalHeld++; totalMin += (+l.dur || 60); } });
+
+  return head(t("r.title"), fmtMonth(mr.y, mr.m)) +
+    '<div class="stack"><div class="grid-4">' +
+      kpi(t("r.byCurrency"), fmtMap(incomeMap(mr.from, mr.to)), fmtMonth(mr.y, mr.m)) +
+      kpi(t("r.held"), totalHeld, t("l.count")) +
+      kpi(t("r.hours"), (totalMin / 60).toFixed(1), fmtMonth(mr.y, mr.m)) +
+      kpi(t("nav.students"), activeStudents().length, t("s.total")) +
+    "</div>" +
+    '<div class="card"><div class="card-h"><h2>' + esc(t("r.income6")) + "</h2>" + curPicker + '</div><div class="card-b">' + bars + "</div></div>" +
+    '<div class="card"><div class="card-h"><h2>' + esc(t("r.byStudent")) + '</h2></div><div class="card-b">' + table + "</div></div></div>";
+}
+
+/* ---------------------------- вид: школа ---------------------------- */
+var schoolData = null;
+function viewSchool(){
+  if (!schoolData) {
+    apiCall("GET", "/api/school").then(function(r){
+      if (r.status === 200) { schoolData = r.data; if (tab === "school") render(); }
+    });
+    return head(t("sc.title"), "") + '<div class="card"><div class="card-b"><div class="empty">…</div></div></div>';
+  }
+  var rows = schoolData.teachers.map(function(x){
+    var inc = Object.keys(x.income || {}).map(function(c){ return money(x.income[c], c); }).join(" · ") || "—";
+    return '<div class="row"><span class="ava">' + esc(initials(x.name || x.email)) + "</span>" +
+      '<div class="g"><div class="nm">' + esc(x.name || x.email) + "</div>" +
+      '<div class="sb">' + esc((x.name ? x.email + " · " : "") + t("sc." + (x.role === "owner" ? "owner" : "teacher"))) + "</div></div>" +
+      '<span class="chip mut">' + x.students + " " + esc(t("s.total")) + "</span>" +
+      '<span class="chip ok">' + esc(inc) + "</span>" +
+      '<div class="act">' + (x.role === "owner" ? "" :
+        '<button class="btn btn-d btn-s" data-act="teacher-del" data-id="' + x.id + '">' + esc(t("sc.remove")) + "</button>") + "</div></div>";
+  }).join("");
+
+  return head(t("sc.title"), t("sc.hint"),
+      '<button class="btn btn-p" data-act="teacher-add">+ ' + esc(t("sc.add")) + "</button>") +
+    '<div class="card"><div class="card-h"><h2>' + esc(t("sc.teachers")) + "</h2>" +
+    '<span class="chip mut">' + esc(t("sc.held") + ": " + (function(m){
+      if (!m) return "";
+      var pp = m.split("-");
+      return fmtMonth(+pp[0], +pp[1] - 1);
+    })(schoolData.month)) + "</span></div>" +
+    '<div class="card-b">' + rows + "</div></div>";
+}
+function teacherForm(){
+  modal(t("sc.add"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("s.name")) + '<input class="inp" id="tc-name"></label>' +
+      '<label class="fl">' + esc(t("sc.email")) + '<input class="inp" id="tc-email" type="email"></label>' +
+      '<p class="hint">' + esc(t("sc.hint")) + "</p></div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>");
+  onSubmit = function(){
+    apiCall("POST", "/api/school/teachers", { name: val("tc-name"), email: val("tc-email") }).then(function(r){
+      if (r.status === 402) { closeModal(); planWall(t("pl.needTeachers")); return; }
+      if (r.status !== 200) { toast(r.data.error === "email_taken" ? "email" : t("sv.offline")); return; }
+      schoolData = null; closeModal(); render(); toast(t("a.saved"));
+    });
+  };
+}
+
+/* ---------------------------- вид: настройки ---------------------------- */
+function viewSettings(){
+  return head(t("c.title"), "Slate · " + S.students.length + " " + t("s.total") + " · " + S.lessons.length + " " + t("l.count")) +
+    '<div class="stack"><div class="card"><div class="card-h"><h2>' + esc(t("c.title")) + '</h2></div><div class="card-b">' +
+    '<div class="f" style="padding:12px 0">' +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="set-cur">' + curOptions(S.cur) + "</select></label>" +
+        '<label class="fl">' + esc(t("c.defRate")) + '<input class="inp tnum" id="set-rate" type="number" min="0" step="50" value="' + (+S.defRate || 0) + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("c.teacher")) + '<input class="inp" id="set-teacher" value="' + esc(S.teacher || "") + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("c.defDur")) + '<input class="inp tnum" id="set-dur" type="number" min="15" step="15" value="' + (+S.defDur || 60) + '"></label>' +
+        '<label class="fl">' + esc(t("c.lang")) +
+          '<select class="inp" id="set-lang">' + LANGS.map(function(l){
+            return '<option value="' + l + '"' + (S.lang === l ? " selected" : "") + ">" + ({ en:"English", ru:"Русский", hy:"Հայերեն" })[l] + "</option>";
+          }).join("") + "</select></label>" +
+      "</div>" +
+      '<label class="check"><input type="checkbox" id="set-noshow"' + (S.countNoShow ? " checked" : "") + ">" + esc(t("c.noShow")) + "</label>" +
+      '<button class="btn btn-p" data-act="settings-save" style="align-self:flex-start">' + esc(t("a.save")) + "</button>" +
+    "</div></div></div>" +
+    (API.on && isOwner() ? '<div class="card"><div class="card-h"><h2>' + esc(t("pl.plan")) + '</h2>' +
+      '<span class="chip ok">' + esc(t("pl." + planName())) + '</span></div><div class="card-b">' +
+      '<p class="hint" style="padding:10px 0 14px">' + esc(t("pl.noBilling")) + "</p>" +
+      '<div style="display:flex;gap:9px;flex-wrap:wrap;padding-bottom:12px">' +
+      ["free","pro","studio"].map(function(pn){
+        return '<button class="btn ' + (planName() === pn ? "btn-p" : "btn-g") + '" data-act="set-plan" data-plan="' + pn + '">' + esc(t("pl." + pn)) + "</button>";
+      }).join("") + "</div></div></div>" : "") +
+    '<div class="card"><div class="card-h"><h2>' + esc(t("c.data")) + '</h2></div><div class="card-b">' +
+      '<p class="hint" style="padding:10px 0 14px">' + esc(t("c.dataNote")) + "</p>" +
+      '<div style="display:flex;gap:9px;flex-wrap:wrap;padding-bottom:12px">' +
+        '<button class="btn btn-p" data-act="export">' + esc(t("c.export")) + "</button>" +
+        '<button class="btn btn-g" data-act="import">' + esc(t("c.import")) + "</button>" +
+        '<button class="btn btn-g" data-act="demo">' + esc(t("c.demo")) + "</button>" +
+        '<button class="btn btn-d" data-act="wipe">' + esc(t("c.wipe")) + "</button>" +
+      "</div></div></div></div>";
+}
+
+/* ---------------------------- модалки ---------------------------- */
+var onSubmit = null;
+function modal(title, body, footer, wide){
+  var m = document.getElementById("modal");
+  m.className = "modal" + (wide ? " wide" : "");
+  m.innerHTML = '<div class="modal-h"><h3>' + esc(title) + '</h3><button class="x" data-act="modal-close">×</button></div>' +
+    '<div class="modal-b">' + body + "</div>" +
+    '<div class="modal-f">' + (footer || '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>") + "</div>";
+  document.getElementById("overlay").classList.add("on");
+}
+function closeModal(){ document.getElementById("overlay").classList.remove("on"); onSubmit = null; }
+function toast(msg){
+  var el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(el._tm); el._tm = setTimeout(function(){ el.classList.remove("on"); }, 1900);
+}
+function val(id){ var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function checked(id){ var el = document.getElementById(id); return !!(el && el.checked); }
+function curOptions(sel){
+  return CUR_LIST.map(function(c){
+    return '<option value="' + c + '"' + (sel === c ? " selected" : "") + ">" + CUR[c] + " · " + esc(t("cur." + c)) + "</option>";
+  }).join("");
+}
+function studentOptions(sel){
+  return activeStudents().sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(s){
+    return '<option value="' + s.id + '"' + (sel === s.id ? " selected" : "") + ">" + esc(s.name) + (s.subject ? " · " + esc(s.subject) : "") + "</option>";
+  }).join("");
+}
+
+/* --- ученик --- */
+function studentForm(id){
+  var s = id ? student(id) : null;
+  modal(s ? t("a.edit") : t("s.new"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("s.name")) + '<input class="inp" id="st-name" value="' + esc(s ? s.name : "") + '" placeholder="Мари Аветисян"></label>' +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("s.subject")) + '<input class="inp" id="st-subj" value="' + esc(s ? s.subject : "") + '"></label>' +
+        '<label class="fl">' + esc(t("s.level")) + '<input class="inp" id="st-lvl" value="' + esc(s ? s.level : "") + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("s.rate")) + '<input class="inp tnum" id="st-rate" type="number" min="0" step="50" value="' + (s ? (+s.rate || 0) : (+S.defRate || 0)) + '"></label>' +
+        '<label class="fl">' + esc(t("cur.student")) + '<select class="inp" id="st-cur">' + curOptions(s ? s.currency : S.cur) + "</select></label>" +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("s.contact")) + '<input class="inp" id="st-contact" value="' + esc(s ? s.contact : "") + '" placeholder="+374 …"></label>' +
+        '<label class="fl">' + esc(t("s.parent")) + '<input class="inp" id="st-parent" value="' + esc(s ? s.parent : "") + '"></label>' +
+      "</div>" +
+      '<label class="fl">' + esc(t("s.links")) + '<textarea class="inp" id="st-links" placeholder="Zoom | https://zoom.us/j/…&#10;' + esc(t("l.hw")) + ' | https://…">' + esc(s ? s.links : "") + "</textarea></label>" +
+      '<label class="fl">' + esc(t("s.notes")) + '<textarea class="inp" id="st-notes">' + esc(s ? s.notes : "") + "</textarea></label>" +
+    "</div>",
+    (s ? '<button class="btn btn-d" data-act="student-del" data-id="' + s.id + '">' + esc(t("a.delete")) + "</button>" +
+         '<button class="btn btn-g" data-act="student-arch" data-id="' + s.id + '">' + esc(s.archived ? t("s.unarchive") : t("s.archive")) + "</button>" : "") +
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>");
+
+  onSubmit = function(){
+    var name = val("st-name");
+    if (!name) { document.getElementById("st-name").focus(); return; }
+    var data = { name: name, subject: val("st-subj"), level: val("st-lvl"), rate: +val("st-rate") || 0,
+                 currency: val("st-cur") || S.cur, links: val("st-links"),
+                 contact: val("st-contact"), parent: val("st-parent"), notes: val("st-notes") };
+    var freshId = null;
+    if (s) Object.assign(s, data);
+    else {
+      freshId = uid();
+      S.students.push(Object.assign({ id: freshId, archived: false, code: String(Math.floor(1000 + Math.random() * 9000)) }, data));
+    }
+    save(); closeModal(); render();
+    if (freshId && (!API.on || planLimits().money)) {
+      /* сразу предлагаем завести абонемент — иначе про него забывают */
+      modal(t("s.added"),
+        '<p class="lead" style="font-size:15px">' + esc(name) + " · " + esc(t("s.thenPack")) + "</p>",
+        '<button class="btn btn-g" data-act="modal-close">' + esc(t("s.thenPackNo")) + "</button>" +
+        '<button class="btn btn-p" data-act="pack-new" data-id="' + freshId + '">' + esc(t("s.thenPackYes")) + "</button>");
+    } else toast(t("a.saved"));
+  };
+}
+
+function studentCard(id){
+  var s = student(id); if (!s) return;
+  if (CARD.id !== id) { loadCard(id, function(){ studentCard(id); }); }
+  var photo = CARD.id === id ? (CARD.files.filter(function(f){ return f.kind === "photo"; })[0] || null) : null;
+  var docs = CARD.id === id ? CARD.files.filter(function(f){ return f.kind !== "photo"; }) : [];
+  var msgs = CARD.id === id ? CARD.msgs : [];
+  var canFiles = API.on && planLimits().portal;
+  var b = balance(id), up = upcoming(id, 5);
+  var hist = S.lessons.filter(function(l){ return l.studentId === id && l.date <= today(); })
+    .sort(function(a,b2){ return (a.date + a.time) < (b2.date + b2.time) ? 1 : -1; }).slice(0, 8);
+  var pays = S.payments.filter(function(p){ return p.studentId === id; })
+    .sort(function(a,b2){ return a.date < b2.date ? 1 : -1; }).slice(0, 8);
+
+  modal(s.name,
+    '<div class="stack">' +
+      (photo ? '<div style="display:flex;justify-content:center"><img src="' + esc(photo.url) + '" alt="" ' +
+        'style="width:104px;height:104px;border-radius:50%;object-fit:cover;border:2px solid var(--olive-200)"></div>' : "") +
+      '<div class="grid-3">' +
+        kpi(t("s.balance"), (b < 0 ? "−" + (-b) : b), b < 0 ? t("s.debt") : t("s.left"), b < 0 ? "bad" : b <= 1 ? "warn" : "") +
+        kpi(t("s.paidL"), paidLessons(id), "") +
+        kpi(t("s.usedL"), usedLessons(id), "") +
+      "</div>" +
+      (function(){
+        var pk = packOf(id);
+        return '<div class="card"><div class="card-h"><h2>' + esc(t("pk.title")) + "</h2>" +
+          '<button class="btn btn-g btn-s" data-act="pack-new" data-id="' + id + '">+ ' + esc(t("pk.new")) + '</button></div><div class="card-b">' +
+          (pk ? '<div class="row"><div class="g"><div class="nm">' + pk.size + " " + esc(t("l.count")) + " · " + esc(money(pk.price, pk.currency)) + "</div>" +
+                '<div class="sb">' + esc(t("pk.from") + " " + fmtLong(pk.start) + " " + t("pk.to") + " " + fmtLong(pk.last)) + "</div></div>" +
+                '<span class="chip ' + (pk.last >= today() ? "ok" : "mut") + '">' + esc(t("pk.last") + ": " + fmtLong(pk.last)) + "</span></div>"
+              : '<div class="empty">' + esc(t("pk.none")) + "</div>") +
+          "</div></div>";
+      })() +
+      '<div class="card"><div class="card-b" style="padding-top:10px">' +
+        '<div class="row"><div class="g"><div class="nm">' + esc([s.subject, s.level].filter(Boolean).join(" · ") || "—") + "</div>" +
+        '<div class="sb">' + esc([s.contact, s.parent, s.rate ? money(s.rate, s.currency) : ""].filter(Boolean).join(" · ") || "—") + "</div></div></div>" +
+        (s.notes ? '<div class="row"><div class="g"><div class="sb" style="white-space:normal">' + esc(s.notes) + "</div></div></div>" : "") +
+      "</div></div>" +
+      '<div class="card"><div class="card-h"><h2>' + esc(t("s.upcoming")) + '</h2></div><div class="card-b">' +
+        (up.length ? up.map(function(l){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(fmtLong(l.date) + ", " + l.time) + "</div>" +
+            '<div class="sb">' + esc((l.online ? "online" : "") + (l.hw ? " · " + t("l.hw") + ": " + l.hw : "")) + "</div></div>" +
+            '<div class="act"><button class="btn btn-g btn-s" data-act="lesson-open" data-id="' + l.id + '">' + esc(t("a.edit")) + "</button></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
+      "</div></div>" +
+      '<div class="card"><div class="card-h"><h2>' + esc(t("s.history")) + '</h2></div><div class="card-b">' +
+        (hist.length ? hist.map(function(l){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(fmtLong(l.date) + ", " + l.time) + "</div></div>" +
+            '<span class="chip ' + (l.status === "done" ? "ok" : l.status === "no_show" ? "warn" : "mut") + '">' + esc(t("l." + l.status)) + "</span></div>";
+        }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
+      "</div></div>" +
+      (canFiles ? '<div class="card"><div class="card-h"><h2>' + esc(t("fl.title")) + " · " + docs.length + "</h2>" +
+        '<button class="btn btn-g btn-s" data-act="file-add" data-id="' + id + '">+ ' + esc(t("fl.add")) + '</button></div><div class="card-b">' +
+        (docs.length ? docs.map(function(f){
+          return '<div class="row"><span class="ava" style="font-size:16px">' + fileIcon(f) + "</span>" +
+            '<div class="g"><div class="nm">' + esc(f.name) + "</div>" +
+            '<div class="sb">' + esc(fileSize(f.size) + " · " + fmtWhen(f.created) + (f.author === "student" ? " · " + t("fl.byStudent") : "")) + "</div></div>" +
+            '<div class="act"><button class="btn btn-g btn-s" data-act="file-open" data-fid="' + f.id + '">' + esc(t("fl.open")) + "</button>" +
+            '<button class="btn btn-d btn-s" data-act="file-del" data-fid="' + f.id + '" data-id="' + id + '">' + esc(t("a.delete")) + "</button></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("fl.none")) + "</div>") + "</div></div>" : "") +
+
+      (canFiles ? '<div class="card"><div class="card-h"><h2>' + esc(t("ch.title")) + '</h2></div><div class="card-b">' +
+        '<div class="chat">' +
+        (msgs.length ? msgs.map(function(m){
+          return '<div class="msg ' + (m.author === "teacher" ? "me" : "") + '">' +
+            (m.text ? '<div class="tx">' + esc(m.text) + "</div>" : "") +
+            (m.file ? '<button class="msg-file" data-act="file-open" data-fid="' + m.file.id + '">' + fileIcon(m.file) + " " + esc(m.file.name) + "</button>" : "") +
+            '<div class="wh">' + esc((m.author === "teacher" ? t("ch.you") : esc(s.name)) + " · " + fmtWhen(m.created)) + "</div></div>";
+        }).join("") : '<div class="empty">' + esc(t("ch.none")) + "</div>") +
+        "</div>" +
+        '<div class="chat-send"><input class="inp" id="ch-text" placeholder="' + esc(t("ch.write")) + '">' +
+        '<button class="btn btn-g btn-icon" data-act="ch-attach" data-id="' + id + '" title="' + esc(t("ch.attach")) + '">📎</button>' +
+        '<button class="btn btn-p" data-act="ch-send" data-id="' + id + '">' + esc(t("ch.send")) + "</button></div>" +
+        "</div></div>" :
+        (API.on ? "" : '<div class="card"><div class="card-b"><div class="empty">' + esc(t("fl.serverOnly")) + "</div></div></div>")) +
+
+      '<div class="card"><div class="card-h"><h2>' + esc(t("s.payments")) + '</h2>' +
+        '<button class="btn btn-p btn-s" data-act="pay-new" data-id="' + id + '">+ ' + esc(t("p.add")) + "</button></div><div class=\"card-b\">" +
+        (pays.length ? pays.map(function(p){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("l.count")) + "</div>" +
+            '<div class="sb">' + esc(fmtLong(p.date) + (p.note ? " · " + p.note : "")) + "</div></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>") +
+      "</div></div>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="cab-share" data-id="' + id + '">' + esc(t("cab.title")) + "</button>" +
+    '<button class="btn btn-g" data-act="student-text" data-id="' + id + '">' + esc(t("s.forStudent")) + "</button>" +
+    '<button class="btn btn-g" data-act="student-edit" data-id="' + id + '">' + esc(t("a.edit")) + "</button>" +
+    '<button class="btn btn-p" data-act="lesson-new" data-student="' + id + '">+ ' + esc(t("l.new")) + "</button>", true);
+}
+
+function studentText(id){
+  var s = student(id); if (!s) return;
+  var b = balance(id), up = upcoming(id, 3);
+  var lines = [s.name + (s.subject ? " · " + s.subject : ""),
+    t("s.balance") + ": " + (b < 0 ? "−" + (-b) : b) + " " + t("l.count")];
+  if (up.length) {
+    lines.push("");
+    lines.push(t("s.upcoming") + ":");
+    up.forEach(function(l){ lines.push("• " + fmtLong(l.date) + ", " + l.time + (l.online ? " · online" : "") + (l.hw ? " · " + l.hw : "")); });
+  }
+  var text = lines.join("\n");
+  modal(t("s.forStudent"),
+    '<textarea class="inp" id="st-text" style="min-height:150px">' + esc(text) + "</textarea>" +
+    '<p class="hint" style="margin-top:10px">' + esc(t("s.forStudent")) + "</p>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    '<button class="btn btn-p" data-act="copy-text">' + esc(t("a.copy")) + "</button>");
+}
+
+/* --- абонемент: N занятий, дни недели, последний день считается сам --- */
+function packForm(sid){
+  if (!activeStudents().length) { studentForm(); return; }
+  var pre = sid || (activeStudents()[0] || {}).id, s = student(pre) || {};
+  var dayBoxes = DKEYS.map(function(k, i){
+    return '<label class="check" style="gap:6px"><input type="checkbox" class="pk-day" value="' + (i + 1) + '"' +
+      (i < 1 ? " checked" : "") + ">" + esc(t(k)) + "</label>";
+  }).join("");
+
+  modal(t("pk.new"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("l.student")) + '<select class="inp" id="pk-student">' + studentOptions(pre) + "</select></label>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.size")) +
+          '<select class="inp" id="pk-size"><option>8</option><option>10</option><option>12</option><option>4</option><option>16</option><option>20</option></select></label>' +
+        '<label class="fl">' + esc(t("pk.start")) + '<input class="inp" id="pk-start" type="date" value="' + today() + '"></label>' +
+      "</div>" +
+      '<div><div class="fl" style="margin-bottom:7px">' + esc(t("pk.days")) + "</div>" +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px" id="pk-days">' + dayBoxes + "</div></div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.time")) + '<input class="inp" id="pk-time" type="time" value="17:00"></label>' +
+        '<label class="fl">' + esc(t("l.dur")) + '<input class="inp tnum" id="pk-dur" type="number" min="15" step="15" value="' + (+S.defDur || 60) + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("pk.price")) + '<input class="inp tnum" id="pk-price" type="number" min="0" step="100" value="' + ((+s.rate || +S.defRate || 0) * 8) + '"></label>' +
+        '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="pk-cur">' + curOptions(s.currency || S.cur) + "</select></label>" +
+      "</div>" +
+      '<label class="check"><input type="checkbox" id="pk-paid" checked>' + esc(t("pk.paid")) + "</label>" +
+      '<div class="kpi" id="pk-preview" style="margin-top:2px"></div>' +
+      '<p class="hint">' + esc(t("pk.willBe")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>", true);
+
+  var pickedDays = function(){
+    return Array.prototype.slice.call(document.querySelectorAll(".pk-day:checked")).map(function(x){ return +x.value; });
+  };
+  var preview = function(){
+    var days = pickedDays(), size = +val("pk-size") || 0, dates = packDates(val("pk-start"), days, size);
+    var box = document.getElementById("pk-preview");
+    if (!dates.length) { box.innerHTML = '<div class="l">' + esc(t("pk.pickDays")) + "</div>"; return; }
+    box.innerHTML = '<div class="l">' + esc(t("pk.last")) + '</div><div class="v">' + esc(fmtLong(dates[dates.length - 1])) + "</div>" +
+      '<div class="n">' + esc(t("pk.from") + " " + fmtLong(dates[0]) + " " + t("pk.to") + " " + fmtLong(dates[dates.length - 1]) + " · " + size + " " + t("l.count")) + "</div>";
+  };
+  var recalcPrice = function(){
+    var st = student(val("pk-student")) || {}, n = +val("pk-size") || 0;
+    document.getElementById("pk-price").value = (+st.rate || +S.defRate || 0) * n;
+    var cs = document.getElementById("pk-cur"); if (st.currency) cs.value = st.currency;
+  };
+  document.getElementById("pk-days").addEventListener("change", preview);
+  document.getElementById("pk-size").addEventListener("change", function(){ recalcPrice(); preview(); });
+  document.getElementById("pk-start").addEventListener("change", preview);
+  document.getElementById("pk-student").addEventListener("change", recalcPrice);
+  preview();
+
+  onSubmit = function(){
+    var days = pickedDays(), size = +val("pk-size") || 0, start = val("pk-start"), sid2 = val("pk-student");
+    if (!days.length) { toast(t("pk.pickDays")); return; }
+    var dates = packDates(start, days, size);
+    if (!dates.length || !sid2) return;
+    var packId = uid(), time = val("pk-time") || "17:00", dur = +val("pk-dur") || 60;
+    dates.forEach(function(d){
+      S.lessons.push({ id: uid(), studentId: sid2, date: d, time: time, dur: dur, online: false,
+                       hw: "", note: "", link: "", packId: packId, status: "planned" });
+    });
+    S.packs.push({ id: packId, studentId: sid2, size: size, start: dates[0], last: dates[dates.length - 1],
+                   days: days, time: time, price: +val("pk-price") || 0, currency: val("pk-cur") || S.cur });
+    if (checked("pk-paid")) {
+      S.payments.push({ id: uid(), studentId: sid2, lessons: size, amount: +val("pk-price") || 0,
+                        currency: val("pk-cur") || S.cur, date: today(), note: t("pk.title") });
+    }
+    save(); closeModal(); render(); toast(t("pk.created") + ": " + fmtLong(dates[dates.length - 1]));
+  };
+}
+
+/* --- занятие --- */
+function lessonForm(id, presetDate, presetStudent){
+  var l = id ? lesson(id) : null;
+  if (!l && !activeStudents().length) { studentForm(); return; }
+  var sid = l ? l.studentId : (presetStudent || (activeStudents()[0] || {}).id);
+
+  modal(l ? t("l.edit") : t("l.new"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("l.student")) + '<select class="inp" id="ls-student">' + studentOptions(sid) + "</select></label>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("l.date")) + '<input class="inp" id="ls-date" type="date" value="' + esc(l ? l.date : (presetDate || today())) + '"></label>' +
+        '<label class="fl">' + esc(t("l.time")) + '<input class="inp" id="ls-time" type="time" value="' + esc(l ? l.time : "17:00") + '"></label>' +
+      "</div>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("l.dur")) + '<input class="inp tnum" id="ls-dur" type="number" min="15" step="15" value="' + (l ? (+l.dur || 60) : (+S.defDur || 60)) + '"></label>' +
+        (l ? "" : '<label class="fl">' + esc(t("l.repeat")) + ' (' + esc(t("l.repeatN")) + ')<input class="inp tnum" id="ls-rep" type="number" min="0" max="52" value="0"></label>') +
+      "</div>" +
+      '<label class="check"><input type="checkbox" id="ls-online"' + (l && l.online ? " checked" : "") + ">" + esc(t("l.online")) + "</label>" +
+      '<label class="fl">' + esc(t("l.link")) + '<input class="inp" id="ls-link" value="' + esc(l ? l.link : "") + '" placeholder="https://…"></label>' +
+      '<label class="fl">' + esc(t("l.hw")) + '<input class="inp" id="ls-hw" value="' + esc(l ? l.hw : "") + '"></label>' +
+      '<label class="fl">' + esc(t("l.note")) + '<input class="inp" id="ls-note" value="' + esc(l ? l.note : "") + '"></label>' +
+      (l ? '<p class="hint">' + esc(t("l.willCharge")) + "</p>" : "") +
+    "</div>",
+    (l ? '<button class="btn btn-d" data-act="lesson-del" data-id="' + l.id + '">' + esc(t("a.delete")) + "</button>" +
+         (l.status === "planned"
+            ? '<button class="btn btn-g" data-act="lesson-cancel" data-id="' + l.id + '">' + esc(t("l.markCancel")) + "</button>" +
+              '<button class="btn btn-g" data-act="lesson-noshow" data-id="' + l.id + '">' + esc(t("l.markNo")) + "</button>" +
+              '<button class="btn btn-p" data-act="lesson-done" data-id="' + l.id + '">' + esc(t("l.mark")) + "</button>"
+            : '<button class="btn btn-g" data-act="lesson-plan" data-id="' + l.id + '">' + esc(t("l.unmark")) + "</button>") : "") +
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>", true);
+
+  onSubmit = function(){
+    var data = { studentId: val("ls-student"), date: val("ls-date"), time: val("ls-time"),
+                 dur: +val("ls-dur") || 60, online: checked("ls-online"), link: val("ls-link"),
+                 hw: val("ls-hw"), note: val("ls-note") };
+    if (!data.studentId || !data.date || !data.time) return;
+    if (l) Object.assign(l, data);
+    else {
+      var rep = +val("ls-rep") || 0, series = uid();
+      for (var i = 0; i <= rep; i++) {
+        S.lessons.push(Object.assign({}, data, { id: uid(), series: series, status: "planned", date: addDays(data.date, i * 7) }));
+      }
+    }
+    save(); closeModal(); render(); toast(t("a.saved"));
+  };
+}
+function setStatus(id, st){
+  var l = lesson(id); if (!l) return;
+  l.status = st; save(); closeModal(); render();
+  toast(t("l." + st));
+}
+
+/* --- оплата --- */
+function paymentForm(sid){
+  if (!activeStudents().length) { studentForm(); return; }
+  var pre = sid || (activeStudents()[0] || {}).id, s = student(pre) || {};
+  modal(t("p.new"),
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("l.student")) + '<select class="inp" id="pay-student">' + studentOptions(pre) + "</select></label>" +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("p.lessons")) + '<input class="inp tnum" id="pay-lessons" type="number" min="0" step="1" value="8"></label>' +
+        '<label class="fl">' + esc(t("p.amount")) + '<input class="inp tnum" id="pay-amount" type="number" min="0" step="100" value="' + ((+s.rate || +S.defRate || 0) * 8) + '"></label>' +
+      "</div>" +
+      '<label class="fl">' + esc(t("cur.title")) + '<select class="inp" id="pay-cur">' + curOptions(s.currency || S.cur) + "</select></label>" +
+      '<label class="fl">' + esc(t("p.date")) + '<input class="inp" id="pay-date" type="date" value="' + today() + '"></label>' +
+      '<label class="fl">' + esc(t("l.note")) + '<input class="inp" id="pay-note"></label>' +
+      '<p class="hint">' + esc(t("p.autoAmount")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("a.save")) + "</button>");
+
+  var recalc = function(){
+    var st = student(val("pay-student")) || {}, n = +val("pay-lessons") || 0;
+    document.getElementById("pay-amount").value = (+st.rate || +S.defRate || 0) * n;
+    if (st.currency) document.getElementById("pay-cur").value = st.currency;
+  };
+  document.getElementById("pay-student").addEventListener("change", recalc);
+  document.getElementById("pay-lessons").addEventListener("input", recalc);
+
+  onSubmit = function(){
+    var p = { id: uid(), studentId: val("pay-student"), lessons: +val("pay-lessons") || 0,
+              amount: +val("pay-amount") || 0, currency: val("pay-cur") || S.cur,
+              date: val("pay-date") || today(), note: val("pay-note") };
+    if (!p.studentId) return;
+    S.payments.push(p); save(); closeModal(); render(); toast(t("a.saved"));
+  };
+}
+
+/* ---------------------------- файлы и переписка ---------------------------- */
+var CARD = { id: null, files: [], msgs: [] };
+
+function fileIcon(f){
+  if (/^image\//.test(f.mime)) return "🖼";
+  if (f.mime === "application/pdf") return "📄";
+  if (/^audio\//.test(f.mime)) return "🎧";
+  if (/^video\//.test(f.mime)) return "🎬";
+  return "📎";
+}
+function fileSize(n){
+  return n > 1048576 ? (n / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+}
+var pendingPick = null;
+document.getElementById("filePick").addEventListener("change", function(){
+  var cb = pendingPick; pendingPick = null;
+  if (cb) cb(Array.prototype.slice.call(this.files));
+});
+function pickFiles(cb, accept){
+  var inp = document.getElementById("filePick");
+  pendingPick = cb;
+  inp.value = "";
+  inp.accept = accept || "";
+  inp.click();
+}
+function uploadFiles(studentId, list, kind, done){
+  if (!list.length) return done && done();
+  toast(t("fl.uploading"));
+  var left = list.length, failed = 0;
+  list.forEach(function(f){
+    var fr = new FileReader();
+    fr.onload = function(){
+      var b64 = String(fr.result).split(",")[1] || "";
+      apiCall("POST", "/api/files", { studentId: studentId, name: f.name, mime: f.type || "application/octet-stream",
+                                      kind: kind || "file", data: b64 }).then(function(r){
+        if (r.status !== 200) {
+          failed++;
+          toast(r.status === 413 ? (r.data.error === "quota" ? t("fl.quota") : t("fl.tooBig"))
+              : r.status === 415 ? t("fl.badType")
+              : r.status === 402 ? t("pl.needMoney") : t("sv.offline"));
+        }
+        if (!--left) done && done(failed);
+      });
+    };
+    fr.readAsDataURL(f);
+  });
+}
+function loadCard(id, then){
+  if (!API.on || !planLimits().portal) { CARD = { id: id, files: [], msgs: [] }; return then(); }
+  Promise.all([apiCall("GET", "/api/files?studentId=" + encodeURIComponent(id)),
+               apiCall("GET", "/api/messages?studentId=" + encodeURIComponent(id))]).then(function(r){
+    CARD = { id: id,
+             files: (r[0].data && r[0].data.files) || [],
+             msgs: (r[1].data && r[1].data.messages) || [] };
+    then();
+  });
+}
+function viewFile(f){
+  var body = /^image\//.test(f.mime)
+    ? '<img src="' + esc(f.url) + '" alt="' + esc(f.name) + '" style="max-width:100%;border-radius:12px;display:block;margin:0 auto">'
+    : f.mime === "application/pdf"
+      ? '<iframe src="' + esc(f.url) + '" style="width:100%;height:min(70vh,700px);border:1px solid var(--line);border-radius:12px;background:#fff"></iframe>'
+      : '<div class="empty"><b>' + esc(f.name) + "</b>" + esc(fileSize(f.size)) + "</div>";
+  modal(f.name, body,
+    '<a class="btn btn-g" href="' + esc(f.url) + '" target="_blank" rel="noopener">' + esc(t("fl.newTab")) + "</a>" +
+    '<a class="btn btn-p" href="' + esc(f.url) + '" download="' + esc(f.name) + '">' + esc(t("fl.download")) + "</a>", true);
+}
+function fmtWhen(ts){
+  try { return new Intl.DateTimeFormat(LOC[S.lang], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
+  catch (e) { return ""; }
+}
+
+/* ---------------------------- кабинет ученика ---------------------------- */
+/* Кабинет открывается ссылкой вида …index.html#student=ID и закрыт кодом.
+   Пока программа локальная, ссылка работает на этом компьютере; после переезда
+   на сервер тот же адрес откроется у ученика с телефона. */
+function cabLink(id){
+  var s = student(id) || {};
+  if (API.on) {
+    var token = API.portal[id];
+    return { url: token ? location.origin + "/s/" + token : "", code: s.code || "", server: true };
+  }
+  return { url: location.origin + location.pathname + "#student=" + id, code: s.code || "" };
+}
+function cabShare(id){
+  var s = student(id); if (!s) return;
+  var L = cabLink(id);
+  modal(t("cab.title") + " · " + s.name,
+    '<div class="f">' +
+      '<label class="fl">' + esc(t("cab.link")) + '<input class="inp" id="cab-url" value="' + esc(L.url) + '" readonly></label>' +
+      '<label class="fl">' + esc(t("cab.code")) + '<input class="inp tnum" id="cab-code" value="' + esc(L.code) + '" readonly style="font-size:22px;letter-spacing:.18em"></label>' +
+      '<textarea class="inp" id="st-text" style="min-height:80px">' + esc(t("cab.title") + ": " + L.url + "\n" + t("cab.code") + ": " + L.code) + "</textarea>" +
+      '<p class="hint">' + esc(t("cab.localNote")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    '<button class="btn btn-g" data-act="copy-text">' + esc(t("cab.copyLink")) + "</button>" +
+    '<button class="btn btn-p" data-act="cab-open" data-id="' + id + '">' + esc(t("cab.open")) + "</button>");
+}
+
+var cabId = null;
+function cabAuthed(id){
+  try { return sessionStorage.getItem("slate-cab-" + id) === "1"; } catch (e) { return false; }
+}
+function cabAuth(id){ try { sessionStorage.setItem("slate-cab-" + id, "1"); } catch (e) {} }
+
+function renderCabinet(id){
+  var s = student(id);
+  var host = document.getElementById("view");
+  document.querySelector(".app").classList.add("cab-mode");
+  if (!s) { host.innerHTML = '<div class="empty"><b>—</b></div>'; return; }
+
+  if (!cabAuthed(id)) {
+    host.innerHTML =
+      '<div class="cab-wrap"><div class="card" style="max-width:380px;margin:60px auto"><div class="card-h"><h2>' + esc(t("cab.title")) + '</h2></div>' +
+      '<div class="card-b"><div class="f" style="padding:12px 0">' +
+      '<p class="hint">' + esc(t("cab.codeHint")) + "</p>" +
+      '<input class="inp tnum" id="cab-input" inputmode="numeric" style="font-size:22px;letter-spacing:.2em;text-align:center" placeholder="••••">' +
+      '<button class="btn btn-p" data-act="cab-login" data-id="' + id + '">' + esc(t("cab.enter")) + "</button>" +
+      '<button class="btn btn-g" data-act="cab-exit">' + esc(t("cab.forTeacher")) + "</button>" +
+      "</div></div></div></div>";
+    var inp = document.getElementById("cab-input");
+    if (inp) { inp.focus(); inp.addEventListener("keydown", function(e){ if (e.key === "Enter") cabLogin(id); }); }
+    return;
+  }
+
+  var b = balance(id), pk = packOf(id), up = upcoming(id, 6), links = studentLinks(s);
+  var pays = S.payments.filter(function(p){ return p.studentId === id; })
+    .sort(function(a,b2){ return a.date < b2.date ? 1 : -1; }).slice(0, 6);
+  var hw = S.lessons.filter(function(l){ return l.studentId === id && l.hw; })
+    .sort(function(a,b2){ return a.date < b2.date ? 1 : -1; })[0];
+
+  host.innerHTML =
+    '<div class="cab-wrap">' +
+      '<div class="cab-head"><div><h1>' + esc(s.name) + "</h1>" +
+        '<div class="sub">' + esc([s.subject, s.level].filter(Boolean).join(" · ")) + "</div></div>" +
+        '<button class="btn btn-g btn-s" data-act="cab-exit">' + esc(t("cab.exit")) + "</button></div>" +
+
+      '<div class="grid-2">' +
+        '<div class="kpi ' + (b < 0 ? "bad" : b <= 1 ? "warn" : "") + '"><div class="l">' + esc(t("cab.balance")) +
+          '</div><div class="v tnum">' + (b < 0 ? "−" + (-b) : b) + '</div><div class="n">' +
+          esc(pk ? t("cab.until") + " " + fmtLong(pk.last) : "") + "</div></div>" +
+        '<div class="kpi"><div class="l">' + esc(t("cab.teacher")) + '</div><div class="v" style="font-size:20px">' + esc(S.teacher || "Slate") + "</div>" +
+          '<div class="n">' + esc(s.contact || "") + "</div></div>" +
+      "</div>" +
+
+      '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.next")) + '</h2></div><div class="card-b">' +
+        (up.length ? up.map(function(l){
+          var url = l.link || (links[0] ? links[0].url : "");
+          return '<div class="row"><div class="g"><div class="nm">' + esc(fmtLong(l.date) + ", " + l.time) + "</div>" +
+            '<div class="sb">' + esc((l.online ? "online · " : "") + (l.hw || "")) + "</div></div>" +
+            (url ? '<a class="btn btn-p btn-s" href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener">' + esc(t("cab.join")) + "</a>" : "") +
+            "</div>";
+        }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
+      "</div></div>" +
+
+      (hw ? '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("l.hw")) + '</h2></div><div class="card-b">' +
+        '<div class="row"><div class="g"><div class="nm" style="white-space:normal">' + esc(hw.hw) + "</div>" +
+        '<div class="sb">' + esc(fmtLong(hw.date)) + "</div></div></div></div></div>" : "") +
+
+      (links.length ? '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.links")) + '</h2></div><div class="card-b">' +
+        links.map(function(x){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(x.title) + "</div></div>" +
+            '<a class="btn btn-g btn-s" href="' + esc(safeUrl(x.url)) + '" target="_blank" rel="noopener">' + esc(t("cab.join")) + "</a></div>";
+        }).join("") + "</div></div>" : "") +
+
+      '<div class="card" style="margin-top:16px"><div class="card-h"><h2>' + esc(t("cab.pay")) + '</h2></div><div class="card-b">' +
+        (pays.length ? pays.map(function(p){
+          return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("l.count")) + "</div>" +
+            '<div class="sb">' + esc(fmtLong(p.date)) + "</div></div></div>";
+        }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>") +
+      "</div></div>" +
+    "</div>";
+}
+function cabLogin(id){
+  var s = student(id), v = (document.getElementById("cab-input") || {}).value;
+  if (s && String(v || "").trim() === String(s.code)) { cabAuth(id); renderCabinet(id); }
+  else toast(t("cab.wrong"));
+}
+function route(){
+  var m = /#student=([A-Za-z0-9]+)/.exec(location.hash || "");
+  if (m) { cabId = m[1]; renderCabinet(cabId); }
+  else {
+    cabId = null;
+    document.querySelector(".app").classList.remove("cab-mode");
+    render();
+  }
+}
+window.addEventListener("hashchange", route);
+
+/* ---------------------------- данные: экспорт/импорт/демо ---------------------------- */
+function exportData(){
+  var blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "slate-" + today() + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+}
+function importData(){
+  var inp = document.createElement("input");
+  inp.type = "file"; inp.accept = "application/json,.json";
+  inp.style.position = "fixed"; inp.style.left = "-9999px";
+  document.body.appendChild(inp);
+  inp.onchange = function(){
+    var f = inp.files[0]; if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function(){
+      try {
+        var d = JSON.parse(fr.result);
+        if (!d || !Array.isArray(d.students)) throw 0;
+        S = Object.assign(blank(), d); save(); render(); toast(t("c.imported"));
+      } catch (e) { toast(t("c.importBad")); }
+      if (inp.parentNode) inp.parentNode.removeChild(inp);
+    };
+    fr.readAsText(f);
+  };
+  inp.click();
+}
+function demoData(){
+  var d = blank();
+  d.lang = S.lang; d.cur = S.cur; d.defRate = S.defRate;
+  var names = [["Мари Аветисян","Английский","B1",6000,"AMD"],["Лёва Барсегян","Математика","9 класс",5000,"AMD"],
+               ["Арам Саркисян","Подготовка к экзамену","11 класс",2500,"RUB"],["Тигран Мкртчян","Гитара","",30,"USD"],
+               ["Нина Карапетян","Английский","A2",5500,"AMD"]];
+  var ws = weekStart(today());
+  names.forEach(function(n, i){
+    var s = { id: uid(), name: n[0], subject: n[1], level: n[2], rate: n[3], currency: n[4],
+              code: String(1000 + i * 1111), contact: "", parent: "",
+              links: i % 2 === 0 ? "Zoom | https://zoom.us/j/000" + i : "", notes: "", archived: false };
+    d.students.push(s);
+    [-2, -34, -66].forEach(function(off){
+      d.payments.push({ id: uid(), studentId: s.id, lessons: 8, amount: n[3] * 8,
+                        currency: n[4], date: addDays(today(), off), note: "" });
+    });
+    var days = [((i % 5) + 1), ((i + 2) % 5) + 1].filter(function(v, k, arr){ return arr.indexOf(v) === k; });
+    var dates = packDates(addDays(today(), -14), days, 12);
+    d.packs.push({ id: uid(), studentId: s.id, size: 12, start: dates[0], last: dates[dates.length - 1],
+                   days: days, time: "17:00", price: n[3] * 12, currency: n[4] });
+    for (var w = -2; w <= 2; w++) {
+      for (var k = 0; k < 2; k++) {
+        var day = (i + k * 2) % 5, date = addDays(ws, w * 7 + day);
+        d.lessons.push({ id: uid(), studentId: s.id, date: date, time: ["15:00","17:00","18:30","20:00"][(i + k) % 4],
+                         dur: 60, online: i % 2 === 0, hw: "", note: "",
+                         status: date < today() ? "done" : "planned" });
+      }
+    }
+  });
+  S = d; save(); render(); toast(t("a.saved"));
+}
+
+/* ---------------------------- события ---------------------------- */
+document.addEventListener("click", function(e){
+  var lb = e.target.closest("[data-lang]");
+  if (lb) { S.lang = lb.dataset.lang; save(); render(); return; }
+
+  var tb = e.target.closest("[data-tab]");
+  if (tb) { go(tb.dataset.tab); return; }
+
+  var el = e.target.closest("[data-act]");
+  if (!el) {
+    if (e.target.id === "overlay") closeModal();
+    return;
+  }
+  var a = el.dataset.act, id = el.dataset.id;
+
+  switch (a) {
+    case "modal-close": closeModal(); break;
+    case "submit": if (onSubmit) onSubmit(); break;
+
+    case "student-new": studentForm(); break;
+    case "student-edit": studentForm(id); break;
+    case "student-card": studentCard(id); break;
+    case "student-text": studentText(id); break;
+    case "student-arch": {
+      var s = student(id); if (s) { s.archived = !s.archived; save(); closeModal(); render(); }
+      break;
+    }
+    case "student-del": {
+      if (!confirm(t("a.confirm"))) break;
+      S.students = S.students.filter(function(x){ return x.id !== id; });
+      S.lessons = S.lessons.filter(function(x){ return x.studentId !== id; });
+      S.payments = S.payments.filter(function(x){ return x.studentId !== id; });
+      save(); closeModal(); render(); toast(t("a.deleted"));
+      break;
+    }
+    case "toggle-archived": showArchived = !showArchived; render(); break;
+
+    case "lesson-new": lessonForm(null, el.dataset.date, el.dataset.student); break;
+    case "lesson-open": lessonForm(id); break;
+    case "lesson-done": setStatus(id, "done"); break;
+    case "lesson-noshow": setStatus(id, "no_show"); break;
+    case "lesson-cancel": setStatus(id, "cancelled"); break;
+    case "lesson-plan": setStatus(id, "planned"); break;
+    case "lesson-del": {
+      if (!confirm(t("a.confirm"))) break;
+      S.lessons = S.lessons.filter(function(x){ return x.id !== id; });
+      save(); closeModal(); render(); toast(t("a.deleted"));
+      break;
+    }
+
+    case "au-send": authSend(); break;
+    case "au-verify": authVerify(); break;
+    case "au-back": authStage = "email"; authDev = ""; renderAuth(); break;
+    case "logout": apiCall("POST", "/api/auth/logout").then(function(){ location.href = "/"; }); break;
+    case "go-settings": closeModal(); go("settings"); break;
+    case "teacher-add": teacherForm(); break;
+    case "teacher-del": {
+      if (!confirm(t("a.confirm"))) break;
+      apiCall("POST", "/api/school/teachers/remove", { id: id }).then(function(){ schoolData = null; render(); });
+      break;
+    }
+    case "set-plan": {
+      apiCall("POST", "/api/school/plan", { plan: el.dataset.plan }).then(function(r){
+        if (r.status !== 200) return toast(t("sv.offline"));
+        apiCall("GET", "/api/me").then(function(m){ API.me = m.data; schoolData = null; render(); toast(t("a.saved")); });
+      });
+      break;
+    }
+    case "file-add": pickFiles(function(list){ uploadFiles(id, list, "file", function(){ CARD.id = null; studentCard(id); }); }); break;
+    case "file-open": {
+      var all = CARD.files.concat(CARD.msgs.map(function(m){ return m.file; }).filter(Boolean));
+      var f = all.filter(function(x){ return x.id === el.dataset.fid; })[0];
+      if (f) viewFile(f);
+      break;
+    }
+    case "file-del": {
+      if (!confirm(t("a.confirm"))) break;
+      apiCall("POST", "/api/files/delete", { id: el.dataset.fid }).then(function(){ CARD.id = null; studentCard(id); });
+      break;
+    }
+    case "ch-send": {
+      var box = document.getElementById("ch-text"), txt = box ? box.value.trim() : "";
+      if (!txt) break;
+      apiCall("POST", "/api/messages", { studentId: id, text: txt }).then(function(r){
+        if (r.status !== 200) return toast(t("sv.offline"));
+        CARD.id = null; studentCard(id);
+      });
+      break;
+    }
+    case "ch-attach": pickFiles(function(list){
+      uploadFiles(id, list, "file", function(){
+        apiCall("GET", "/api/files?studentId=" + encodeURIComponent(id)).then(function(r){
+          var fresh = (r.data.files || [])[0];
+          if (!fresh) { CARD.id = null; return studentCard(id); }
+          apiCall("POST", "/api/messages", { studentId: id, text: "", fileId: fresh.id }).then(function(){
+            CARD.id = null; studentCard(id);
+          });
+        });
+      });
+    }); break;
+    case "pack-new": packForm(id); break;
+    case "cab-share": cabShare(id); break;
+    case "cab-open": closeModal(); location.hash = "#student=" + id; break;
+    case "cab-login": cabLogin(id); break;
+    case "cab-exit": location.hash = ""; route(); break;
+
+    case "pay-new": paymentForm(id); break;
+    case "pay-del": {
+      if (!confirm(t("a.confirm"))) break;
+      S.payments = S.payments.filter(function(x){ return x.id !== id; });
+      save(); render(); toast(t("a.deleted"));
+      break;
+    }
+
+    case "cal-mode": calMode = el.dataset.mode; render(); break;
+    case "week-of": weekOf = weekStart(el.dataset.date); calMode = "week"; render(); break;
+    case "unmarked": closeModal(); unmarkedModal(); break;
+    case "mark": {
+      var lz = lesson(id);
+      if (lz) { lz.status = el.dataset.st; save(); }
+      var opened = document.getElementById("overlay").classList.contains("on");
+      render();
+      if (opened) unmarkedModal(); else toast(t("l." + el.dataset.st));
+      break;
+    }
+    case "mark-all": {
+      if (!confirm(t("u.allAsk"))) break;
+      unmarked().forEach(function(l){ l.status = "done"; });
+      save(); closeModal(); render(); toast(t("a.saved"));
+      break;
+    }
+    case "week-prev": weekOf = addDays(weekOf, calMode === "month" ? -28 : -7); render(); break;
+    case "week-next": weekOf = addDays(weekOf, calMode === "month" ? 28 : 7); render(); break;
+    case "week-today": weekOf = weekStart(today()); render(); break;
+
+    case "settings-save": {
+      S.cur = CUR[val("set-cur")] ? val("set-cur") : "AMD";
+      S.defRate = +val("set-rate") || 0;
+      S.defDur = +val("set-dur") || 60;
+      S.teacher = val("set-teacher");
+      S.countNoShow = checked("set-noshow");
+      var ls = document.getElementById("set-lang"); if (ls) S.lang = ls.value;
+      save(); render(); toast(t("a.saved"));
+      break;
+    }
+    case "export": exportData(); break;
+    case "import": importData(); break;
+    case "demo": demoData(); break;
+    case "wipe": {
+      if (!confirm(t("c.wipeAsk"))) break;
+      var lang = S.lang; S = blank(); S.lang = lang; save(); render(); toast(t("a.deleted"));
+      break;
+    }
+    case "copy-text": {
+      var ta = document.getElementById("st-text");
+      if (ta) {
+        ta.select();
+        try { document.execCommand("copy"); } catch (err) {}
+        if (navigator.clipboard) { try { navigator.clipboard.writeText(ta.value); } catch (err) {} }
+        toast(t("a.copied"));
+      }
+      break;
+    }
+  }
+});
+
+/* перетаскивание занятий по дням недели */
+var dragId = null;
+document.addEventListener("dragstart", function(e){
+  var l = e.target.closest(".lsn");
+  if (!l) return;
+  dragId = l.dataset.id; l.classList.add("dragging");
+  try { e.dataTransfer.setData("text/plain", dragId); e.dataTransfer.effectAllowed = "move"; } catch (err) {}
+});
+document.addEventListener("dragend", function(){
+  document.querySelectorAll(".dragging").forEach(function(x){ x.classList.remove("dragging"); });
+  document.querySelectorAll(".day.drop").forEach(function(x){ x.classList.remove("drop"); });
+});
+document.addEventListener("dragover", function(e){
+  var d = e.target.closest(".day");
+  if (!d || !dragId) return;
+  e.preventDefault();
+  document.querySelectorAll(".day.drop").forEach(function(x){ x.classList.remove("drop"); });
+  d.classList.add("drop");
+});
+document.addEventListener("drop", function(e){
+  var d = e.target.closest(".day");
+  if (!d || !dragId) return;
+  e.preventDefault();
+  var l = lesson(dragId);
+  if (l && l.date !== d.dataset.day) { l.date = d.dataset.day; save(); render(); toast(t("w.moved")); }
+  dragId = null;
+});
+
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape") closeModal();
+  if (e.key === "Enter" && e.target && e.target.id === "ch-text") {
+    var b = document.querySelector('[data-act="ch-send"]');
+    if (b) { e.preventDefault(); b.click(); }
+    return;
+  }
+  if (e.key === "Enter" && onSubmit && document.getElementById("overlay").classList.contains("on")) {
+    if (e.target.tagName !== "TEXTAREA") { e.preventDefault(); onSubmit(); }
+  }
+});
+
+/* выбор валюты для графика в отчётах */
+document.addEventListener("change", function(e){
+  if (e.target && e.target.id === "chart-cur") { chartCur = e.target.value; render(); }
+});
+
+boot();
+</script>
+</body>
+</html>
