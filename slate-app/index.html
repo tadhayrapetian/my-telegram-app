@@ -157,6 +157,40 @@ html[lang="hy"] .wk-title{font-family:var(--arm)}
 .day-add{border:1px dashed var(--line);background:transparent;color:var(--ink-3);border-radius:9px;padding:6px;cursor:pointer;font-size:12px}
 .day-add:hover{border-color:var(--olive-300);color:var(--olive-600);background:var(--olive-50)}
 
+.wk-bar{align-items:center}
+.segm{display:inline-flex;padding:3px;background:var(--paper-3);border-radius:999px;gap:2px}
+.segm button{border:0;background:transparent;cursor:pointer;padding:7px 14px;border-radius:999px;font-size:13.5px;font-weight:540;color:var(--ink-2)}
+.segm button.on{background:var(--paper-2);color:var(--ink);box-shadow:var(--sh-xs)}
+.lsn.big{padding:10px 11px;border-radius:11px}
+.lsn.big .t{font-size:12px}
+.lsn.big .n{font-size:14.5px;margin-top:2px}
+.lsn.big .s{font-size:12px}
+.day{min-height:190px}
+
+/* месяц */
+.month{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-xs)}
+.mhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:rgba(234,227,210,.5);border-bottom:1px solid var(--line-2)}
+.mh{padding:9px 10px;font-size:11.5px;color:var(--ink-3);font-weight:600;text-transform:capitalize}
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.mc{min-height:118px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);padding:7px;display:flex;flex-direction:column;gap:5px}
+.mc:nth-child(7n){border-right:0}
+.mc.out{background:rgba(234,227,210,.25)}
+.mc.out .mc-d{color:var(--ink-3);opacity:.5}
+.mc.today{background:var(--olive-50)}
+.mc-h{display:flex;align-items:center;justify-content:space-between}
+.mc-d{border:0;background:transparent;cursor:pointer;font:inherit;font-size:12.5px;font-weight:640;color:var(--ink-2);padding:2px 6px;border-radius:7px}
+.mc-d:hover{background:var(--paper-3)}
+.mc.today .mc-d{background:var(--olive-600);color:var(--paper-2)}
+.mc-add{border:0;background:transparent;color:var(--ink-3);cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;border-radius:7px;opacity:0;transition:opacity .15s}
+.mc:hover .mc-add{opacity:1}
+.mc-add:hover{background:var(--paper-3);color:var(--olive-600)}
+.mc-more{border:0;background:transparent;color:var(--ink-3);font:inherit;font-size:11.5px;cursor:pointer;text-align:left;padding:2px 4px}
+.mc-more:hover{color:var(--olive-600)}
+.mc .lsn{padding:5px 7px}
+.mc .lsn .t{font-size:10px}
+.mc .lsn .n{font-size:11.5px}
+.mc .lsn .s{display:none}
+
 /* ---------- формы ---------- */
 .f{display:flex;flex-direction:column;gap:13px}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -237,6 +271,13 @@ tr:last-child td{border-bottom:0}
   .grid-4{grid-template-columns:1fr 1fr}
   .grid-3,.grid-2{grid-template-columns:1fr}
   .week{grid-template-columns:1fr;gap:6px}
+  .mgrid{grid-template-columns:repeat(7,minmax(0,1fr))}
+  .mc{min-height:74px;padding:4px}
+  .mc .lsn .n{font-size:10px}
+  .mc .lsn .t{font-size:9px}
+  .mc-h{margin-bottom:2px}
+  .mc-add{display:none}
+  .mh{padding:6px 4px;font-size:10px;text-align:center}
   .day{min-height:0}
   .top h1{font-size:24px}
   .f-row{grid-template-columns:1fr}
@@ -447,6 +488,21 @@ var T = {
 "sv.saved":{en:"Saved on the server",ru:"Сохранено на сервере",hy:"Պահպանվեց սերվերում"},
 "sv.conflict":{en:"The data changed in another tab — reloaded",ru:"Данные изменились в другой вкладке — перечитал",hy:"Տվյալները փոխվել են այլ ներդիրում՝ վերընթերցվեց"},
 "sv.offline":{en:"No connection to the server",ru:"Нет связи с сервером",hy:"Կապ չկա սերվերի հետ"},
+"w.week":{en:"Week",ru:"Неделя",hy:"Շաբաթ"},
+"w.month":{en:"Month",ru:"Месяц",hy:"Ամիս"},
+"w.more":{en:"more",ru:"ещё",hy:"ևս"},
+"w.hintMonth":{en:"Click a lesson to open it, click a date to see that week",ru:"Клик по занятию открывает его, клик по дате — эту неделю",hy:"Սեղմեք դասին՝ բացելու, սեղմեք ամսաթվին՝ այդ շաբաթը տեսնելու"},
+"u.title":{en:"Not marked yet",ru:"Не отмечены",hy:"Դեռ նշված չեն"},
+"u.sub":{en:"Past lessons still waiting for you to say what happened",ru:"Прошедшие занятия, по которым не сказано, что было",hy:"Անցած դասեր, որոնց մասին դեռ նշված չէ, թե ինչ եղավ"},
+"u.none":{en:"Everything from the past is marked",ru:"Всё прошедшее отмечено",hy:"Անցածն ամբողջությամբ նշված է"},
+"u.allHeld":{en:"Mark all as held",ru:"Все проведены",hy:"Բոլորը՝ անցկացված"},
+"u.allAsk":{en:"Mark every past lesson as held?",ru:"Отметить все прошедшие занятия проведёнными?",hy:"Նշե՞լ բոլոր անցած դասերը որպես անցկացված։"},
+"u.count":{en:"waiting",ru:"ждут отметки",hy:"սպասում են նշման"},
+"u.open":{en:"Mark past lessons",ru:"Отметить прошедшие",hy:"Նշել անցածները"},
+"s.thenPack":{en:"Add a package for them now?",ru:"Сразу добавить абонемент?",hy:"Անմիջապես ավելացնե՞լ բաժանորդագրություն"},
+"s.thenPackYes":{en:"Add a package",ru:"Добавить абонемент",hy:"Ավելացնել բաժանորդագրություն"},
+"s.thenPackNo":{en:"Later",ru:"Позже",hy:"Ավելի ուշ"},
+"s.added":{en:"Student added",ru:"Ученик добавлен",hy:"Աշակերտն ավելացվեց"},
 "cur.title":{en:"Currency",ru:"Валюта",hy:"Արժույթ"},
 "cur.AMD":{en:"Dram",ru:"Драм",hy:"Դրամ"},
 "cur.RUB":{en:"Rouble",ru:"Рубль",hy:"Ռուբլի"},
@@ -580,6 +636,33 @@ function lessonsBetween(a, b){
   return S.lessons.filter(function(l){ return l.date >= a && l.date <= b; })
     .sort(function(x,y){ return (x.date + x.time) < (y.date + y.time) ? -1 : 1; });
 }
+/* прошедшие занятия, по которым не сказано, что было — их и надо отметить */
+function unmarked(){
+  var td = today();
+  return S.lessons.filter(function(l){ return l.status === "planned" && l.date < td; })
+    .sort(function(a,b){ return (a.date + a.time) < (b.date + b.time) ? 1 : -1; });
+}
+function unmarkedModal(){
+  var list = unmarked();
+  modal(t("u.title"),
+    '<p class="hint" style="padding-bottom:12px">' + esc(t("u.sub")) + "</p>" +
+    '<div class="card"><div class="card-b">' +
+    (list.length ? list.map(function(l){
+      var st = student(l.studentId) || { name: "—" };
+      return '<div class="row" data-row="' + l.id + '"><span class="ava">' + esc(initials(st.name)) + "</span>" +
+        '<div class="g"><div class="nm">' + esc(st.name) + "</div>" +
+        '<div class="sb">' + esc(fmtLong(l.date) + ", " + l.time + (st.subject ? " · " + st.subject : "")) + "</div></div>" +
+        '<div class="act">' +
+        '<button class="btn btn-p btn-s" data-act="mark" data-st="done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button>" +
+        '<button class="btn btn-g btn-s" data-act="mark" data-st="no_show" data-id="' + l.id + '">' + esc(t("l.markNo")) + "</button>" +
+        '<button class="btn btn-g btn-s" data-act="mark" data-st="cancelled" data-id="' + l.id + '">' + esc(t("l.markCancel")) + "</button>" +
+        "</div></div>";
+    }).join("") : '<div class="empty">' + esc(t("u.none")) + "</div>") +
+    "</div></div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
+    (list.length ? '<button class="btn btn-p" data-act="mark-all">' + esc(t("u.allHeld")) + "</button>" : ""), true);
+}
+
 function upcoming(sid, n){
   var td = today();
   return S.lessons.filter(function(l){ return l.studentId === sid && l.date >= td && l.status === "planned"; })
@@ -775,7 +858,7 @@ function TABS(){
     return true;
   });
 }
-var tab = "today", weekOf = weekStart(today());
+var tab = "today", weekOf = weekStart(today()), calMode = "week";
 
 function renderMenu(){
   document.getElementById("menu").innerHTML = TABS().map(function(k){
@@ -856,8 +939,22 @@ function viewToday(){
         '<div class="act"><button class="btn btn-g btn-s" data-act="pay-new" data-id="' + s.id + '">+ ' + esc(t("p.add")) + "</button></div></div>";
     }).join("") : '<div class="empty">' + esc(t("t.lowNone")) + "</div>") + "</div></div>";
 
+  var wait = unmarked();
+  var waitCard = wait.length
+    ? '<div class="card" style="margin-bottom:16px;border-color:var(--clay-soft)">' +
+      '<div class="card-h"><h2>' + esc(t("u.title")) + " · " + wait.length + "</h2>" +
+      '<button class="btn btn-p btn-s" data-act="unmarked">' + esc(t("u.open")) + "</button></div>" +
+      '<div class="card-b">' + wait.slice(0, 3).map(function(l){
+        var st = student(l.studentId) || { name: "—" };
+        return '<div class="row"><span class="ava">' + esc(initials(st.name)) + "</span>" +
+          '<div class="g"><div class="nm">' + esc(st.name) + "</div>" +
+          '<div class="sb">' + esc(fmtLong(l.date) + ", " + l.time) + "</div></div>" +
+          '<div class="act"><button class="btn btn-p btn-s" data-act="mark" data-st="done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button></div></div>";
+      }).join("") + "</div></div>"
+    : "";
+
   return head(t("t.title"), fmtLong(td), '<button class="btn btn-g" data-act="student-new">+ ' + esc(t("s.new")) + '</button><button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
-    '<div class="stack">' + kpis + '<div class="grid-2">' + todayCard + lowCard + "</div></div>";
+    waitCard + '<div class="stack">' + kpis + '<div class="grid-2">' + todayCard + lowCard + "</div></div>";
 }
 function kpi(label, value, note, mod){
   return '<div class="kpi ' + (mod || "") + '"><div class="l">' + esc(label) + '</div><div class="v tnum">' + esc(value) + "</div>" +
@@ -875,7 +972,58 @@ function lessonRow(l){
 }
 
 /* ---------------------------- вид: неделя ---------------------------- */
+/* карточка занятия в сетке */
+function lessonCell(l, big){
+  var s = student(l.studentId) || { name: "—" };
+  return '<div class="lsn ' + l.status + (big ? " big" : "") + '" draggable="true" data-act="lesson-open" data-id="' + l.id + '">' +
+    '<div class="t tnum">' + esc(l.time) + (l.online ? " · online" : "") + "</div>" +
+    '<div class="n">' + esc(s.name) + "</div>" +
+    '<div class="s">' + esc(s.subject || t("l." + l.status)) + "</div></div>";
+}
+function calBar(title){
+  return '<div class="wk-bar"><span class="wk-title">' + esc(title) + "</span>" +
+    '<span class="segm">' +
+      '<button class="' + (calMode === "week" ? "on" : "") + '" data-act="cal-mode" data-mode="week">' + esc(t("w.week")) + "</button>" +
+      '<button class="' + (calMode === "month" ? "on" : "") + '" data-act="cal-mode" data-mode="month">' + esc(t("w.month")) + "</button>" +
+    "</span>" +
+    (unmarked().length ? '<button class="btn btn-g btn-s" data-act="unmarked">' + esc(t("u.open")) +
+       ' <span class="chip warn">' + unmarked().length + "</span></button>" : "") + "</div>";
+}
+function viewMonth(){
+  var td = today(), first = weekOf;
+  /* месяц считаем по месяцу, в который попадает текущая неделя */
+  var anchor = parse(addDays(weekOf, 3)), y = anchor.getFullYear(), m = anchor.getMonth();
+  var firstOfMonth = iso(new Date(y, m, 1)), gridStart = weekStart(firstOfMonth);
+  var title = (function(){
+    try { return new Intl.DateTimeFormat(LOC[S.lang], { month: "long", year: "numeric" }).format(new Date(y, m, 1)); }
+    catch (e) { return (m + 1) + "." + y; }
+  })();
+
+  var headRow = DKEYS.map(function(k){ return '<div class="mh">' + esc(t(k)) + "</div>"; }).join("");
+  var cells = "";
+  for (var i = 0; i < 42; i++) {
+    var d = addDays(gridStart, i), dt = parse(d);
+    if (i >= 35 && dt.getMonth() !== m) break;
+    var ls = lessonsOn(d), out = dt.getMonth() !== m;
+    cells += '<div class="mc ' + (d === td ? "today" : "") + (out ? " out" : "") + '" data-day="' + d + '">' +
+      '<div class="mc-h"><button class="mc-d" data-act="week-of" data-date="' + d + '">' + dt.getDate() + "</button>" +
+      '<button class="mc-add" data-act="lesson-new" data-date="' + d + '">+</button></div>' +
+      ls.slice(0, 4).map(function(l){ return lessonCell(l); }).join("") +
+      (ls.length > 4 ? '<button class="mc-more" data-act="week-of" data-date="' + d + '">+' + (ls.length - 4) + " " + esc(t("w.more")) + "</button>" : "") +
+      "</div>";
+  }
+  return head(t("w.title"), t("w.hintMonth"),
+      '<button class="btn btn-g btn-icon" data-act="week-prev">‹</button>' +
+      '<button class="btn btn-g" data-act="week-today">' + esc(t("a.today")) + "</button>" +
+      '<button class="btn btn-g btn-icon" data-act="week-next">›</button>' +
+      '<button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
+    calBar(title) +
+    '<div class="month"><div class="mhead">' + headRow + "</div>" +
+    '<div class="mgrid">' + cells + "</div></div>";
+}
+
 function viewWeek(){
+  if (calMode === "month") return viewMonth();
   var ws = weekOf, td = today();
   var title = fmtLong(ws) + " — " + fmtLong(addDays(ws, 6));
   var days = "";
@@ -884,13 +1032,7 @@ function viewWeek(){
     days += '<div class="day ' + (d === td ? "today" : "") + '" data-day="' + d + '">' +
       '<div class="day-h"><span class="dn">' + esc(t(DKEYS[i])) + '</span><span class="dd">' + esc(fmtDay(d)) + "</span></div>" +
       '<div class="day-b">' +
-      ls.map(function(l){
-        var s = student(l.studentId) || { name: "—" };
-        return '<div class="lsn ' + l.status + '" draggable="true" data-act="lesson-open" data-id="' + l.id + '">' +
-          '<div class="t tnum">' + esc(l.time) + "</div>" +
-          '<div class="n">' + esc(s.name) + "</div>" +
-          '<div class="s">' + esc(s.subject || t("l." + l.status)) + "</div></div>";
-      }).join("") +
+      ls.map(function(l){ return lessonCell(l, true); }).join("") +
       '<button class="day-add" data-act="lesson-new" data-date="' + d + '">+</button>' +
       "</div></div>";
   }
@@ -899,7 +1041,7 @@ function viewWeek(){
       '<button class="btn btn-g" data-act="week-today">' + esc(t("a.today")) + "</button>" +
       '<button class="btn btn-g btn-icon" data-act="week-next">›</button>' +
       '<button class="btn btn-p" data-act="lesson-new" data-date="' + td + '">+ ' + esc(t("l.new")) + "</button>") +
-    '<div class="wk-bar"><span class="wk-title">' + esc(title) + "</span></div>" +
+    calBar(title) +
     '<div class="week">' + days + "</div>";
 }
 
@@ -1152,9 +1294,20 @@ function studentForm(id){
     var data = { name: name, subject: val("st-subj"), level: val("st-lvl"), rate: +val("st-rate") || 0,
                  currency: val("st-cur") || S.cur, links: val("st-links"),
                  contact: val("st-contact"), parent: val("st-parent"), notes: val("st-notes") };
+    var freshId = null;
     if (s) Object.assign(s, data);
-    else S.students.push(Object.assign({ id: uid(), archived: false, code: String(Math.floor(1000 + Math.random() * 9000)) }, data));
-    save(); closeModal(); render(); toast(t("a.saved"));
+    else {
+      freshId = uid();
+      S.students.push(Object.assign({ id: freshId, archived: false, code: String(Math.floor(1000 + Math.random() * 9000)) }, data));
+    }
+    save(); closeModal(); render();
+    if (freshId && (!API.on || planLimits().money)) {
+      /* сразу предлагаем завести абонемент — иначе про него забывают */
+      modal(t("s.added"),
+        '<p class="lead" style="font-size:15px">' + esc(name) + " · " + esc(t("s.thenPack")) + "</p>",
+        '<button class="btn btn-g" data-act="modal-close">' + esc(t("s.thenPackNo")) + "</button>" +
+        '<button class="btn btn-p" data-act="pack-new" data-id="' + freshId + '">' + esc(t("s.thenPackYes")) + "</button>");
+    } else toast(t("a.saved"));
   };
 }
 
@@ -1654,8 +1807,25 @@ document.addEventListener("click", function(e){
       break;
     }
 
-    case "week-prev": weekOf = addDays(weekOf, -7); render(); break;
-    case "week-next": weekOf = addDays(weekOf, 7); render(); break;
+    case "cal-mode": calMode = el.dataset.mode; render(); break;
+    case "week-of": weekOf = weekStart(el.dataset.date); calMode = "week"; render(); break;
+    case "unmarked": closeModal(); unmarkedModal(); break;
+    case "mark": {
+      var lz = lesson(id);
+      if (lz) { lz.status = el.dataset.st; save(); }
+      var opened = document.getElementById("overlay").classList.contains("on");
+      render();
+      if (opened) unmarkedModal(); else toast(t("l." + el.dataset.st));
+      break;
+    }
+    case "mark-all": {
+      if (!confirm(t("u.allAsk"))) break;
+      unmarked().forEach(function(l){ l.status = "done"; });
+      save(); closeModal(); render(); toast(t("a.saved"));
+      break;
+    }
+    case "week-prev": weekOf = addDays(weekOf, calMode === "month" ? -28 : -7); render(); break;
+    case "week-next": weekOf = addDays(weekOf, calMode === "month" ? 28 : 7); render(); break;
     case "week-today": weekOf = weekStart(today()); render(); break;
 
     case "settings-save": {
