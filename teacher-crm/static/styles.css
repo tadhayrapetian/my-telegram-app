@@ -1,3 +1,10 @@
+/* Montserrat для заголовков: латиница и кириллица — оригинальный Montserrat,
+   армянский — Montserrat arm из присланных файлов. Диапазоны символов
+   переключают начертания сами, поэтому семейство одно для всех языков. */
+@font-face{font-family:'Montserrat Slate';font-style:normal;font-weight:700;font-display:swap;src:url(/static/fonts/mont-arm.woff2) format('woff2');unicode-range:U+0530-058F, U+FB13-FB17}
+@font-face{font-family:'Montserrat Slate';font-style:normal;font-weight:700;font-display:swap;src:url(/static/fonts/mont-cyrillic.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Montserrat Slate';font-style:normal;font-weight:700;font-display:swap;src:url(/static/fonts/mont-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+
 /* CRM преподавателя — оформление в стиле Slate: тёплая бумага и олива.
    Разметка прежняя, поменялись палитра, типографика и детали. */
 
@@ -43,6 +50,7 @@
 
   --font:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --display:"Montserrat Slate","Montserrat",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   --arm:"Noto Sans Armenian","Noto Serif Armenian",Mshtakan,"Arial Unicode MS",sans-serif;
 }
 
@@ -60,8 +68,8 @@ body::before{
 .app,.overlay,.toast{position:relative;z-index:1}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--olive-600)}
-h1,h2,h3{margin:0;font-family:var(--serif);font-weight:600;letter-spacing:-.015em;line-height:1.2}
-html[lang="hy"] h1,html[lang="hy"] h2,html[lang="hy"] h3{font-family:var(--arm);font-weight:640;letter-spacing:-.01em}
+h1,h2,h3{margin:0;font-family:var(--display);font-weight:700;letter-spacing:-.02em;line-height:1.24;overflow-wrap:break-word}
+/* армянский берётся из того же семейства, отдельное правило не нужно */
 html[lang="hy"] body{font-family:var(--arm)}
 .tnum{font-variant-numeric:tabular-nums}
 ::selection{background:var(--olive-200);color:var(--olive-800)}
@@ -72,7 +80,7 @@ html[lang="hy"] body{font-family:var(--arm)}
   background:var(--olive-700);color:var(--olive-50);display:flex;flex-direction:column;
   padding:20px 14px;position:sticky;top:0;height:100vh;
 }
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:18px;padding:0 8px 20px;letter-spacing:-.02em}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:18px;padding:0 8px 20px;letter-spacing:-.02em;overflow-wrap:break-word}
 .logo .mark{background:rgba(233,235,216,.15);border-radius:9px;width:30px;height:30px;display:grid;place-items:center}
 .menu{display:flex;flex-direction:column;gap:2px}
 .menu button{
@@ -122,8 +130,8 @@ html[lang="hy"] body{font-family:var(--arm)}
 
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px 17px;box-shadow:var(--shadow)}
 .kpi .l{font-size:12.5px;color:var(--ink-3)}
-.kpi .v{font-family:var(--serif);font-size:28px;font-weight:600;letter-spacing:-.025em;margin-top:4px;line-height:1.1}
-html[lang="hy"] .kpi .v{font-family:var(--arm)}
+.kpi .v{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:-.025em;margin-top:4px;line-height:1.1;overflow-wrap:break-word}
+
 .kpi .n{font-size:12px;color:var(--ink-3);margin-top:4px}
 .kpi.good .v{color:var(--olive-600)}
 .kpi.warn .v{color:var(--amber)}
@@ -170,8 +178,8 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 
 /* ------------------------------------------------------------ календарь --- */
 .cal-bar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:13px}
-.cal-title{font-family:var(--serif);font-weight:600;font-size:17px;min-width:210px}
-html[lang="hy"] .cal-title{font-family:var(--arm)}
+.cal-title{font-family:var(--display);font-weight:700;font-size:17px;min-width:210px;overflow-wrap:break-word}
+
 .segm{display:inline-flex;background:var(--paper-3);border-radius:999px;padding:3px;gap:2px}
 .segm button{border:0;background:transparent;cursor:pointer;padding:7px 14px;border-radius:999px;font-size:13.5px;color:var(--ink-2)}
 .segm button.on{background:var(--paper-2);color:var(--ink);box-shadow:var(--shadow);font-weight:560}
