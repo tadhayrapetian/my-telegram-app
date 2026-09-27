@@ -82,6 +82,8 @@ const q = {
   usersOfSchool: db.prepare("SELECT * FROM users WHERE school_id = ? ORDER BY created_at"),
   addUser: db.prepare("INSERT INTO users (id,school_id,email,name,role,created_at) VALUES (?,?,?,?,?,?)"),
   delUser: db.prepare("DELETE FROM users WHERE id = ? AND school_id = ?"),
+  setUserName: db.prepare("UPDATE users SET name = ? WHERE id = ?"),
+  setSchoolName: db.prepare("UPDATE schools SET name = ? WHERE id = ?"),
   putCode: db.prepare("INSERT INTO codes (email,code_hash,expires,tries) VALUES (?,?,?,0) " +
                       "ON CONFLICT(email) DO UPDATE SET code_hash=excluded.code_hash, expires=excluded.expires, tries=0"),
   getCode: db.prepare("SELECT * FROM codes WHERE email = ?"),
@@ -274,13 +276,23 @@ const routes = {
     if (!rateLimit("req:" + ip, 20, 10 * 60000) || !rateLimit("req:" + email, 5, 10 * 60000))
       return send(res, 429, { error: "too_many" });
 
+    /* Вход и регистрация — разные вещи, и ошибиться в них не страшно:
+       на входе с незнакомого адреса зовём регистрироваться, а на регистрации
+       со знакомого — входить. Молча заводить аккаунт по опечатке не будем. */
+    const signup = body.mode === "signup";
+    const name = String(body.name || "").trim().slice(0, 80);
     let user = q.userByEmail.get(email);
+    if (user && signup) return send(res, 409, { error: "exists" });
+    if (!user && !signup) return send(res, 404, { error: "no_account" });
     if (!user) {
-      /* первый вход с нового адреса заводит школу, этот человек — владелец */
+      if (name.length < 2) return send(res, 400, { error: "bad_name" });
+      /* новый преподаватель заводит свою школу и становится её владельцем */
       const schoolId = uid();
-      q.addSchool.run(schoolId, email, "free", now());
-      user = { id: uid(), school_id: schoolId, email, name: "", role: "owner", created_at: now() };
-      q.addUser.run(user.id, schoolId, email, "", "owner", now());
+      q.addSchool.run(schoolId, name, "free", now());
+      user = { id: uid(), school_id: schoolId, email, name, role: "owner", created_at: now() };
+      q.addUser.run(user.id, schoolId, email, name, "owner", now());
+    } else if (name && !user.name) {
+      q.setUserName.run(name, user.id);
     }
     const code = String(crypto.randomInt(100000, 1000000));
     q.putCode.run(email, hmac(code), now() + 10 * 60000);
@@ -333,7 +345,12 @@ const routes = {
   "GET /api/state": async (req, res, user) => {
     if (!user) return send(res, 401, { error: "no_session" });
     const { version, doc } = readDoc(user.id);
-    send(res, 200, { version, doc, portal: portalMap(user) });
+    const plan = planOf(q.schoolById.get(user.school_id));
+    let portal = portalMap(user);
+    /* ссылки на кабинеты должны быть готовы к первому же открытию карточки */
+    if (plan.portal && Object.keys(portal).length !== activeStudents(doc).length)
+      portal = rebuildPortal(user, doc, plan);
+    send(res, 200, { version, doc, portal });
   },
 
   "PUT /api/state": async (req, res, user) => {
@@ -413,7 +430,11 @@ const routes = {
     const plan = String(body.plan || "");
     if (!PLANS[plan]) return send(res, 400, { error: "bad_plan" });
     q.setPlan.run(plan, user.school_id);
-    send(res, 200, { ok: true, plan });
+    /* смена тарифа сразу отражается на кабинетах: на Pro они появляются,
+       на бесплатном — исчезают, ждать следующего сохранения не нужно */
+    const { doc } = readDoc(user.id);
+    const portal = rebuildPortal(user, doc, PLANS[plan]);
+    send(res, 200, { ok: true, plan, portal });
   },
 
   /* --- кабинет ученика: без сессии, по токену и коду --- */

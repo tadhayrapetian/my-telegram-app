@@ -70,6 +70,9 @@ h1,h2,h3{margin:0;font-family:var(--display);font-weight:700;letter-spacing:-.01
 .lang{display:flex;padding:3px;background:rgba(233,235,216,.12);border-radius:999px;gap:2px}
 .lang button{flex:1;border:0;background:transparent;color:rgba(233,235,216,.75);cursor:pointer;padding:6px 4px;border-radius:999px;font-size:11.5px;font-weight:640;letter-spacing:.03em}
 .lang button.on{background:var(--olive-50);color:var(--olive-800)}
+.lang-auth{background:var(--paper-3)}
+.lang-auth button{color:var(--ink-3);padding:6px 10px}
+.lang-auth button.on{background:var(--paper-2);color:var(--olive-700)}
 .side-note{font-size:11.5px;color:rgba(233,235,216,.5);line-height:1.45}
 .acc{font-size:12px;color:rgba(233,235,216,.75)}
 .acc-mail{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px}
@@ -494,7 +497,18 @@ var T = {
 "au.code":{en:"Code from the email",ru:"Код из письма",hy:"Կոդը նամակից"},
 "au.enter":{en:"Sign in",ru:"Войти",hy:"Մուտք"},
 "au.back":{en:"Change email",ru:"Другая почта",hy:"Այլ էլ. փոստ"},
-"au.hint":{en:"First sign-in creates your account.",ru:"Первый вход создаёт ваш аккаунт.",hy:"Առաջին մուտքը ստեղծում է ձեր հաշիվը։"},
+"au.hint":{en:"We send a six-digit code to this address.",ru:"На этот адрес придёт код из шести цифр.",hy:"Այս հասցեին կուղարկվի վեցանիշ կոդ։"},
+"au.tabLogin":{en:"Sign in",ru:"Вход",hy:"Մուտք"},
+"au.tabSignup":{en:"Create account",ru:"Регистрация",hy:"Գրանցում"},
+"au.titleSignup":{en:"Create your Slate account",ru:"Регистрация в Slate",hy:"Գրանցում Slate-ում"},
+"au.name":{en:"Your name",ru:"Ваше имя",hy:"Ձեր անունը"},
+"au.namePh":{en:"Anna Petrosyan",ru:"Анна Петросян",hy:"Աննա Պետրոսյան"},
+"au.create":{en:"Create account",ru:"Создать аккаунт",hy:"Ստեղծել հաշիվ"},
+"au.free":{en:"Free plan: up to 2 students, schedule and student cards. No card needed.",ru:"Бесплатный тариф: до 2 учеников, расписание и карточки. Карта не нужна.",hy:"Անվճար սակագին՝ մինչև 2 աշակերտ, ժամանակացույց և քարտեր։ Քարտ պետք չէ։"},
+"au.exists":{en:"This address is already registered — sign in instead.",ru:"Этот адрес уже зарегистрирован — войдите.",hy:"Այս հասցեն արդեն գրանցված է՝ մուտք գործեք։"},
+"au.noAccount":{en:"No account for this address — create one.",ru:"Аккаунта с таким адресом нет — зарегистрируйтесь.",hy:"Այս հասցեով հաշիվ չկա՝ գրանցվեք։"},
+"au.badName":{en:"Please write your name",ru:"Напишите, как вас зовут",hy:"Գրեք ձեր անունը"},
+"au.badEmail":{en:"Check the email address",ru:"Проверьте адрес почты",hy:"Ստուգեք էլ. փոստի հասցեն"},
 "au.devCode":{en:"Delivery is not connected yet, so the code is shown here:",ru:"Доставка кодов ещё не подключена, поэтому код показан здесь:",hy:"Կոդերի առաքումը դեռ միացված չէ, ուստի կոդը ցուցադրվում է այստեղ՝"},
 "au.bad":{en:"Wrong or expired code",ru:"Неверный или устаревший код",hy:"Սխալ կամ ժամկետանց կոդ"},
 "au.out":{en:"Sign out",ru:"Выйти",hy:"Դուրս գալ"},
@@ -506,6 +520,7 @@ var T = {
 "pl.limitStudents":{en:"The Free plan holds 2 students. Upgrade to Pro for 15.",ru:"На бесплатном тарифе помещается 2 ученика. На Pro — 15.",hy:"Անվճար սակագնում տեղավորվում է 2 աշակերտ։ Pro-ում՝ 15։"},
 "pl.limitPro":{en:"Pro holds 15 students. Studio has no limit.",ru:"На Pro помещается 15 учеников. На Studio ограничения нет.",hy:"Pro-ում տեղավորվում է 15 աշակերտ։ Studio-ում սահմանափակում չկա։"},
 "pl.needMoney":{en:"Payments and packages are on Pro and above.",ru:"Оплаты и абонементы — на тарифе Pro и выше.",hy:"Վճարումներն ու փաթեթները՝ Pro և ավելի բարձր սակագներում։"},
+"pl.needPortal":{en:"The student portal is on Pro and above.",ru:"Кабинет ученика — на тарифе Pro и выше.",hy:"Աշակերտի էջը՝ Pro և ավելի բարձր սակագներում։"},
 "pl.needTeachers":{en:"Several teachers work on Studio.",ru:"Несколько преподавателей — на тарифе Studio.",hy:"Մի քանի դասավանդող՝ Studio սակագնում։"},
 "pl.change":{en:"Change plan",ru:"Сменить тариф",hy:"Փոխել սակագինը"},
 "pl.noBilling":{en:"Payment is not connected yet, so the plan switches by hand.",ru:"Оплата ещё не подключена, поэтому тариф переключается вручную.",hy:"Վճարումը դեռ միացված չէ, ուստի սակագինը փոխվում է ձեռքով։"},
@@ -596,6 +611,7 @@ var T = {
 "cab.pay":{en:"Payments",ru:"Оплаты",hy:"Վճարումներ"},
 "cab.teacher":{en:"Teacher",ru:"Преподаватель",hy:"Ուսուցիչ"},
 "cab.forTeacher":{en:"Back to the app",ru:"Вернуться в программу",hy:"Վերադառնալ ծրագիր"},
+"cab.noLink":{en:"Here the portal opens in this window — tap «Open the portal». A link to send appears once Slate runs on a server.",ru:"Здесь кабинет открывается прямо в этом окне — нажмите «Открыть кабинет». Ссылка для отправки появится, когда Slate будет стоять на сервере.",hy:"Այստեղ էջը բացվում է հենց այս պատուհանում՝ սեղմեք «Բացել էջը»։ Ուղարկելու հղումը կհայտնվի, երբ Slate-ը լինի սերվերի վրա։"},
 "cab.copyLink":{en:"Copy link and code",ru:"Скопировать ссылку и код",hy:"Պատճենել հղումն ու կոդը"},
 "cab.localNote":{en:"The link works on this computer. Once the app is on a server, the same link will work anywhere.",ru:"Ссылка работает на этом компьютере. Когда программа переедет на сервер, эта же ссылка заработает откуда угодно.",hy:"Հղումն աշխատում է այս համակարգչում։ Երբ ծրագիրը տեղափոխվի սերվեր, նույն հղումը կաշխատի ամենուր։"},
 
@@ -647,9 +663,14 @@ function load(){
   return blank();
 }
 function save(){
-  if (API.on) {                                   /* серверный режим: отложенная отправка */
+  if (API.on && API.me) {                         /* серверный режим: отложенная отправка */
     clearTimeout(API.timer);
     API.timer = setTimeout(pushState, 400);
+    return;
+  }
+  if (API.on) {                                   /* ещё не вошли: на сервер слать нечего,
+                                                     запоминаем только выбранный язык */
+    try { localStorage.setItem("slate-lang", S.lang); } catch (e) {}
     return;
   }
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -841,32 +862,54 @@ function planWall(msg){
     (isOwner() ? '<button class="btn btn-p" data-act="go-settings">' + esc(t("pl.change")) + "</button>" : ""));
 }
 
-/* ---- экран входа ---- */
-var authEmail = "", authStage = "email", authDev = "";
+/* ---- вход и регистрация ---- */
+var authEmail = "", authName = "", authStage = "email", authDev = "", authMode = "login", authScreen = false;
 function renderAuth(){
+  authScreen = true;
   document.querySelector(".app").classList.add("cab-mode");
+  var signup = authMode === "signup";
   document.getElementById("view").innerHTML =
     '<div class="cab-wrap"><div class="card" style="max-width:400px;margin:56px auto">' +
-    '<div class="card-h"><h2>' + esc(t("au.title")) + "</h2></div><div class=\"card-b\">" +
+    '<div class="card-h"><h2>' + esc(signup ? t("au.titleSignup") : t("au.title")) + "</h2>" +
+      /* язык выбирается до входа: боковой панели здесь ещё нет */
+      '<div class="lang lang-auth">' + LANGS.map(function(lg){
+        return '<button class="' + (S.lang === lg ? "on" : "") + '" data-lang="' + lg + '">' +
+          ({ en: "EN", ru: "RU", hy: "ՀԱՅ" })[lg] + "</button>";
+      }).join("") + "</div>" +
+    "</div><div class=\"card-b\">" +
     '<div class="f" style="padding:14px 0">' +
     (authStage === "email"
-      ? '<label class="fl">' + esc(t("au.email")) + '<input class="inp" id="au-email" type="email" autocomplete="email" value="' + esc(authEmail) + '" placeholder="you@mail.com"></label>' +
-        '<button class="btn btn-p" data-act="au-send">' + esc(t("au.send")) + "</button>" +
-        '<p class="hint">' + esc(t("au.hint")) + "</p>"
+      ? '<div class="segm" style="align-self:stretch">' +
+          '<button class="' + (signup ? "" : "on") + '" style="flex:1" data-act="au-mode" data-mode="login">' + esc(t("au.tabLogin")) + "</button>" +
+          '<button class="' + (signup ? "on" : "") + '" style="flex:1" data-act="au-mode" data-mode="signup">' + esc(t("au.tabSignup")) + "</button>" +
+        "</div>" +
+        (signup ? '<label class="fl">' + esc(t("au.name")) + '<input class="inp" id="au-name" autocomplete="name" value="' + esc(authName) + '" placeholder="' + esc(t("au.namePh")) + '"></label>' : "") +
+        '<label class="fl">' + esc(t("au.email")) + '<input class="inp" id="au-email" type="email" autocomplete="email" value="' + esc(authEmail) + '" placeholder="you@mail.com"></label>' +
+        '<button class="btn btn-p" data-act="au-send">' + esc(signup ? t("au.create") : t("au.send")) + "</button>" +
+        '<p class="hint">' + esc(signup ? t("au.free") : t("au.hint")) + "</p>"
       : '<p class="hint">' + esc(authEmail) + "</p>" +
         (authDev ? '<div class="banner" style="margin:0">' + esc(t("au.devCode")) + " <b>" + esc(authDev) + "</b></div>" : "") +
         '<label class="fl">' + esc(t("au.code")) + '<input class="inp tnum" id="au-code" inputmode="numeric" style="font-size:22px;letter-spacing:.2em;text-align:center" placeholder="••••••"></label>' +
         '<button class="btn btn-p" data-act="au-verify">' + esc(t("au.enter")) + "</button>" +
         '<button class="btn btn-g" data-act="au-back">' + esc(t("au.back")) + "</button>") +
     "</div></div></div></div>";
-  var f = document.getElementById(authStage === "email" ? "au-email" : "au-code");
-  if (f) { f.focus(); f.addEventListener("keydown", function(e){ if (e.key === "Enter") (authStage === "email" ? authSend() : authVerify()); }); }
+  var f = document.getElementById(authStage === "email" ? (signup ? "au-name" : "au-email") : "au-code");
+  if (f) { f.focus(); }
+  ["au-name", "au-email", "au-code"].forEach(function(idf){
+    var el = document.getElementById(idf);
+    if (el) el.addEventListener("keydown", function(e){ if (e.key === "Enter") (authStage === "email" ? authSend() : authVerify()); });
+  });
 }
 function authSend(){
-  var email = (document.getElementById("au-email") || {}).value || "";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) return;
-  authEmail = email.trim();
-  apiCall("POST", "/api/auth/request", { email: authEmail }).then(function(r){
+  var email = ((document.getElementById("au-email") || {}).value || "").trim();
+  var name = ((document.getElementById("au-name") || {}).value || "").trim();
+  var signup = authMode === "signup";
+  if (signup && name.length < 2) return toast(t("au.badName"));
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast(t("au.badEmail"));
+  authEmail = email; authName = name;
+  apiCall("POST", "/api/auth/request", { email: email, name: name, mode: signup ? "signup" : "login" }).then(function(r){
+    if (r.status === 409) { authMode = "login"; renderAuth(); return toast(t("au.exists")); }
+    if (r.status === 404) { authMode = "signup"; renderAuth(); return toast(t("au.noAccount")); }
     if (r.status !== 200) return toast(t("sv.offline"));
     authDev = r.data.devCode || ""; authStage = "code"; renderAuth();
   });
@@ -879,10 +922,18 @@ function authVerify(){
   });
 }
 function boot(){
+  try {                                           /* язык, выбранный до входа */
+    var saved = localStorage.getItem("slate-lang");
+    if (saved && LANGS.indexOf(saved) > -1) { S.lang = saved; document.documentElement.lang = saved; }
+  } catch (e) {}
   if (location.protocol === "file:") { API.on = false; route(); return; }  /* офлайн-копия */
   fetch("/api/me", { credentials: "same-origin" }).then(function(r){
     API.on = true;
-    if (r.status === 401) { renderAuth(); return; }
+    if (r.status === 401) {
+      /* с лендинга приходят по ссылке /app#signup — открываем сразу регистрацию */
+      try { if (/#signup/.test(location.hash)) authMode = "signup"; } catch (e) {}
+      renderAuth(); return;
+    }
     if (!r.ok) throw new Error("no api");
     return r.json().then(function(me){
       API.me = me;
@@ -1765,28 +1816,39 @@ function cabLink(id){
     var token = API.portal[id];
     return { url: token ? location.origin + "/s/" + token : "", code: s.code || "", server: true };
   }
-  return { url: location.origin + location.pathname + "#student=" + id, code: s.code || "" };
+  /* без сервера ссылку можно дать, только когда страница открыта по http(s):
+     из файла и из встроенной рамки такой адрес другому человеку не поможет */
+  var web = location.protocol === "http:" || location.protocol === "https:";
+  return { url: web ? location.origin + location.pathname + "#student=" + id : "", code: s.code || "" };
 }
 function cabShare(id){
   var s = student(id); if (!s) return;
+  if (API.on && !planLimits().portal) return planWall(t("pl.needPortal"));
   var L = cabLink(id);
   modal(t("cab.title") + " · " + s.name,
     '<div class="f">' +
-      '<label class="fl">' + esc(t("cab.link")) + '<input class="inp" id="cab-url" value="' + esc(L.url) + '" readonly></label>' +
+      (L.url ? '<label class="fl">' + esc(t("cab.link")) + '<input class="inp" id="cab-url" value="' + esc(L.url) + '" readonly></label>' : "") +
       '<label class="fl">' + esc(t("cab.code")) + '<input class="inp tnum" id="cab-code" value="' + esc(L.code) + '" readonly style="font-size:22px;letter-spacing:.18em"></label>' +
-      '<textarea class="inp" id="st-text" style="min-height:80px">' + esc(t("cab.title") + ": " + L.url + "\n" + t("cab.code") + ": " + L.code) + "</textarea>" +
-      '<p class="hint">' + esc(t("cab.localNote")) + "</p>" +
+      (L.url ? '<textarea class="inp" id="st-text" style="min-height:80px">' + esc(t("cab.title") + ": " + L.url + "\n" + t("cab.code") + ": " + L.code) + "</textarea>" : "") +
+      '<p class="hint">' + esc(L.url ? t("cab.localNote") : t("cab.noLink")) + "</p>" +
     "</div>",
     '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.close")) + "</button>" +
-    '<button class="btn btn-g" data-act="copy-text">' + esc(t("cab.copyLink")) + "</button>" +
+    (L.url ? '<button class="btn btn-g" data-act="copy-text">' + esc(t("cab.copyLink")) + "</button>" : "") +
     '<button class="btn btn-p" data-act="cab-open" data-id="' + id + '">' + esc(t("cab.open")) + "</button>");
 }
 
 var cabId = null;
+/* Вход в кабинет помним и в памяти вкладки: в некоторых браузерах и внутри
+   встроенной рамки sessionStorage недоступен, и одной записи в него мало. */
+var cabOk = {};
 function cabAuthed(id){
+  if (cabOk[id]) return true;
   try { return sessionStorage.getItem("slate-cab-" + id) === "1"; } catch (e) { return false; }
 }
-function cabAuth(id){ try { sessionStorage.setItem("slate-cab-" + id, "1"); } catch (e) {} }
+function cabAuth(id){
+  cabOk[id] = true;
+  try { sessionStorage.setItem("slate-cab-" + id, "1"); } catch (e) {}
+}
 
 function renderCabinet(id){
   var s = student(id);
@@ -1861,11 +1923,32 @@ function cabLogin(id){
   if (s && String(v || "").trim() === String(s.code)) { cabAuth(id); renderCabinet(id); }
   else toast(t("cab.wrong"));
 }
+function openCabinet(id){
+  cabId = id;
+  /* адрес трогаем только на настоящем сайте: в файле и во встроенной рамке
+     смена адреса считается переходом и блокируется */
+  if (location.protocol === "http:" || location.protocol === "https:") {
+    try { location.hash = "#student=" + id; } catch (e) {}
+  }
+  renderCabinet(id);
+}
+function exitCabinet(){
+  cabId = null;
+  try {
+    if (location.hash) {
+      if (history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+      else location.hash = "";
+    }
+  } catch (e) {}
+  document.querySelector(".app").classList.remove("cab-mode");
+  render();
+}
 function route(){
-  var m = /#student=([A-Za-z0-9]+)/.exec(location.hash || "");
+  var m = null;
+  try { m = /#student=([A-Za-z0-9]+)/.exec(location.hash || ""); } catch (e) {}
   if (m) { cabId = m[1]; renderCabinet(cabId); }
+  else if (cabId) renderCabinet(cabId);
   else {
-    cabId = null;
     document.querySelector(".app").classList.remove("cab-mode");
     render();
   }
@@ -1936,7 +2019,12 @@ function demoData(){
 /* ---------------------------- события ---------------------------- */
 document.addEventListener("click", function(e){
   var lb = e.target.closest("[data-lang]");
-  if (lb) { S.lang = lb.dataset.lang; save(); render(); return; }
+  if (lb) {
+    S.lang = lb.dataset.lang; save();
+    document.documentElement.lang = S.lang;
+    if (authScreen) renderAuth(); else render();
+    return;
+  }
 
   var tb = e.target.closest("[data-tab]");
   if (tb) { go(tb.dataset.tab); return; }
@@ -1987,6 +2075,7 @@ document.addEventListener("click", function(e){
     case "au-send": authSend(); break;
     case "au-verify": authVerify(); break;
     case "au-back": authStage = "email"; authDev = ""; renderAuth(); break;
+    case "au-mode": authMode = el.dataset.mode === "signup" ? "signup" : "login"; renderAuth(); break;
     case "logout": apiCall("POST", "/api/auth/logout").then(function(){ location.href = "/"; }); break;
     case "go-settings": closeModal(); go("settings"); break;
     case "teacher-add": teacherForm(); break;
@@ -2036,9 +2125,9 @@ document.addEventListener("click", function(e){
     }); break;
     case "pack-new": packForm(id); break;
     case "cab-share": cabShare(id); break;
-    case "cab-open": closeModal(); location.hash = "#student=" + id; break;
+    case "cab-open": closeModal(); openCabinet(id); break;
     case "cab-login": cabLogin(id); break;
-    case "cab-exit": location.hash = ""; route(); break;
+    case "cab-exit": exitCabinet(); break;
 
     case "pay-new": paymentForm(id); break;
     case "pay-del": {
