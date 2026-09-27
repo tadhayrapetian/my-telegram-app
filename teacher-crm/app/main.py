@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .db import BASE_DIR, get_settings, init_db, set_settings
-from .routers import lessons, students
+from .routers import dashboard, lessons, materials, packages, payments, students
 
 app = FastAPI(title="CRM преподавателя английского", docs_url="/api/docs", redoc_url=None)
 
@@ -25,6 +25,10 @@ def on_startup() -> None:
 
 app.include_router(students.router)
 app.include_router(lessons.router)
+app.include_router(packages.router)
+app.include_router(payments.router)
+app.include_router(materials.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/api/settings")

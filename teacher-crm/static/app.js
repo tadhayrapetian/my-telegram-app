@@ -23,12 +23,13 @@ const API = {
 };
 
 const state = {
-  tab: "students",
+  tab: "dashboard",
   settings: { currency: "֏", default_duration: "60", default_price: "0", teacher_name: "" },
   students: [],
   calMode: "week",
   anchor: "",            // любая дата внутри показываемой недели или месяца
   studentQuery: "",
+  materialQuery: "",
   showArchived: false,
 };
 
@@ -72,6 +73,7 @@ function plural(n, one, few, many) {
   return many;
 }
 const lessonsWord = (n) => plural(n, "занятие", "занятия", "занятий");
+const studentsWord = (n) => plural(n, "ученик", "ученика", "учеников");
 
 /* ------------------------------------------------------- модалка и тост --- */
 let submitHandler = null;
@@ -151,7 +153,7 @@ async function viewStudents() {
     ? state.students.map(studentRow).join("")
     : `<div class="empty"><b>Учеников пока нет</b>Добавьте первого — это полминуты.</div>`;
 
-  return head("Ученики", `${state.students.length} в списке`,
+  return head("Ученики", `${state.students.length} ${studentsWord(state.students.length)} в списке`,
     `<input class="inp search" id="stSearch" placeholder="Поиск по имени, уровню, целям" value="${esc(state.studentQuery)}">
      <button class="btn" data-act="toggle-archived">${state.showArchived ? "Активные" : "Архив"}</button>
      <button class="btn btn-p" data-act="student-new">Новый ученик</button>`) +
@@ -224,12 +226,92 @@ async function openStudent(id) {
         ${s.notes ? `<div class="row"><div class="g"><div class="sb" style="white-space:normal">${esc(s.notes)}</div></div></div>` : ""}
       </div></div>
 
+      <div class="card"><div class="card-h"><h2>Абонементы</h2>
+        <button class="btn btn-s" data-act="package-new" data-student="${s.id}">Купить абонемент</button></div>
+        <div class="card-b">${s.packages.length ? s.packages.map(packageRow).join("") : `<div class="empty">Абонементов пока нет</div>`}</div></div>
+
+      <div class="card"><div class="card-h"><h2>Материалы</h2>
+        <span><button class="btn btn-s" data-act="material-link" data-student="${s.id}">Ссылка</button>
+        <button class="btn btn-s" data-act="material-upload" data-student="${s.id}">Файл</button></span></div>
+        <div class="card-b">${s.materials.length ? s.materials.map((m) => `<div class="row">
+          <div class="g"><div class="nm">${m.kind === "file" ? "📄" : "🔗"} ${esc(m.title)}</div>
+            <div class="sb">${esc(m.note || "")}</div></div>
+          <a class="btn btn-s" href="${m.kind === "file" ? "/api/materials/" + m.id + "/file" : esc(m.url)}" target="_blank" rel="noopener">Открыть</a>
+        </div>`).join("") : `<div class="empty">Материалов пока нет</div>`}</div></div>
+
+      <div class="card"><div class="card-h"><h2>Оплаты</h2>
+        <button class="btn btn-s" data-act="payment-new" data-student="${s.id}">Записать оплату</button></div>
+        <div class="card-b">${s.payments.length ? s.payments.slice(0, 8).map((p) => `<div class="row clickable" data-open-payment="${p.id}">
+          <div class="g"><div class="nm">${money(p.amount)}</div>
+            <div class="sb">${esc(fmtDate(p.paid_on))}${p.method ? " · " + esc(p.method) : ""}${p.note ? " · " + esc(p.note) : ""}</div></div>
+          ${p.status === "paid" ? '<span class="tag ok">оплачено</span>' : '<span class="tag warn">ожидается</span>'}
+        </div>`).join("") : `<div class="empty">Оплат пока нет</div>`}</div></div>
+
       <div class="card"><div class="card-h"><h2>Журнал занятий</h2>
         <button class="btn btn-s btn-p" data-act="lesson-new" data-student="${s.id}">Добавить занятие</button></div>
         <div class="card-b">${lessonsList}</div></div>
     </div>`,
     `<button class="btn" data-act="student-edit" data-id="${s.id}">Изменить</button>
      <button class="btn" data-act="close">Закрыть</button>`, true);
+}
+
+/* ---------------------------------------------------------- абонементы --- */
+function packStatusTag(p) {
+  if (p.status === "finished") return '<span class="tag mut">закончился</span>';
+  if (p.status === "expired") return '<span class="tag bad">просрочен</span>';
+  if (p.left <= 2 || (p.days_left !== null && p.days_left <= 7)) return '<span class="tag warn">на исходе</span>';
+  return '<span class="tag ok">активен</span>';
+}
+
+function packageRow(p) {
+  const period = p.expires_on
+    ? `${fmtDate(p.purchased_on)} — ${fmtDate(p.expires_on)}`
+    : `с ${fmtDate(p.purchased_on)}, без срока`;
+  return `<div class="row">
+    <div class="g"><div class="nm">${p.lessons_total} ${lessonsWord(p.lessons_total)} · ${money(p.price)}</div>
+      <div class="sb">${esc(period)} · осталось ${p.left} из ${p.lessons_total}${p.note ? " · " + esc(p.note) : ""}</div></div>
+    ${packStatusTag(p)}
+    <div class="act"><button class="btn btn-s btn-d" data-act="package-delete" data-id="${p.id}" data-student="${p.student_id}">Удалить</button></div>
+  </div>`;
+}
+
+function packageForm(studentId, pack) {
+  const p = pack || {};
+  const today = todayISO();
+  const inTwoMonths = addMonths(today, 2);
+  modal(pack ? "Изменить абонемент" : "Новый абонемент",
+    `<div class="f">
+      <div class="f-row-3">
+        <label class="fl">Занятий в абонементе<input class="inp tnum" id="pk-total" type="number" min="1" value="${p.lessons_total || 8}"></label>
+        <label class="fl">Дата покупки<input class="inp" id="pk-from" type="date" value="${esc(p.purchased_on || today)}"></label>
+        <label class="fl">Действует до<input class="inp" id="pk-to" type="date" value="${esc(p.expires_on || inTwoMonths)}"></label>
+      </div>
+      <div class="f-row">
+        <label class="fl">Стоимость<input class="inp tnum" id="pk-price" type="number" min="0" step="100" value="${p.price != null ? p.price : ""}"></label>
+        <label class="fl">Заметка<input class="inp" id="pk-note" value="${esc(p.note || "")}"></label>
+      </div>
+      ${pack ? "" : `<label class="check"><input type="checkbox" id="pk-paid" checked>Сразу записать оплату на всю сумму</label>
+      <p class="hint">Запланированные занятия ученика без абонемента привяжутся к этому абонементу автоматически.</p>`}
+    </div>`,
+    `<button class="btn" data-act="close">Отмена</button>
+     <button class="btn btn-p" data-act="submit">Сохранить</button>`);
+
+  submitHandler = async () => {
+    const payload = {
+      student_id: Number(studentId),
+      lessons_total: Number(val("pk-total")) || 0,
+      purchased_on: val("pk-from"),
+      expires_on: val("pk-to") || null,
+      price: Number(val("pk-price")) || 0,
+      note: val("pk-note"),
+      pay_now: pack ? false : checked("pk-paid"),
+    };
+    if (pack) await API.put(`/api/packages/${p.id}`, payload);
+    else await API.post("/api/packages", payload);
+    closeModal();
+    await openStudent(studentId);
+    toast("Абонемент сохранён");
+  };
 }
 
 /* ------------------------------------------------------------ календарь --- */
@@ -429,10 +511,262 @@ async function unmarkedModal() {
 }
 
 /* --------------------------------------------------------------- заглушки --- */
-async function viewDashboard() { return head("Сводка", "раздел готовится"); }
-async function viewPayments()  { return head("Оплаты", "раздел готовится"); }
-async function viewMaterials() { return head("Материалы", "раздел готовится"); }
-async function viewSettings()  { return head("Настройки", "раздел готовится"); }
+async function viewDashboard() {
+  const d = await API.get("/api/dashboard");
+  const maxIncome = Math.max(1, ...d.income_by_month.map((m) => m.total));
+
+  const todayList = d.today_lessons.length
+    ? d.today_lessons.map((l) => `<div class="row clickable" data-open-lesson="${l.id}">
+        <div class="g"><div class="nm">${esc(l.time)} · ${esc(l.student_name)}</div>
+          <div class="sb">${esc(l.topic || "тема не указана")}</div></div>
+        ${statusTag(l.status)}
+        ${l.status === "planned" ? `<div class="act"><button class="btn btn-s btn-p" data-act="lesson-status" data-id="${l.id}" data-status="done">Проведено</button></div>` : ""}
+      </div>`).join("")
+    : `<div class="empty">На сегодня занятий нет</div>`;
+
+  const upcomingList = d.upcoming.length
+    ? d.upcoming.map((l) => `<div class="row clickable" data-open-lesson="${l.id}">
+        <div class="g"><div class="nm">${esc(fmtDate(l.date))}, ${esc(l.time)}</div>
+          <div class="sb">${esc(l.student_name)}${l.topic ? " · " + esc(l.topic) : ""}</div></div></div>`).join("")
+    : `<div class="empty">Ближайших занятий нет</div>`;
+
+  const debtList = d.debts.length
+    ? d.debts.map((x) => `<div class="row clickable" data-open-student="${x.student_id}">
+        <div class="g"><div class="nm">${esc(x.student_name)}</div>
+          <div class="sb">начислено ${money(x.charged)} · оплачено ${money(x.paid)}</div></div>
+        ${x.debt > 0 ? `<span class="tag bad">${money(x.debt)}</span>` : `<span class="tag warn">ожидается ${money(x.pending)}</span>`}
+      </div>`).join("")
+    : `<div class="empty">Все рассчитались</div>`;
+
+  const warnList = d.package_warnings.length
+    ? d.package_warnings.map((p) => `<div class="row clickable" data-open-student="${p.student_id}">
+        <div class="g"><div class="nm">${esc(p.student_name)}</div>
+          <div class="sb">осталось ${p.left} из ${p.lessons_total}${p.expires_on ? " · до " + fmtDate(p.expires_on) : ""}</div></div>
+        <span class="tag warn">${p.reason === "expiry" ? "кончается срок" : p.reason === "both" ? "и срок, и занятия" : "мало занятий"}</span>
+      </div>`).join("")
+    : `<div class="empty">Все абонементы в порядке</div>`;
+
+  const hasIncome = d.income_by_month.some((m) => m.total > 0);
+  const bars = !hasIncome ? `<div class="empty">Оплат пока не было</div>` : `<div class="bars">${d.income_by_month.map((m) => {
+    const h = Math.max(3, Math.round((m.total / maxIncome) * 110));
+    const label = m.month.slice(5) + "." + m.month.slice(2, 4);
+    return `<div class="b"><div class="bv tnum">${m.total ? Math.round(m.total / 1000) + "к" : ""}</div>
+      <div class="bar" style="height:${h}px"></div><div class="bl">${label}</div></div>`;
+  }).join("")}</div>`;
+
+  return head("Сводка", fmtDate(d.today),
+      `${d.unmarked ? `<button class="btn" data-act="unmarked">Не отмечено: ${d.unmarked}</button>` : ""}
+       <button class="btn btn-p" data-act="lesson-new" data-date="${d.today}">Новое занятие</button>`) +
+    `<div class="stack">
+      <div class="grid-4">
+        <div class="kpi"><div class="l">Занятий на неделе</div><div class="v tnum">${d.week_count}</div><div class="n">${d.done_month} проведено за месяц</div></div>
+        <div class="kpi good"><div class="l">Получено за месяц</div><div class="v tnum">${money(d.income_month)}</div><div class="n">${d.hours_month} ч занятий</div></div>
+        <div class="kpi ${d.debts.length ? "bad" : "good"}"><div class="l">Задолженности</div><div class="v tnum">${d.debts.length}</div><div class="n">${d.debts.length ? "нужно напомнить" : "все рассчитались"}</div></div>
+        <div class="kpi ${d.package_warnings.length ? "warn" : ""}"><div class="l">Абонементы на исходе</div><div class="v tnum">${d.package_warnings.length}</div><div class="n">${d.students_count} ${studentsWord(d.students_count)} всего</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-h"><h2>Сегодня</h2></div><div class="card-b">${todayList}</div></div>
+        <div class="card"><div class="card-h"><h2>Ближайшие занятия</h2></div><div class="card-b">${upcomingList}</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><div class="card-h"><h2>Кто должен</h2></div><div class="card-b">${debtList}</div></div>
+        <div class="card"><div class="card-h"><h2>Абонементы на исходе</h2></div><div class="card-b">${warnList}</div></div>
+      </div>
+      <div class="card"><div class="card-h"><h2>Доход по месяцам</h2></div><div class="card-b">${bars}</div></div>
+    </div>`;
+}
+async function viewPayments() {
+  const [list, debts, sum] = await Promise.all([
+    API.get("/api/payments"), API.get("/api/payments/debts"), API.get("/api/payments/summary"),
+  ]);
+  const month = todayISO().slice(0, 7);
+  const thisMonth = sum.by_month.find((m) => m.month === month);
+
+  const rows = list.length ? list.map((p) => `<tr class="clickable" data-open-payment="${p.id}">
+      <td>${esc(fmtDate(p.paid_on))}</td>
+      <td>${esc(p.student_name)}</td>
+      <td class="tnum">${money(p.amount)}</td>
+      <td>${esc(p.method || "—")}</td>
+      <td>${p.status === "paid" ? '<span class="tag ok">оплачено</span>' : '<span class="tag warn">ожидается</span>'}</td>
+      <td class="muted">${esc(p.note || (p.package_id ? "абонемент" : p.lesson_id ? "занятие" : ""))}</td>
+    </tr>`).join("")
+    : `<tr><td colspan="6"><div class="empty">Оплат пока нет</div></td></tr>`;
+
+  const debtRows = debts.length ? debts.map((d) => `<div class="row clickable" data-open-student="${d.student_id}">
+      <div class="g"><div class="nm">${esc(d.student_name)}</div>
+        <div class="sb">начислено ${money(d.charged)} · оплачено ${money(d.paid)}</div></div>
+      ${d.debt > 0 ? `<span class="tag bad">${money(d.debt)}</span>` : ""}
+      ${d.pending > 0 ? `<span class="tag warn">ожидается ${money(d.pending)}</span>` : ""}
+    </div>`).join("")
+    : `<div class="empty">Задолженностей нет</div>`;
+
+  return head("Оплаты", "История платежей и задолженности",
+      `<button class="btn" data-act="export" data-what="payments">Выгрузить CSV</button>
+       <button class="btn btn-p" data-act="payment-new">Записать оплату</button>`) +
+    `<div class="stack">
+      <div class="grid-3">
+        <div class="kpi good"><div class="l">Получено за месяц</div><div class="v tnum">${money(thisMonth ? thisMonth.total : 0)}</div><div class="n">${esc(fmtMonthTitle(todayISO()))}</div></div>
+        <div class="kpi ${debts.length ? "bad" : "good"}"><div class="l">Должников</div><div class="v tnum">${debts.filter((d) => d.debt > 0).length}</div><div class="n">${debts.length ? money(debts.reduce((a, d) => a + Math.max(0, d.debt), 0)) + " всего" : "все рассчитались"}</div></div>
+        <div class="kpi"><div class="l">Получено всего</div><div class="v tnum">${money(sum.total)}</div><div class="n">за всё время</div></div>
+      </div>
+      <div class="card"><div class="card-h"><h2>Задолженности</h2></div><div class="card-b">${debtRows}</div></div>
+      <div class="card"><div class="card-h"><h2>История платежей</h2></div><div class="card-b"><div class="tw">
+        <table><thead><tr><th>Дата</th><th>Ученик</th><th>Сумма</th><th>Способ</th><th>Статус</th><th>Комментарий</th></tr></thead>
+        <tbody>${rows}</tbody></table></div></div></div>
+    </div>`;
+}
+
+async function paymentForm(payment, presetStudent) {
+  if (!state.students.length) await loadStudents();
+  if (!state.students.length) { studentForm(null); return; }
+  const p = payment || {};
+  const sid = p.student_id || presetStudent || state.students[0].id;
+  const packs = await API.get(`/api/packages?student_id=${sid}`);
+
+  modal(payment ? "Оплата" : "Новая оплата",
+    `<div class="f">
+      <label class="fl">Ученик<select class="inp" id="pm-student">${studentOptions(sid)}</select></label>
+      <div class="f-row">
+        <label class="fl">Сумма<input class="inp tnum" id="pm-amount" type="number" min="0" step="100" value="${p.amount != null ? p.amount : ""}"></label>
+        <label class="fl">Дата<input class="inp" id="pm-date" type="date" value="${esc(p.paid_on || todayISO())}"></label>
+      </div>
+      <div class="f-row">
+        <label class="fl">Способ<select class="inp" id="pm-method">
+          ${["наличные", "перевод", "карта", "другое"].map((m) => `<option ${p.method === m ? "selected" : ""}>${m}</option>`).join("")}
+        </select></label>
+        <label class="fl">Статус<select class="inp" id="pm-status">
+          <option value="paid" ${p.status !== "pending" ? "selected" : ""}>оплачено</option>
+          <option value="pending" ${p.status === "pending" ? "selected" : ""}>ожидается</option>
+        </select></label>
+      </div>
+      <label class="fl">За что<select class="inp" id="pm-package">
+        <option value="">разовое занятие или без привязки</option>
+        ${packs.map((k) => `<option value="${k.id}" ${String(p.package_id) === String(k.id) ? "selected" : ""}>Абонемент ${k.lessons_total} ${lessonsWord(k.lessons_total)} от ${fmtDate(k.purchased_on)}</option>`).join("")}
+      </select></label>
+      <label class="fl">Комментарий<input class="inp" id="pm-note" value="${esc(p.note || "")}"></label>
+    </div>`,
+    (payment ? `<button class="btn btn-d" data-act="payment-delete" data-id="${p.id}">Удалить</button>` : "") +
+    `<button class="btn" data-act="close">Отмена</button>
+     <button class="btn btn-p" data-act="submit">Сохранить</button>`);
+
+  submitHandler = async () => {
+    const payload = {
+      student_id: Number(val("pm-student")),
+      amount: Number(val("pm-amount")) || 0,
+      paid_on: val("pm-date"),
+      method: val("pm-method"),
+      status: val("pm-status"),
+      package_id: val("pm-package") ? Number(val("pm-package")) : null,
+      note: val("pm-note"),
+    };
+    if (payment) await API.put(`/api/payments/${p.id}`, payload);
+    else await API.post("/api/payments", payload);
+    closeModal();
+    await render();
+    toast("Оплата сохранена");
+  };
+}
+async function viewMaterials() {
+  const list = await API.get(`/api/materials?q=${encodeURIComponent(state.materialQuery || "")}`);
+  const rows = list.length ? list.map((m) => `<div class="row">
+      <div class="g"><div class="nm">${m.kind === "file" ? "📄" : "🔗"} ${esc(m.title)}</div>
+        <div class="sb">${esc([m.student_name, m.lesson ? fmtDate(m.lesson.date) : "", m.note].filter(Boolean).join(" · ") || "без привязки")}</div></div>
+      <a class="btn btn-s" href="${esc(m.download_url)}" target="_blank" rel="noopener">Открыть</a>
+      <div class="act"><button class="btn btn-s btn-d" data-act="material-delete" data-id="${m.id}">Удалить</button></div>
+    </div>`).join("")
+    : `<div class="empty"><b>Материалов пока нет</b>Добавьте ссылку или загрузите файл.</div>`;
+
+  return head("Материалы", `${list.length} в библиотеке`,
+      `<input class="inp search" id="matSearch" placeholder="Поиск по названию" value="${esc(state.materialQuery || "")}">
+       <button class="btn" data-act="material-link">Добавить ссылку</button>
+       <button class="btn btn-p" data-act="material-upload">Загрузить файл</button>`) +
+    `<div class="card"><div class="card-b">${rows}</div></div>`;
+}
+
+async function materialLinkForm(studentId, lessonId) {
+  if (!state.students.length) await loadStudents();
+  modal("Ссылка на материал",
+    `<div class="f">
+      <label class="fl">Название<input class="inp" id="ml-title" placeholder="Unit 5, упражнения"></label>
+      <label class="fl">Ссылка<input class="inp" id="ml-url" placeholder="https://..."></label>
+      <label class="fl">Ученик<select class="inp" id="ml-student"><option value="">без привязки</option>${studentOptions(studentId)}</select></label>
+      <label class="fl">Заметка<input class="inp" id="ml-note"></label>
+    </div>`,
+    `<button class="btn" data-act="close">Отмена</button><button class="btn btn-p" data-act="submit">Сохранить</button>`);
+  submitHandler = async () => {
+    await API.post("/api/materials/link", {
+      title: val("ml-title"), url: val("ml-url"),
+      student_id: val("ml-student") ? Number(val("ml-student")) : null,
+      lesson_id: lessonId ? Number(lessonId) : null, note: val("ml-note"),
+    });
+    closeModal(); await render(); toast("Материал добавлен");
+  };
+}
+
+function uploadMaterial(studentId, lessonId, done) {
+  const inp = $("filePick");
+  inp.value = "";
+  pendingPick = async (files) => {
+    for (const f of files) {
+      const form = new FormData();
+      form.append("file", f);
+      form.append("title", f.name);
+      if (studentId) form.append("student_id", String(studentId));
+      if (lessonId) form.append("lesson_id", String(lessonId));
+      const r = await fetch("/api/materials/upload", { method: "POST", body: form });
+      if (!r.ok) { toast(r.status === 413 ? "Файл больше 50 МБ" : "Не удалось загрузить"); }
+    }
+    toast("Загружено");
+    if (done) await done(); else await render();
+  };
+  inp.click();
+}
+
+let pendingPick = null;
+document.addEventListener("DOMContentLoaded", () => {
+  const inp = $("filePick");
+  if (inp) inp.addEventListener("change", async function () {
+    const cb = pendingPick; pendingPick = null;
+    if (cb) await cb(Array.from(this.files));
+  });
+});
+async function viewSettings() {
+  const backups = await API.get("/api/backups");
+  const list = backups.items.length
+    ? backups.items.map((b) => `<div class="row"><div class="g"><div class="nm">${esc(b.file)}</div>
+        <div class="sb">${esc(b.made)} · ${(b.size / 1024).toFixed(0)} КБ</div></div></div>`).join("")
+    : `<div class="empty">Копий пока нет</div>`;
+
+  return head("Настройки", "Валюта, значения по умолчанию, выгрузка и резервные копии") +
+    `<div class="stack">
+      <div class="card"><div class="card-h"><h2>Основное</h2></div><div class="card-b">
+        <div class="f" style="padding:10px 0">
+          <div class="f-row-3">
+            <label class="fl">Валюта<input class="inp" id="se-currency" value="${esc(state.settings.currency)}"></label>
+            <label class="fl">Длительность занятия, мин<input class="inp tnum" id="se-duration" type="number" min="15" step="15" value="${esc(state.settings.default_duration)}"></label>
+            <label class="fl">Ваше имя<input class="inp" id="se-teacher" value="${esc(state.settings.teacher_name || "")}"></label>
+          </div>
+          <button class="btn btn-p" data-act="settings-save" style="align-self:flex-start">Сохранить</button>
+        </div></div></div>
+
+      <div class="card"><div class="card-h"><h2>Выгрузка в CSV</h2></div><div class="card-b">
+        <p class="hint" style="padding:10px 0">Файлы открываются в Excel и Numbers.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;padding-bottom:12px">
+          <button class="btn" data-act="export" data-what="students">Ученики</button>
+          <button class="btn" data-act="export" data-what="lessons">Занятия</button>
+          <button class="btn" data-act="export" data-what="packages">Абонементы</button>
+          <button class="btn" data-act="export" data-what="payments">Оплаты</button>
+          <button class="btn" data-act="export" data-what="materials">Материалы</button>
+        </div></div></div>
+
+      <div class="card"><div class="card-h"><h2>Резервные копии</h2>
+        <button class="btn btn-p btn-s" data-act="backup">Сделать копию</button></div>
+        <div class="card-b">
+          <p class="hint" style="padding:10px 0">Копии лежат в папке <code>${esc(backups.folder)}</code>. Хранятся последние 30.</p>
+          ${list}
+        </div></div>
+    </div>`;
+}
 
 /* ------------------------------------------------------------- отрисовка --- */
 const VIEWS = {
@@ -448,6 +782,15 @@ async function render() {
     $("view").innerHTML = head("Ошибка", String(e.message || e));
   }
   renderMenu();
+  const ms = $("matSearch");
+  if (ms) {
+    ms.addEventListener("input", debounce(async () => {
+      state.materialQuery = ms.value;
+      await render();
+      const again = $("matSearch");
+      if (again) { again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+    }, 250));
+  }
   const s = $("stSearch");
   if (s) {
     s.addEventListener("input", debounce(async () => {
@@ -471,6 +814,14 @@ document.addEventListener("click", async (e) => {
 
   const openStudentEl = e.target.closest("[data-open-student]");
   if (openStudentEl) { await openStudent(openStudentEl.dataset.openStudent); return; }
+
+  const openPaymentEl = e.target.closest("[data-open-payment]");
+  if (openPaymentEl) {
+    const all = await API.get("/api/payments");
+    const found = all.find((x) => String(x.id) === openPaymentEl.dataset.openPayment);
+    if (found) await paymentForm(found);
+    return;
+  }
 
   const openLessonEl = e.target.closest("[data-open-lesson]");
   if (openLessonEl) { await openLesson(openLessonEl.dataset.openLesson); return; }
@@ -497,6 +848,52 @@ document.addEventListener("click", async (e) => {
         break;
       }
       case "toggle-archived": state.showArchived = !state.showArchived; await render(); break;
+
+      case "material-link": await materialLinkForm(el.dataset.student); break;
+      case "material-upload": {
+        const sid = el.dataset.student;
+        uploadMaterial(sid, null, sid ? () => openStudent(sid) : null);
+        break;
+      }
+      case "material-delete": {
+        if (!confirm("Удалить материал?")) break;
+        await API.del(`/api/materials/${el.dataset.id}`);
+        await render(); toast("Материал удалён");
+        break;
+      }
+      case "export": window.location.href = `/api/export/${el.dataset.what}.csv`; break;
+      case "backup": {
+        const r = await API.post("/api/backup", {});
+        await render();
+        toast("Копия сохранена: " + r.file);
+        break;
+      }
+      case "settings-save": {
+        state.settings = await API.put("/api/settings", {
+          currency: val("se-currency") || "֏",
+          default_duration: val("se-duration") || "60",
+          teacher_name: val("se-teacher"),
+        });
+        await render(); toast("Сохранено");
+        break;
+      }
+
+      case "payment-new": await paymentForm(null, el.dataset.student); break;
+      case "payment-delete": {
+        if (!confirm("Удалить запись об оплате?")) break;
+        await API.del(`/api/payments/${el.dataset.id}`);
+        closeModal(); await render(); toast("Оплата удалена");
+        break;
+      }
+
+      case "package-new": packageForm(el.dataset.student); break;
+      case "package-delete": {
+        if (!confirm("Удалить абонемент? Занятия останутся, но перестанут быть к нему привязаны.")) break;
+        await API.del(`/api/packages/${el.dataset.id}`);
+        await openStudent(el.dataset.student);
+        toast("Абонемент удалён");
+        break;
+      }
 
       case "lesson-new": await lessonForm(null, el.dataset.date, el.dataset.student); break;
       case "lesson-delete": {
