@@ -55,14 +55,25 @@ fi
 
 PYBIN="$VENV/bin/python"
 if ! "$PYBIN" -c "import fastapi, uvicorn, multipart" >/dev/null 2>&1; then
-  echo "  Устанавливаю библиотеки..."
-  "$PYBIN" -m pip install --quiet --upgrade pip
-  "$PYBIN" -m pip install --quiet -r requirements.txt || {
+  echo "  Устанавливаю библиотеки, минуту..."
+  mkdir -p data
+  LOG="data/install.log"
+  {
+    "$PYBIN" -m pip install --upgrade pip
+    "$PYBIN" -m pip install -r requirements.txt
+  } > "$LOG" 2>&1
+  if ! "$PYBIN" -c "import fastapi, uvicorn, multipart" >/dev/null 2>&1; then
     echo ""
-    echo "  Не удалось установить библиотеки. Проверьте интернет и запустите снова."
+    echo "  Библиотеки поставить не удалось. Последние строки из журнала:"
+    echo "  ----------------------------------------------------------"
+    tail -n 15 "$LOG" | sed 's/^/  /'
+    echo "  ----------------------------------------------------------"
+    echo "  Полный журнал: $(pwd)/$LOG"
+    echo "  Пришлите эти строки — по ним видно, что именно не встало."
+    echo ""
     read -r -p "  Нажмите Enter, чтобы закрыть..." _
     exit 1
-  }
+  fi
 fi
 
 # --- 3. свободный порт -------------------------------------------------------
