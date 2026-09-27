@@ -11,6 +11,7 @@ const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const os = require("node:os");
 const { DatabaseSync } = require("node:sqlite");
 
 const PORT = +process.env.PORT || 3000;
@@ -674,8 +675,20 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+/* адрес в домашней сети: по нему Slate открывается с телефона и планшета */
+function lanAddress() {
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const net of list || []) {
+      if (net.family === "IPv4" && !net.internal) return net.address;
+    }
+  }
+  return null;
+}
+
 server.listen(PORT, () => {
   console.log(`[slate] сервер на http://localhost:${PORT}`);
+  const lan = lanAddress();
+  if (lan) console.log(`[slate] с телефона и планшета в той же сети: http://${lan}:${PORT}`);
   console.log(`[slate] данные в ${DATA_DIR}`);
   if (DEV_CODES) console.log("[slate] коды входа возвращаются в ответе (SLATE_DEV_CODES=0 отключает)");
 });
