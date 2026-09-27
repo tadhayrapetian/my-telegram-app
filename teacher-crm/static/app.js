@@ -144,6 +144,7 @@ function studentRow(s) {
     <div class="g"><div class="nm">${esc(s.name)}</div>
       <div class="sb">${esc([s.level, s.schedule].filter(Boolean).join(" · ") || "—")} · ${esc(next)}</div></div>
     ${leftTag}${balanceTag}
+    <div class="act"><button class="btn btn-s" data-act="portal-share" data-id="${s.id}">Кабинет</button></div>
   </div>`;
 }
 
@@ -193,8 +194,49 @@ function studentForm(s) {
   };
 }
 
+const fileIcon = (mime) => /^image\//.test(mime || "") ? "🖼"
+  : mime === "application/pdf" ? "📄"
+  : /^audio\//.test(mime || "") ? "🎧"
+  : /^video\//.test(mime || "") ? "🎬" : "📎";
+
+function fmtWhen(ts) {
+  try { return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(ts)); }
+  catch (e) { return ""; }
+}
+
+function openViewer(url, title, mime) {
+  modal(title,
+    /^image\//.test(mime || "")
+      ? `<img src="${esc(url)}" alt="" style="max-width:100%;border-radius:12px;display:block;margin:0 auto">`
+      : mime === "application/pdf"
+        ? `<iframe src="${esc(url)}" style="width:100%;height:min(70vh,680px);border:1px solid var(--line);border-radius:12px;background:#fff"></iframe>`
+        : `<div class="empty"><b>${esc(title)}</b>Файл откроется в новой вкладке</div>`,
+    `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Открыть отдельно</a>
+     <a class="btn btn-p" href="${esc(url)}" download="${esc(title)}">Скачать</a>`, true);
+}
+
+async function portalShare(id) {
+  const info = await API.get(`/api/students/${id}/portal`);
+  const url = location.origin + info.path;
+  modal("Кабинет ученика · " + info.name,
+    `<div class="f">
+      <label class="fl">Ссылка для ученика<input class="inp" id="pl-url" value="${esc(url)}" readonly></label>
+      <label class="fl">Код входа<input class="inp tnum" id="pl-code" value="${esc(info.code)}" readonly
+        style="font-size:22px;letter-spacing:.18em"></label>
+      <textarea class="inp" id="pl-text" style="min-height:80px">Кабинет: ${esc(url)}\nКод: ${esc(info.code)}</textarea>
+      <p class="hint">Ученик открывает ссылку, вводит код один раз и дальше видит остаток занятий,
+      расписание, домашние задания, материалы и переписку с вами.</p>
+    </div>`,
+    `<button class="btn btn-d" data-act="portal-reset" data-id="${id}">Сменить код</button>
+     <button class="btn" data-act="close">Закрыть</button>
+     <button class="btn" data-act="copy-portal">Скопировать</button>
+     <a class="btn btn-p" href="${esc(url)}" target="_blank" rel="noopener">Открыть кабинет</a>`);
+}
+
 async function openStudent(id) {
   const s = await API.get(`/api/students/${id}`);
+  const msgs = await API.get(`/api/students/${id}/messages`);
+  const photo = (s.materials || []).find((m) => m.kind === "photo");
   const left = s.lessons_left || 0;
   const m = s.money;
 
@@ -207,6 +249,9 @@ async function openStudent(id) {
 
   modal(s.name,
     `<div class="stack">
+      ${photo ? `<div style="display:flex;justify-content:center">
+        <img src="/api/materials/${photo.id}/file" alt=""
+             style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:2px solid var(--olive-200)"></div>` : ""}
       <div class="grid-3">
         <div class="kpi ${left <= 0 ? "" : left <= 2 ? "warn" : "good"}">
           <div class="l">Осталось занятий</div><div class="v tnum">${left}</div>
@@ -238,6 +283,21 @@ async function openStudent(id) {
             <div class="sb">${esc(m.note || "")}</div></div>
           <a class="btn btn-s" href="${m.kind === "file" ? "/api/materials/" + m.id + "/file" : esc(m.url)}" target="_blank" rel="noopener">Открыть</a>
         </div>`).join("") : `<div class="empty">Материалов пока нет</div>`}</div></div>
+
+      <div class="card"><div class="card-h"><h2>Переписка с учеником</h2>
+        <button class="btn btn-s" data-act="portal-share" data-id="${s.id}">Кабинет ученика</button></div>
+        <div class="card-b">
+          <div class="chat">${msgs.length ? msgs.map((m) => `<div class="msg ${m.author === "teacher" ? "me" : ""}">
+            ${m.text ? `<div class="tx">${esc(m.text)}</div>` : ""}
+            ${m.file ? `<button class="msg-file" data-view="${esc(m.file.open_url)}" data-title="${esc(m.file.title)}" data-mime="${esc(m.file.mime || "")}">${fileIcon(m.file.mime)} ${esc(m.file.title)}</button>` : ""}
+            <div class="wh">${m.author === "teacher" ? "Вы" : esc(s.name)} · ${esc(fmtWhen(m.created))}</div>
+          </div>`).join("") : `<div class="empty">Сообщений пока нет</div>`}</div>
+          <div class="chat-send">
+            <input class="inp" id="ch-text" placeholder="Написать ученику">
+            <button class="btn" data-act="chat-file" data-id="${s.id}">📎</button>
+            <button class="btn btn-p" data-act="chat-send" data-id="${s.id}">Отправить</button>
+          </div>
+        </div></div>
 
       <div class="card"><div class="card-h"><h2>Оплаты</h2>
         <button class="btn btn-s" data-act="payment-new" data-student="${s.id}">Записать оплату</button></div>
@@ -813,7 +873,10 @@ document.addEventListener("click", async (e) => {
   if (tabBtn) { state.tab = tabBtn.dataset.tab; await render(); return; }
 
   const openStudentEl = e.target.closest("[data-open-student]");
-  if (openStudentEl) { await openStudent(openStudentEl.dataset.openStudent); return; }
+  if (openStudentEl && !e.target.closest("[data-act]")) {
+    await openStudent(openStudentEl.dataset.openStudent);
+    return;
+  }
 
   const openPaymentEl = e.target.closest("[data-open-payment]");
   if (openPaymentEl) {
@@ -822,6 +885,9 @@ document.addEventListener("click", async (e) => {
     if (found) await paymentForm(found);
     return;
   }
+
+  const viewEl = e.target.closest("[data-view]");
+  if (viewEl) { openViewer(viewEl.dataset.view, viewEl.dataset.title, viewEl.dataset.mime); return; }
 
   const openLessonEl = e.target.closest("[data-open-lesson]");
   if (openLessonEl) { await openLesson(openLessonEl.dataset.openLesson); return; }
@@ -848,6 +914,36 @@ document.addEventListener("click", async (e) => {
         break;
       }
       case "toggle-archived": state.showArchived = !state.showArchived; await render(); break;
+
+      case "portal-share": await portalShare(el.dataset.id); break;
+      case "portal-reset": {
+        if (!confirm("Сменить код и ссылку? Старая ссылка перестанет работать.")) break;
+        await API.post(`/api/students/${el.dataset.id}/portal/reset`, {});
+        await portalShare(el.dataset.id);
+        toast("Код обновлён");
+        break;
+      }
+      case "copy-portal": {
+        const ta = $("pl-text");
+        if (ta) { ta.select(); try { document.execCommand("copy"); } catch (e) {} toast("Скопировано"); }
+        break;
+      }
+      case "chat-send": {
+        const box = $("ch-text"), text = box ? box.value.trim() : "";
+        if (!text) break;
+        await API.post(`/api/students/${el.dataset.id}/messages`, { text });
+        await openStudent(el.dataset.id);
+        break;
+      }
+      case "chat-file": {
+        const sid = el.dataset.id;
+        uploadMaterial(sid, null, async () => {
+          const mats = await API.get(`/api/materials?student_id=${sid}`);
+          if (mats[0]) await API.post(`/api/students/${sid}/messages`, { text: "", material_id: mats[0].id });
+          await openStudent(sid);
+        });
+        break;
+      }
 
       case "material-link": await materialLinkForm(el.dataset.student); break;
       case "material-upload": {

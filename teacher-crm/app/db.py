@@ -7,6 +7,7 @@
 """
 
 import os
+import secrets
 import shutil
 import sqlite3
 from datetime import date
@@ -89,6 +90,15 @@ CREATE TABLE IF NOT EXISTS materials (
     created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS messages (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id  INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    author      TEXT NOT NULL,              -- teacher | student
+    text        TEXT DEFAULT '',
+    material_id INTEGER REFERENCES materials(id) ON DELETE SET NULL,
+    created_at  TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS settings (
     key   TEXT PRIMARY KEY,
     value TEXT
@@ -99,6 +109,7 @@ CREATE INDEX IF NOT EXISTS idx_lessons_student ON lessons(student_id);
 CREATE INDEX IF NOT EXISTS idx_pack_student    ON packages(student_id);
 CREATE INDEX IF NOT EXISTS idx_pay_student     ON payments(student_id);
 CREATE INDEX IF NOT EXISTS idx_mat_student     ON materials(student_id);
+CREATE INDEX IF NOT EXISTS idx_msg_student     ON messages(student_id, created_at);
 """
 
 DEFAULT_SETTINGS = {
@@ -131,7 +142,14 @@ def init_db() -> None:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     with connect() as conn:
         conn.executescript(SCHEMA)
-        # место для будущих полей: ensure_column(conn, "lessons", "новое", "TEXT DEFAULT ''")
+        # кабинет ученика: код для входа и адрес страницы
+        ensure_column(conn, "students", "portal_code", "TEXT DEFAULT ''")
+        ensure_column(conn, "students", "portal_token", "TEXT DEFAULT ''")
+        for row in conn.execute("SELECT id FROM students WHERE portal_code IS NULL OR portal_code = ''"):
+            conn.execute(
+                "UPDATE students SET portal_code = ?, portal_token = ? WHERE id = ?",
+                (f"{secrets.randbelow(9000) + 1000}", secrets.token_urlsafe(16), row["id"]),
+            )
         for key, value in DEFAULT_SETTINGS.items():
             conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
         conn.commit()

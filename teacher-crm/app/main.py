@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .db import BASE_DIR, get_settings, init_db, set_settings
-from .routers import dashboard, lessons, materials, packages, payments, students
+from .routers import dashboard, lessons, materials, packages, payments, portal, students
 
 app = FastAPI(title="CRM преподавателя английского", docs_url="/api/docs", redoc_url=None)
 
@@ -29,6 +29,14 @@ app.include_router(packages.router)
 app.include_router(payments.router)
 app.include_router(materials.router)
 app.include_router(dashboard.router)
+app.include_router(portal.router)
+app.include_router(portal.teacher)
+
+
+@app.get("/s/{token}")
+def student_portal(token: str):
+    """Страница кабинета ученика — сама решает, спрашивать код или нет."""
+    return FileResponse(STATIC_DIR / "portal.html")
 
 
 @app.get("/api/settings")
