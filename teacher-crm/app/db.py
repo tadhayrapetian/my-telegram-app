@@ -117,6 +117,8 @@ DEFAULT_SETTINGS = {
     "default_duration": "60",
     "default_price": "0",
     "teacher_name": "",
+    # пропуск без предупреждения по умолчанию считается проведённым занятием
+    "no_show_counts": "1",
 }
 
 
@@ -150,6 +152,11 @@ def init_db() -> None:
                 "UPDATE students SET portal_code = ?, portal_token = ? WHERE id = ?",
                 (f"{secrets.randbelow(9000) + 1000}", secrets.token_urlsafe(16), row["id"]),
             )
+        # абонемент знает свои дни недели и время — по ним считается последний день
+        ensure_column(conn, "packages", "weekdays", "TEXT DEFAULT ''")
+        ensure_column(conn, "packages", "lesson_time", "TEXT DEFAULT ''")
+        # кто перенёс занятие: teacher или student
+        ensure_column(conn, "lessons", "moved_by", "TEXT DEFAULT ''")
         for key, value in DEFAULT_SETTINGS.items():
             conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
         conn.commit()

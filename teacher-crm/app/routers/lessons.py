@@ -14,11 +14,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..db import connect
-from ..logic import CANCELLED, DONE, MOVED, PLANNED, active_package, add_days, today_iso, week_start
+from ..logic import (CANCELLED, DONE, MOVED, MOVED_STUDENT, MOVED_TEACHER, NO_SHOW, PLANNED,
+                     STATUS_LIST, active_package, add_days, today_iso, week_start)
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
 
-STATUSES = {PLANNED, DONE, CANCELLED, MOVED}
+STATUSES = set(STATUS_LIST)
 
 
 class LessonIn(BaseModel):
@@ -47,6 +48,7 @@ class MoveIn(BaseModel):
     date: str
     time: str | None = None
     reason: str = ""
+    by: str = "teacher"   # кто переносит: teacher или student
 
 
 def _with_student(conn, rows) -> list:
@@ -105,7 +107,8 @@ def get_lesson(lesson_id: int):
         # цепочка переносов: откуда пришло и куда ушло
         item["moved_from"] = None
         if item.get("moved_from_id"):
-            prev = conn.execute("SELECT id, date, time FROM lessons WHERE id = ?", (item["moved_from_id"],)).fetchone()
+            prev = conn.execute("SELECT id, date, time, moved_by FROM lessons WHERE id = ?",
+                                (item["moved_from_id"],)).fetchone()
             item["moved_from"] = dict(prev) if prev else None
         nxt = conn.execute("SELECT id, date, time FROM lessons WHERE moved_from_id = ?", (lesson_id,)).fetchone()
         item["moved_to"] = dict(nxt) if nxt else None
@@ -192,7 +195,13 @@ def set_status(lesson_id: int, data: StatusIn):
 
 @router.post("/{lesson_id}/move")
 def move_lesson(lesson_id: int, data: MoveIn):
-    """Перенос: старое занятие помечается moved, создаётся новое со ссылкой на него."""
+    """Перенос: старое занятие помечается перенесённым, новое ссылается на него.
+
+    Кто перенёс — важно: это видно в журнале и по нему потом легко понять,
+    кто чаще двигает занятия.
+    """
+    by = "student" if data.by == "student" else "teacher"
+    old_status = MOVED_STUDENT if by == "student" else MOVED_TEACHER
     with connect() as conn:
         row = conn.execute("SELECT * FROM lessons WHERE id = ?", (lesson_id,)).fetchone()
         if not row:
@@ -207,8 +216,8 @@ def move_lesson(lesson_id: int, data: MoveIn):
              lesson_id, data.reason, datetime.now().isoformat(timespec="seconds")),
         )
         new_id = cur.lastrowid
-        conn.execute("UPDATE lessons SET status = ?, move_reason = ? WHERE id = ?",
-                     (MOVED, data.reason, lesson_id))
+        conn.execute("UPDATE lessons SET status = ?, move_reason = ?, moved_by = ? WHERE id = ?",
+                     (old_status, data.reason, by, lesson_id))
         conn.commit()
     return get_lesson(new_id)
 

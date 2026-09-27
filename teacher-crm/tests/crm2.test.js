@@ -49,7 +49,7 @@ const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.to
   ok(moved.moved_from && moved.moved_from.id === unmarked[3].id, 'новое занятие ссылается на исходное');
   ok(moved.move_reason === 'Ученик заболел', 'причина переноса сохранена');
   const oldLesson = (await api('GET', `/api/lessons/${unmarked[3].id}`)).data;
-  ok(oldLesson.status === 'moved', 'исходное занятие помечено перенесённым');
+  ok(oldLesson.status === 'moved_teacher', 'исходное занятие помечено перенесённым учителем: ' + oldLesson.status);
   ok(oldLesson.moved_to && oldLesson.moved_to.id === moved.id, 'у исходного видно, куда перенесли');
   card = (await api('GET', `/api/students/${st.id}`)).data;
   ok(card.lessons_left === 6, 'перенос не списывает занятие: ' + card.lessons_left);

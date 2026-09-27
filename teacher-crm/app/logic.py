@@ -6,12 +6,28 @@
 
 from datetime import date, datetime, timedelta
 
-from .db import connect
+from .db import connect, get_settings
 
 DONE = "done"
 PLANNED = "planned"
 CANCELLED = "cancelled"
-MOVED = "moved"
+NO_SHOW = "no_show"                 # ученик не пришёл и не предупредил
+MOVED_TEACHER = "moved_teacher"     # перенесено преподавателем
+MOVED_STUDENT = "moved_student"     # перенесено учеником
+MOVED = "moved"                     # старый общий статус — остаётся ради прежних записей
+
+MOVED_ANY = (MOVED, MOVED_TEACHER, MOVED_STUDENT)
+STATUS_LIST = (PLANNED, DONE, MOVED_TEACHER, MOVED_STUDENT, NO_SHOW, CANCELLED, MOVED)
+
+
+def no_show_counts() -> bool:
+    """Считать ли пропуск проведённым занятием. Настраивается в «Настройках»."""
+    return str(get_settings().get("no_show_counts", "1")) not in ("", "0", "false")
+
+
+def spent_statuses() -> tuple:
+    """Статусы, которые списывают занятие с абонемента и попадают в начисление."""
+    return (DONE, NO_SHOW) if no_show_counts() else (DONE,)
 
 
 def today_iso() -> str:
@@ -31,17 +47,51 @@ def add_days(value: str, days: int) -> str:
     return (parse_date(value) + timedelta(days=days)).isoformat()
 
 
+def parse_weekdays(value) -> list:
+    """Дни недели абонемента. Хранятся строкой «1,3,5», где 1 — понедельник."""
+    if value is None or value == "":
+        return []
+    items = value if isinstance(value, (list, tuple)) else str(value).split(",")
+    out = []
+    for item in items:
+        item = str(item).strip()
+        if item.isdigit() and 1 <= int(item) <= 7 and int(item) not in out:
+            out.append(int(item))
+    return sorted(out)
+
+
+def package_dates(start: str, weekdays, count: int) -> list:
+    """Даты занятий абонемента: от даты начала по выбранным дням недели.
+
+    Считаем ровно столько дат, сколько занятий в абонементе, — последняя из них
+    и есть день окончания. Дата начала участвует, если попадает в выбранный день.
+    """
+    days = parse_weekdays(weekdays)
+    count = int(count or 0)
+    if not days or count <= 0:
+        return []
+    out, cursor, guard = [], parse_date(start), 0
+    while len(out) < count and guard < 4000:
+        if cursor.isoweekday() in days:
+            out.append(cursor.isoformat())
+        cursor += timedelta(days=1)
+        guard += 1
+    return out
+
+
 # --------------------------------------------------------------- абонементы ---
 
 def package_state(conn, package: dict) -> dict:
     """Сколько занятий списано, сколько осталось и в каком абонемент состоянии.
 
-    Списываются только проведённые занятия. Отменённое или перенесённое
-    занятие возвращается в абонемент само собой — оно просто не считается.
+    Списываются проведённые занятия и — если так настроено — пропуски.
+    Отменённое или перенесённое занятие возвращается в абонемент само собой:
+    оно просто не считается.
     """
+    spent = spent_statuses()
     used = conn.execute(
-        "SELECT COUNT(*) AS n FROM lessons WHERE package_id = ? AND status = ?",
-        (package["id"], DONE),
+        f"SELECT COUNT(*) AS n FROM lessons WHERE package_id = ? AND status IN ({','.join('?' * len(spent))})",
+        (package["id"], *spent),
     ).fetchone()["n"]
     planned = conn.execute(
         "SELECT COUNT(*) AS n FROM lessons WHERE package_id = ? AND status = ?",
@@ -94,10 +144,12 @@ def student_money(conn, student_id: int) -> dict:
     charged_packs = conn.execute(
         "SELECT COALESCE(SUM(price), 0) AS s FROM packages WHERE student_id = ?", (student_id,)
     ).fetchone()["s"]
+    spent = spent_statuses()
     charged_single = conn.execute(
         "SELECT COALESCE(SUM(price), 0) AS s FROM lessons "
-        "WHERE student_id = ? AND package_id IS NULL AND status = ? AND price IS NOT NULL",
-        (student_id, DONE),
+        f"WHERE student_id = ? AND package_id IS NULL AND price IS NOT NULL "
+        f"AND status IN ({','.join('?' * len(spent))})",
+        (student_id, *spent),
     ).fetchone()["s"]
     paid = conn.execute(
         "SELECT COALESCE(SUM(amount), 0) AS s FROM payments WHERE student_id = ? AND status = 'paid'",

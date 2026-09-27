@@ -9,8 +9,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ..db import connect
-from ..logic import package_state, packages_of, parse_date, today_iso
+from ..db import connect, get_settings
+from ..logic import PLANNED, package_dates, package_state, packages_of, parse_date, parse_weekdays, today_iso
 
 router = APIRouter(prefix="/api/packages", tags=["packages"])
 
@@ -21,12 +21,28 @@ WARN_DAYS = 7      # и когда до конца срока осталось �
 class PackageIn(BaseModel):
     student_id: int
     lessons_total: int
-    purchased_on: str
-    expires_on: str | None = None
+    purchased_on: str               # день начала абонемента
+    expires_on: str | None = None   # считается сам, если заданы дни недели
     price: float = 0
     note: str = ""
     pay_now: bool = False           # сразу записать оплату на всю сумму
     payment_method: str = ""
+    weekdays: list[int] = []        # 1 — понедельник … 7 — воскресенье
+    lesson_time: str = ""           # время занятий, например 17:00
+    create_lessons: bool = True     # поставить занятия в расписание
+
+
+class PreviewIn(BaseModel):
+    lessons_total: int
+    purchased_on: str
+    weekdays: list[int] = []
+
+
+@router.post("/preview")
+def preview(data: PreviewIn):
+    """Даты занятий и последний день — чтобы показать их ещё до сохранения."""
+    dates = package_dates(data.purchased_on, data.weekdays, data.lessons_total)
+    return {"dates": dates, "last": dates[-1] if dates else None, "count": len(dates)}
 
 
 @router.get("")
@@ -70,16 +86,21 @@ def create_package(data: PackageIn):
             parse_date(data.expires_on)
         except ValueError:
             raise HTTPException(400, "Неверная дата окончания")
+    days = parse_weekdays(data.weekdays)
+    dates = package_dates(data.purchased_on, days, data.lessons_total)
+    # дни недели заданы — последний день считаем сами, руками его задавать не нужно
+    expires_on = (dates[-1] if dates else None) or data.expires_on or None
     now = datetime.now().isoformat(timespec="seconds")
+    settings = get_settings()
     with connect() as conn:
         student = conn.execute("SELECT 1 FROM students WHERE id = ?", (data.student_id,)).fetchone()
         if not student:
             raise HTTPException(404, "Ученик не найден")
         cur = conn.execute(
-            "INSERT INTO packages (student_id, lessons_total, purchased_on, expires_on, price, note, created_at) "
-            "VALUES (?,?,?,?,?,?,?)",
-            (data.student_id, data.lessons_total, data.purchased_on, data.expires_on or None,
-             data.price, data.note, now),
+            "INSERT INTO packages (student_id, lessons_total, purchased_on, expires_on, price, note, "
+            "weekdays, lesson_time, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (data.student_id, data.lessons_total, data.purchased_on, expires_on,
+             data.price, data.note, ",".join(str(d) for d in days), data.lesson_time, now),
         )
         pack_id = cur.lastrowid
         if data.pay_now and data.price:
@@ -89,15 +110,39 @@ def create_package(data: PackageIn):
                 (data.student_id, pack_id, data.price, data.purchased_on, data.payment_method,
                  "paid", "Оплата абонемента", now),
             )
-        # запланированные занятия без абонемента подхватываем в новый
-        conn.execute(
-            "UPDATE lessons SET package_id = ? WHERE student_id = ? AND package_id IS NULL "
-            "AND status = 'planned' AND date >= ?",
-            (pack_id, data.student_id, data.purchased_on),
-        )
+        created = 0
+        if dates and data.create_lessons:
+            # занятия абонемента сразу встают в расписание — по выбранным дням
+            time_value = data.lesson_time or "17:00"
+            duration = int(settings.get("default_duration") or 60)
+            busy = {
+                r["date"] for r in conn.execute(
+                    "SELECT date FROM lessons WHERE student_id = ? AND time = ? AND status != 'cancelled'",
+                    (data.student_id, time_value),
+                )
+            }
+            for day in dates:
+                if day in busy:      # занятие в этот день и час уже есть — не дублируем
+                    continue
+                conn.execute(
+                    "INSERT INTO lessons (student_id, package_id, date, time, duration, status, created_at) "
+                    "VALUES (?,?,?,?,?,?,?)",
+                    (data.student_id, pack_id, day, time_value, duration, PLANNED, now),
+                )
+                created += 1
+        else:
+            # без дней недели поведение прежнее: подхватываем занятия без абонемента
+            conn.execute(
+                "UPDATE lessons SET package_id = ? WHERE student_id = ? AND package_id IS NULL "
+                "AND status = 'planned' AND date >= ?",
+                (pack_id, data.student_id, data.purchased_on),
+            )
         conn.commit()
         row = conn.execute("SELECT * FROM packages WHERE id = ?", (pack_id,)).fetchone()
-        return package_state(conn, dict(row))
+        out = package_state(conn, dict(row))
+        out["lessons_created"] = created
+        out["dates"] = dates
+        return out
 
 
 @router.put("/{package_id}")
@@ -106,9 +151,14 @@ def update_package(package_id: int, data: PackageIn):
         row = conn.execute("SELECT * FROM packages WHERE id = ?", (package_id,)).fetchone()
         if not row:
             raise HTTPException(404, "Абонемент не найден")
+        days = parse_weekdays(data.weekdays)
+        dates = package_dates(data.purchased_on, days, data.lessons_total)
+        expires_on = (dates[-1] if dates else None) or data.expires_on or None
         conn.execute(
-            "UPDATE packages SET lessons_total=?, purchased_on=?, expires_on=?, price=?, note=? WHERE id=?",
-            (data.lessons_total, data.purchased_on, data.expires_on or None, data.price, data.note, package_id),
+            "UPDATE packages SET lessons_total=?, purchased_on=?, expires_on=?, price=?, note=?, "
+            "weekdays=?, lesson_time=? WHERE id=?",
+            (data.lessons_total, data.purchased_on, expires_on, data.price, data.note,
+             ",".join(str(d) for d in days), data.lesson_time, package_id),
         )
         conn.commit()
         row = conn.execute("SELECT * FROM packages WHERE id = ?", (package_id,)).fetchone()

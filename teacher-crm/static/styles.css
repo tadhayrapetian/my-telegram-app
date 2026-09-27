@@ -205,8 +205,31 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
 .lsn.done .t,.lsn.done .s{color:rgba(251,248,241,.78)}
 .lsn.cancelled{background:var(--paper-3);border-color:var(--line);opacity:.72}
 .lsn.cancelled .n{text-decoration:line-through}
-.lsn.moved{background:var(--amber-soft);border-color:#E3C9AF;color:var(--amber)}
-.lsn.moved .t,.lsn.moved .s{color:#9C6B41}
+.lsn.moved,.lsn.moved_teacher,.lsn.moved_student{background:var(--amber-soft);border-color:#E3C9AF;color:var(--amber)}
+.lsn.moved .t,.lsn.moved .s,
+.lsn.moved_teacher .t,.lsn.moved_teacher .s,
+.lsn.moved_student .t,.lsn.moved_student .s{color:#9C6B41}
+.lsn.moved_student{border-style:dashed}
+.lsn.no_show{background:var(--red-soft,#F3DED9);border-color:#E6C4BD;color:var(--red,#A6483C)}
+.lsn.no_show .t,.lsn.no_show .s{color:#96564B}
+
+/* абонемент: быстрые кнопки, дни недели и расчёт последнего дня */
+.quick{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:-4px}
+.chip-btn{border:1px solid var(--line);background:var(--paper-2);color:var(--ink-2);cursor:pointer;
+  border-radius:999px;padding:5px 12px;font-size:13px;font-weight:560}
+.chip-btn:hover{border-color:var(--olive-400);color:var(--olive-600)}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.day-btn{border:1px solid var(--line);background:var(--paper-2);color:var(--ink-2);cursor:pointer;
+  border-radius:10px;min-width:44px;padding:9px 6px;font-size:13.5px;font-weight:600}
+.day-btn:hover{border-color:var(--olive-400)}
+.day-btn.on{background:var(--olive-600);border-color:var(--olive-600);color:var(--paper-2)}
+.calc{display:flex;flex-direction:column;gap:3px;background:var(--olive-50);border:1px solid var(--olive-100);
+  border-radius:12px;padding:12px 14px}
+.calc b{font-size:15px;color:var(--olive-700)}
+.calc span{font-size:12.5px;color:var(--ink-3)}
+.calc .dates{font-size:12px;color:var(--ink-3);line-height:1.5}
+.calc.empty-calc{background:var(--paper-3);border-color:var(--line)}
+.calc.empty-calc b{color:var(--ink-2)}
 
 .month{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
 .mhead{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:rgba(234,227,210,.5);border-bottom:1px solid var(--line-2)}

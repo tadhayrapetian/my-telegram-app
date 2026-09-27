@@ -24,7 +24,7 @@ const API = {
 
 const state = {
   tab: "dashboard",
-  settings: { currency: "֏", default_duration: "60", default_price: "0", teacher_name: "" },
+  settings: { currency: "֏", default_duration: "60", default_price: "0", teacher_name: "", no_show_counts: "1" },
   students: [],
   calMode: "week",
   anchor: "",            // любая дата внутри показываемой недели или месяца
@@ -324,8 +324,10 @@ function packStatusTag(p) {
 }
 
 function packageRow(p) {
+  const days = String(p.weekdays || "").split(",").filter(Boolean)
+    .map((n) => WEEKDAYS[Number(n) - 1] && WEEKDAYS[Number(n) - 1].s.toLowerCase()).filter(Boolean);
   const period = p.expires_on
-    ? `${fmtDate(p.purchased_on)} — ${fmtDate(p.expires_on)}`
+    ? `${fmtDate(p.purchased_on)} — ${fmtDate(p.expires_on)}${days.length ? " · " + days.join(", ") : ""}`
     : `с ${fmtDate(p.purchased_on)}, без срока`;
   return `<div class="row">
     <div class="g"><div class="nm">${p.lessons_total} ${lessonsWord(p.lessons_total)} · ${money(p.price)}</div>
@@ -335,65 +337,164 @@ function packageRow(p) {
   </div>`;
 }
 
+const WEEKDAYS = [
+  { n: 1, s: "Пн" }, { n: 2, s: "Вт" }, { n: 3, s: "Ср" }, { n: 4, s: "Чт" },
+  { n: 5, s: "Пт" }, { n: 6, s: "Сб" }, { n: 7, s: "Вс" },
+];
+
+/* Даты занятий абонемента: столько же, сколько занятий, по выбранным дням.
+   Считаем и здесь, чтобы последний день был виден сразу, без сохранения. */
+function packDates(start, days, count) {
+  const out = [];
+  if (!start || !days.length || count <= 0) return out;
+  const d = new Date(start + "T00:00:00");
+  for (let guard = 0; out.length < count && guard < 4000; guard++) {
+    const wd = d.getDay() === 0 ? 7 : d.getDay();
+    if (days.includes(wd)) out.push(isoOf(d));
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
+}
+function isoOf(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+
 function packageForm(studentId, pack) {
   const p = pack || {};
   const today = todayISO();
-  const inTwoMonths = addMonths(today, 2);
+  const chosen = String(p.weekdays || "").split(",").filter(Boolean).map(Number);
+
   modal(pack ? "Изменить абонемент" : "Новый абонемент",
     `<div class="f">
-      <div class="f-row-3">
-        <label class="fl">Занятий в абонементе<input class="inp tnum" id="pk-total" type="number" min="1" value="${p.lessons_total || 8}"></label>
-        <label class="fl">Дата покупки<input class="inp" id="pk-from" type="date" value="${esc(p.purchased_on || today)}"></label>
-        <label class="fl">Действует до<input class="inp" id="pk-to" type="date" value="${esc(p.expires_on || inTwoMonths)}"></label>
+      <div class="f-row">
+        <label class="fl">Занятий в абонементе
+          <input class="inp tnum" id="pk-total" type="number" min="1" max="200" value="${p.lessons_total || 8}"></label>
+        <label class="fl">Начинать с<input class="inp" id="pk-from" type="date" value="${esc(p.purchased_on || today)}"></label>
+      </div>
+      <div class="quick" id="pk-quick">
+        ${[4, 8, 10, 12, 16, 20].map((n) => `<button type="button" class="chip-btn" data-total="${n}">${n}</button>`).join("")}
+        <span class="hint">или впишите своё число</span>
+      </div>
+      <div class="fl">Дни недели
+        <div class="days" id="pk-days">
+          ${WEEKDAYS.map((d) => `<button type="button" class="day-btn${chosen.includes(d.n) ? " on" : ""}" data-day="${d.n}">${d.s}</button>`).join("")}
+        </div>
       </div>
       <div class="f-row">
+        <label class="fl">Время занятий<input class="inp" id="pk-time" type="time" value="${esc(p.lesson_time || "17:00")}"></label>
         <label class="fl">Стоимость<input class="inp tnum" id="pk-price" type="number" min="0" step="100" value="${p.price != null ? p.price : ""}"></label>
-        <label class="fl">Заметка<input class="inp" id="pk-note" value="${esc(p.note || "")}"></label>
       </div>
-      ${pack ? "" : `<label class="check"><input type="checkbox" id="pk-paid" checked>Сразу записать оплату на всю сумму</label>
-      <p class="hint">Запланированные занятия ученика без абонемента привяжутся к этому абонементу автоматически.</p>`}
+      <div class="calc" id="pk-calc"></div>
+      <label class="fl">Заметка<input class="inp" id="pk-note" value="${esc(p.note || "")}"></label>
+      ${pack ? `<p class="hint">Уже созданные занятия останутся как есть — поменяются число занятий, дни и последний день.</p>`
+             : `<label class="check"><input type="checkbox" id="pk-lessons" checked>Сразу поставить занятия в расписание</label>
+                <label class="check"><input type="checkbox" id="pk-paid" checked>Сразу записать оплату на всю сумму</label>`}
     </div>`,
     `<button class="btn" data-act="close">Отмена</button>
      <button class="btn btn-p" data-act="submit">Сохранить</button>`);
 
+  const days = new Set(chosen);
+  const calc = document.getElementById("pk-calc");
+
+  function recalc() {
+    const total = Number(val("pk-total")) || 0;
+    const list = packDates(val("pk-from"), [...days].sort(), total);
+    if (!days.size) {
+      calc.innerHTML = `<b>Выберите дни недели</b><span>по ним посчитается последний день абонемента</span>`;
+      calc.className = "calc empty-calc";
+      return;
+    }
+    calc.className = "calc";
+    calc.innerHTML =
+      `<b>Последнее занятие: ${list.length ? fmtDate(list[list.length - 1]) : "—"}</b>` +
+      `<span>${total} ${lessonsWord(total)} по ${[...days].sort().map((n) => WEEKDAYS[n - 1].s.toLowerCase()).join(", ")}` +
+      `${val("pk-time") ? " в " + val("pk-time") : ""} · первое ${list.length ? fmtDate(list[0]) : "—"}</span>` +
+      (list.length > 1 ? `<span class="dates">${list.slice(0, 12).map(fmtDate).join(" · ")}${list.length > 12 ? " …" : ""}</span>` : "");
+  }
+
+  document.getElementById("pk-days").onclick = (e) => {
+    const b = e.target.closest("[data-day]");
+    if (!b) return;
+    const n = Number(b.dataset.day);
+    days.has(n) ? days.delete(n) : days.add(n);
+    b.classList.toggle("on", days.has(n));
+    recalc();
+  };
+  document.getElementById("pk-quick").onclick = (e) => {
+    const b = e.target.closest("[data-total]");
+    if (!b) return;
+    document.getElementById("pk-total").value = b.dataset.total;
+    recalc();
+  };
+  ["pk-total", "pk-from", "pk-time"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", recalc);
+  });
+  recalc();
+
   submitHandler = async () => {
+    const total = Number(val("pk-total")) || 0;
+    if (total <= 0) { toast("Укажите число занятий"); return; }
     const payload = {
       student_id: Number(studentId),
-      lessons_total: Number(val("pk-total")) || 0,
+      lessons_total: total,
       purchased_on: val("pk-from"),
-      expires_on: val("pk-to") || null,
+      expires_on: null,
       price: Number(val("pk-price")) || 0,
       note: val("pk-note"),
+      weekdays: [...days].sort(),
+      lesson_time: val("pk-time"),
+      create_lessons: pack ? false : checked("pk-lessons"),
       pay_now: pack ? false : checked("pk-paid"),
     };
-    if (pack) await API.put(`/api/packages/${p.id}`, payload);
-    else await API.post("/api/packages", payload);
+    const res = pack
+      ? await API.put(`/api/packages/${p.id}`, payload)
+      : await API.post("/api/packages", payload);
     closeModal();
     await openStudent(studentId);
-    toast("Абонемент сохранён");
+    toast(res && res.lessons_created
+      ? `Абонемент создан, занятий в расписании: ${res.lessons_created}`
+      : "Абонемент сохранён");
   };
 }
 
 /* ------------------------------------------------------------ календарь --- */
+/* Статусы занятия. Перенос различаем по тому, кто его затеял. */
+const STATUS_TEXT = {
+  planned:       "запланировано",
+  done:          "проведено",
+  moved_teacher: "перенесено учителем",
+  moved_student: "перенесено учеником",
+  no_show:       "пропущено",
+  cancelled:     "отменено",
+  moved:         "перенесено",
+};
+const STATUS_SHORT = {
+  planned:       "план",
+  done:          "проведено",
+  moved_teacher: "перенос (учитель)",
+  moved_student: "перенос (ученик)",
+  no_show:       "пропущено",
+  cancelled:     "отменено",
+  moved:         "перенос",
+};
+const STATUS_TONE = {
+  planned: "mut", done: "ok", moved_teacher: "warn", moved_student: "warn",
+  no_show: "bad", cancelled: "bad", moved: "warn",
+};
+
 function statusTag(status) {
-  const map = {
-    planned:   '<span class="tag mut">запланировано</span>',
-    done:      '<span class="tag ok">проведено</span>',
-    cancelled: '<span class="tag bad">отменено</span>',
-    moved:     '<span class="tag warn">перенесено</span>',
-  };
-  return map[status] || "";
+  if (!STATUS_TEXT[status]) return "";
+  return `<span class="tag ${STATUS_TONE[status] || "mut"}">${STATUS_TEXT[status]}</span>`;
 }
 
 function lessonCard(l) {
-  return `<div class="lsn ${l.status}" data-open-lesson="${l.id}">
+  const tip = `${l.time} · ${l.student_name} · ${STATUS_TEXT[l.status] || ""}${l.topic ? " · " + l.topic : ""}`;
+  return `<div class="lsn ${l.status}" data-open-lesson="${l.id}" title="${esc(tip)}">
     <div class="t tnum">${esc(l.time)}</div>
     <div class="n">${esc(l.student_name)}</div>
-    <div class="s">${esc(l.topic || statusText(l.status))}</div></div>`;
+    <div class="s">${esc(l.status === "planned" ? (l.topic || "") : (STATUS_SHORT[l.status] || ""))}</div></div>`;
 }
-function statusText(s) {
-  return { planned: "запланировано", done: "проведено", cancelled: "отменено", moved: "перенесено" }[s] || "";
-}
+function statusText(s) { return STATUS_TEXT[s] || ""; }
 
 async function viewCalendar() {
   if (!state.anchor) state.anchor = todayISO();
@@ -488,14 +589,15 @@ async function lessonForm(lesson, presetDate, presetStudent) {
         <label class="fl">Цена разового занятия<input class="inp tnum" id="ls-price" type="number" min="0" step="100" value="" placeholder="если без абонемента"></label>
       </div>
       <label class="check"><input type="checkbox" id="ls-usepack" checked>Списывать из активного абонемента</label>` : ""}
-      ${!isNew && l.moved_from ? `<div class="chain">Перенесено с ${esc(fmtDate(l.moved_from.date))}, ${esc(l.moved_from.time)}${l.move_reason ? " · причина: " + esc(l.move_reason) : ""}</div>` : ""}
+      ${!isNew && l.moved_from ? `<div class="chain">Перенесено с ${esc(fmtDate(l.moved_from.date))}, ${esc(l.moved_from.time)}${l.moved_from.moved_by === "student" ? " · перенёс ученик" : l.moved_from.moved_by === "teacher" ? " · перенёс учитель" : ""}${l.move_reason ? " · причина: " + esc(l.move_reason) : ""}</div>` : ""}
       ${!isNew && l.moved_to ? `<div class="chain">Перенесено на ${esc(fmtDate(l.moved_to.date))}, ${esc(l.moved_to.time)}</div>` : ""}
     </div>`,
     (isNew ? "" :
       `<button class="btn btn-d" data-act="lesson-delete" data-id="${l.id}">Удалить</button>
        <button class="btn" data-act="lesson-move" data-id="${l.id}">Перенести</button>
        ${l.status === "planned"
-         ? `<button class="btn" data-act="lesson-status" data-id="${l.id}" data-status="cancelled">Отменить</button>
+         ? `<button class="btn" data-act="lesson-status" data-id="${l.id}" data-status="cancelled">Отменено</button>
+            <button class="btn" data-act="lesson-status" data-id="${l.id}" data-status="no_show">Пропущено</button>
             <button class="btn btn-p" data-act="lesson-status" data-id="${l.id}" data-status="done">Проведено</button>`
          : `<button class="btn" data-act="lesson-status" data-id="${l.id}" data-status="planned">Вернуть в план</button>`}`) +
     `<button class="btn" data-act="close">Закрыть</button>
@@ -538,14 +640,19 @@ function moveForm(id) {
         <label class="fl">Новая дата<input class="inp" id="mv-date" type="date" value="${todayISO()}"></label>
         <label class="fl">Новое время<input class="inp" id="mv-time" type="time" value=""></label>
       </div>
+      <label class="fl">Кто переносит
+        <select class="inp" id="mv-by">
+          <option value="teacher">Учитель</option>
+          <option value="student">Ученик</option>
+        </select></label>
       <label class="fl">Причина переноса<input class="inp" id="mv-reason" placeholder="Ученик заболел"></label>
-      <p class="hint">Старое занятие останется в истории со статусом «перенесено», новое будет на него ссылаться.</p>
+      <p class="hint">Старое занятие останется в истории — с пометкой, кто перенёс, — а новое будет на него ссылаться.</p>
     </div>`,
     `<button class="btn" data-act="close">Отмена</button>
      <button class="btn btn-p" data-act="submit">Перенести</button>`);
   submitHandler = async () => {
     await API.post(`/api/lessons/${id}/move`, {
-      date: val("mv-date"), time: val("mv-time") || null, reason: val("mv-reason"),
+      date: val("mv-date"), time: val("mv-time") || null, reason: val("mv-reason"), by: val("mv-by"),
     });
     closeModal();
     await render();
@@ -563,6 +670,7 @@ async function unmarkedModal() {
           <div class="sb">${esc(fmtDate(l.date))}, ${esc(l.time)}${l.topic ? " · " + esc(l.topic) : ""}</div></div>
         <div class="act">
           <button class="btn btn-s btn-p" data-act="lesson-status" data-id="${l.id}" data-status="done" data-stay="1">Проведено</button>
+          <button class="btn btn-s" data-act="lesson-status" data-id="${l.id}" data-status="no_show" data-stay="1">Пропущено</button>
           <button class="btn btn-s" data-act="lesson-status" data-id="${l.id}" data-status="cancelled" data-stay="1">Отменено</button>
         </div></div>`).join("") : `<div class="empty">Всё прошедшее отмечено</div>`) +
     `</div></div>`,
@@ -806,6 +914,8 @@ async function viewSettings() {
             <label class="fl">Длительность занятия, мин<input class="inp tnum" id="se-duration" type="number" min="15" step="15" value="${esc(state.settings.default_duration)}"></label>
             <label class="fl">Ваше имя<input class="inp" id="se-teacher" value="${esc(state.settings.teacher_name || "")}"></label>
           </div>
+          <label class="check"><input type="checkbox" id="se-noshow" ${String(state.settings.no_show_counts) !== "0" ? "checked" : ""}>Пропущенное занятие списывается с абонемента</label>
+          <p class="hint">Снимите галочку, если пропуск вы не считаете и возвращаете занятие ученику.</p>
           <button class="btn btn-p" data-act="settings-save" style="align-self:flex-start">Сохранить</button>
         </div></div></div>
 
@@ -969,6 +1079,7 @@ document.addEventListener("click", async (e) => {
           currency: val("se-currency") || "֏",
           default_duration: val("se-duration") || "60",
           teacher_name: val("se-teacher"),
+          no_show_counts: checked("se-noshow") ? "1" : "0",
         });
         await render(); toast("Сохранено");
         break;
