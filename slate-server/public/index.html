@@ -157,8 +157,11 @@ h1,h2,h3{margin:0;font-family:var(--display);font-weight:700;letter-spacing:-.01
 .lsn.done .t,.lsn.done .s{color:rgba(251,248,241,.75)}
 .lsn.cancelled{background:var(--paper-3);border-color:var(--line);opacity:.72}
 .lsn.cancelled .n{text-decoration:line-through}
-.lsn.no_show{background:var(--clay-soft);border-color:#E3C9AF;color:var(--clay-ink)}
-.lsn.no_show .t,.lsn.no_show .s{color:#9C6B41}
+.lsn.moved_teacher,.lsn.moved_student{background:var(--clay-soft);border-color:#E3C9AF;color:var(--clay-ink)}
+.lsn.moved_teacher .t,.lsn.moved_teacher .s,.lsn.moved_student .t,.lsn.moved_student .s{color:#9C6B41}
+.lsn.moved_student{border-style:dashed}
+.lsn.no_show{background:var(--red-soft);border-color:#E6C4BD;color:var(--red)}
+.lsn.no_show .t,.lsn.no_show .s{color:#96564B}
 .lsn.dragging{opacity:.45}
 .day-add{border:1px dashed var(--line);background:transparent;color:var(--ink-3);border-radius:9px;padding:6px;cursor:pointer;font-size:12px}
 .day-add:hover{border-color:var(--olive-300);color:var(--olive-600);background:var(--olive-50)}
@@ -391,6 +394,18 @@ var T = {
 "l.no_show":{en:"No-show",ru:"Не пришёл",hy:"Չի եկել"},
 "l.mark":{en:"Mark as held",ru:"Отметить проведённым",hy:"Նշել որպես անցկացված"},
 "l.unmark":{en:"Back to planned",ru:"Вернуть в план",hy:"Վերադարձնել պլան"},
+"l.moved_teacher":{en:"Moved by teacher",ru:"Перенесено учителем",hy:"Տեղափոխել է ուսուցիչը"},
+"l.moved_student":{en:"Moved by student",ru:"Перенесено учеником",hy:"Տեղափոխել է աշակերտը"},
+"l.moveTitle":{en:"Move the lesson",ru:"Перенос занятия",hy:"Դասի տեղափոխում"},
+"l.moveDo":{en:"Move",ru:"Перенести",hy:"Տեղափոխել"},
+"l.moveBy":{en:"Who moves it",ru:"Кто переносит",hy:"Ո՞վ է տեղափոխում"},
+"l.byTeacher":{en:"Teacher",ru:"Учитель",hy:"Ուսուցիչ"},
+"l.byStudent":{en:"Student",ru:"Ученик",hy:"Աշակերտ"},
+"l.moveWhy":{en:"Reason",ru:"Причина переноса",hy:"Տեղափոխման պատճառը"},
+"l.moveKeep":{en:"The old lesson stays in the history, the new one links back to it.",ru:"Старое занятие останется в истории, новое будет на него ссылаться.",hy:"Հին դասը մնում է պատմության մեջ, նորը հղվում է նրան։"},
+"l.movedFrom":{en:"Moved from",ru:"Перенесено с",hy:"Տեղափոխվել է"},
+"l.movedTo":{en:"Moved to",ru:"Перенесено на",hy:"Տեղափոխվել է"},
+"l.moveOk":{en:"Lesson moved",ru:"Занятие перенесено",hy:"Դասը տեղափոխվեց"},
 "l.markNo":{en:"No-show",ru:"Не пришёл",hy:"Չի եկել"},
 "l.markCancel":{en:"Cancel lesson",ru:"Отменить занятие",hy:"Չեղարկել դասը"},
 "l.deleteSeries":{en:"Delete all future repeats too",ru:"Удалить и все будущие повторы",hy:"Ջնջել նաև բոլոր ապագա կրկնությունները"},
@@ -1005,19 +1020,26 @@ function lessonRow(l){
   return '<div class="row"><span class="ava">' + esc(initials(s.name)) + "</span>" +
     '<div class="g"><div class="nm">' + esc(l.time) + " · " + esc(s.name) + "</div>" +
     '<div class="sb">' + esc((s.subject || "") + (l.online ? " · online" : "") + (l.note ? " · " + l.note : "")) + "</div></div>" +
-    '<span class="chip ' + (st === "done" ? "ok" : st === "no_show" ? "warn" : st === "cancelled" ? "mut" : "mut") + '">' + esc(t("l." + st)) + "</span>" +
+    '<span class="chip ' + chipTone(st) + '">' + esc(t("l." + st)) + "</span>" +
     '<div class="act">' + (st === "planned" ? '<button class="btn btn-p btn-s" data-act="lesson-done" data-id="' + l.id + '">' + esc(t("l.done")) + "</button>" : "") +
     '<button class="btn btn-g btn-s" data-act="lesson-open" data-id="' + l.id + '">' + esc(t("a.edit")) + "</button></div></div>";
 }
 
 /* ---------------------------- вид: неделя ---------------------------- */
 /* карточка занятия в сетке */
+function chipTone(st){
+  if (st === "done") return "ok";
+  if (st === "no_show") return "bad";
+  if (st === "moved_teacher" || st === "moved_student") return "warn";
+  return "mut";
+}
 function lessonCell(l, big){
   var s = student(l.studentId) || { name: "—" };
-  return '<div class="lsn ' + l.status + (big ? " big" : "") + '" draggable="true" data-act="lesson-open" data-id="' + l.id + '">' +
+  var tip = l.time + " · " + s.name + " · " + t("l." + l.status);
+  return '<div class="lsn ' + l.status + (big ? " big" : "") + '" draggable="true" data-act="lesson-open" data-id="' + l.id + '" title="' + esc(tip) + '">' +
     '<div class="t tnum">' + esc(l.time) + (l.online ? " · online" : "") + "</div>" +
     '<div class="n">' + esc(s.name) + "</div>" +
-    '<div class="s">' + esc(s.subject || t("l." + l.status)) + "</div></div>";
+    '<div class="s">' + esc(l.status === "planned" ? (s.subject || "") : t("l." + l.status)) + "</div></div>";
 }
 function calBar(title){
   return '<div class="wk-bar"><span class="wk-title">' + esc(title) + "</span>" +
@@ -1397,7 +1419,7 @@ function studentCard(id){
       '<div class="card"><div class="card-h"><h2>' + esc(t("s.history")) + '</h2></div><div class="card-b">' +
         (hist.length ? hist.map(function(l){
           return '<div class="row"><div class="g"><div class="nm">' + esc(fmtLong(l.date) + ", " + l.time) + "</div></div>" +
-            '<span class="chip ' + (l.status === "done" ? "ok" : l.status === "no_show" ? "warn" : "mut") + '">' + esc(t("l." + l.status)) + "</span></div>";
+            '<span class="chip ' + chipTone(l.status) + '">' + esc(t("l." + l.status)) + "</span></div>";
         }).join("") : '<div class="empty">' + esc(t("l.none")) + "</div>") +
       "</div></div>" +
       (canFiles ? '<div class="card"><div class="card-h"><h2>' + esc(t("fl.title")) + " · " + docs.length + "</h2>" +
@@ -1553,9 +1575,18 @@ function lessonForm(id, presetDate, presetStudent){
       '<label class="fl">' + esc(t("l.link")) + '<input class="inp" id="ls-link" value="' + esc(l ? l.link : "") + '" placeholder="https://…"></label>' +
       '<label class="fl">' + esc(t("l.hw")) + '<input class="inp" id="ls-hw" value="' + esc(l ? l.hw : "") + '"></label>' +
       '<label class="fl">' + esc(t("l.note")) + '<input class="inp" id="ls-note" value="' + esc(l ? l.note : "") + '"></label>' +
+      (l && l.movedFrom && lesson(l.movedFrom)
+         ? '<p class="hint">' + esc(t("l.movedFrom") + " " + fmtLong(lesson(l.movedFrom).date) + ", " + lesson(l.movedFrom).time +
+             (lesson(l.movedFrom).movedBy === "student" ? " · " + t("l.byStudent") : lesson(l.movedFrom).movedBy === "teacher" ? " · " + t("l.byTeacher") : "") +
+             (l.moveReason ? " · " + l.moveReason : "")) + "</p>" : "") +
+      (l ? (function(){
+         var to = S.lessons.filter(function(x){ return x.movedFrom === l.id; })[0];
+         return to ? '<p class="hint">' + esc(t("l.movedTo") + " " + fmtLong(to.date) + ", " + to.time) + "</p>" : "";
+       })() : "") +
       (l ? '<p class="hint">' + esc(t("l.willCharge")) + "</p>" : "") +
     "</div>",
     (l ? '<button class="btn btn-d" data-act="lesson-del" data-id="' + l.id + '">' + esc(t("a.delete")) + "</button>" +
+         '<button class="btn btn-g" data-act="lesson-move" data-id="' + l.id + '">' + esc(t("l.moveDo")) + "</button>" +
          (l.status === "planned"
             ? '<button class="btn btn-g" data-act="lesson-cancel" data-id="' + l.id + '">' + esc(t("l.markCancel")) + "</button>" +
               '<button class="btn btn-g" data-act="lesson-noshow" data-id="' + l.id + '">' + esc(t("l.markNo")) + "</button>" +
@@ -1577,6 +1608,37 @@ function lessonForm(id, presetDate, presetStudent){
       }
     }
     save(); closeModal(); render(); toast(t("a.saved"));
+  };
+}
+/* --- перенос занятия: с историей и с тем, кто его затеял --- */
+function moveForm(id){
+  var l = lesson(id); if (!l) return;
+  modal(t("l.moveTitle"),
+    '<div class="f">' +
+      '<div class="f-row">' +
+        '<label class="fl">' + esc(t("l.date")) + '<input class="inp" id="mv-date" type="date" value="' + esc(l.date) + '"></label>' +
+        '<label class="fl">' + esc(t("l.time")) + '<input class="inp" id="mv-time" type="time" value="' + esc(l.time) + '"></label>' +
+      "</div>" +
+      '<label class="fl">' + esc(t("l.moveBy")) + '<select class="inp" id="mv-by">' +
+        '<option value="teacher">' + esc(t("l.byTeacher")) + "</option>" +
+        '<option value="student">' + esc(t("l.byStudent")) + "</option></select></label>" +
+      '<label class="fl">' + esc(t("l.moveWhy")) + '<input class="inp" id="mv-why"></label>' +
+      '<p class="hint">' + esc(t("l.moveKeep")) + "</p>" +
+    "</div>",
+    '<button class="btn btn-g" data-act="modal-close">' + esc(t("a.cancel")) + "</button>" +
+    '<button class="btn btn-p" data-act="submit">' + esc(t("l.moveDo")) + "</button>");
+
+  onSubmit = function(){
+    var by = val("mv-by") === "student" ? "student" : "teacher";
+    var copy = Object.assign({}, l, {
+      id: uid(), date: val("mv-date") || l.date, time: val("mv-time") || l.time,
+      status: "planned", movedFrom: l.id, moveReason: val("mv-why"), movedBy: ""
+    });
+    l.status = by === "student" ? "moved_student" : "moved_teacher";
+    l.movedBy = by;
+    l.moveReason = val("mv-why");
+    S.lessons.push(copy);
+    save(); closeModal(); render(); toast(t("l.moveOk"));
   };
 }
 function setStatus(id, st){
@@ -1910,6 +1972,7 @@ document.addEventListener("click", function(e){
 
     case "lesson-new": lessonForm(null, el.dataset.date, el.dataset.student); break;
     case "lesson-open": lessonForm(id); break;
+    case "lesson-move": moveForm(id); break;
     case "lesson-done": setStatus(id, "done"); break;
     case "lesson-noshow": setStatus(id, "no_show"); break;
     case "lesson-cancel": setStatus(id, "cancelled"); break;
