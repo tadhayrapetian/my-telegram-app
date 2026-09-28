@@ -29,12 +29,22 @@ const enabled = () => !!TOKEN;
 /* ------------------------------------------------------------------ обмен --- */
 
 async function call(method, payload) {
-  const res = await fetch(`${API}/bot${TOKEN}/${method}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(65000),
-  });
+  let res;
+  try {
+    res = await fetch(`${API}/bot${TOKEN}/${method}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(65000),
+    });
+  } catch (e) {
+    /* «fetch failed» само по себе ничего не объясняет — достаём причину:
+       ENOTFOUND — не резолвится, ETIMEDOUT/ECONNRESET — режет сеть или
+       блокировка, ECONNREFUSED — некуда стучаться */
+    const cause = (e && e.cause) || {};
+    const why = cause.code || cause.message || e.message;
+    throw new Error(`${method}: сеть — ${why} (адрес ${API})`);
+  }
   const data = await res.json().catch(() => ({}));
   if (!data.ok) throw new Error(`${method}: ${data.description || res.status}`);
   return data.result;
