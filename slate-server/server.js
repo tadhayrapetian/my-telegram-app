@@ -13,6 +13,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 const os = require("node:os");
 const mail = require("./mail");
+const bot = require("./bot");
 const { DatabaseSync } = require("node:sqlite");
 
 const PORT = +process.env.PORT || 3000;
@@ -78,6 +79,7 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 CREATE INDEX IF NOT EXISTS messages_student ON messages(user_id, student_id, created_at);
 `);
+bot.schema(db);          /* таблицы привязок и отправленных напоминаний */
 
 const q = {
   schoolById: db.prepare("SELECT * FROM schools WHERE id = ?"),
@@ -86,6 +88,7 @@ const q = {
   userByEmail: db.prepare("SELECT * FROM users WHERE email = ?"),
   userById: db.prepare("SELECT * FROM users WHERE id = ?"),
   usersOfSchool: db.prepare("SELECT * FROM users WHERE school_id = ? ORDER BY created_at"),
+  allUsers: db.prepare("SELECT * FROM users"),
   addUser: db.prepare("INSERT INTO users (id,school_id,email,name,role,created_at) VALUES (?,?,?,?,?,?)"),
   delUser: db.prepare("DELETE FROM users WHERE id = ? AND school_id = ?"),
   setUserName: db.prepare("UPDATE users SET name = ? WHERE id = ?"),
@@ -441,6 +444,36 @@ const routes = {
 
   /* Смена тарифа. Пока без оплаты — переключается вручную, чтобы можно было
      проверить лимиты. Здесь же потом появится биллинг. */
+  /* --- телеграм: ссылка для привязки и отключение --- */
+  "POST /api/telegram/link": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    if (!bot.enabled()) return send(res, 503, { error: "no_bot" });
+    const code = bot.makeCode(botCtx.q, { kind: "teacher", userId: user.id });
+    send(res, 200, { ok: true, url: `https://t.me/${botCtx.botName}?start=${code}`, bot: botCtx.botName });
+  },
+
+  "GET /api/telegram": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const chats = botCtx.q.chatsOf.all(user.id, "teacher");
+    const students = {};
+    for (const row of botCtx.q.chatsOf.all(user.id, "student")) students[row.student_id] = row.name || true;
+    send(res, 200, { enabled: bot.enabled(), bot: botCtx.botName, linked: chats.length > 0, students });
+  },
+
+  "POST /api/telegram/off": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    for (const row of botCtx.q.chatsOf.all(user.id, "teacher")) botCtx.q.unlink.run(row.chat_id);
+    send(res, 200, { ok: true });
+  },
+
+  "POST /api/portal/telegram": async (req, res) => {
+    const ps = portalSession(req);
+    if (!ps) return send(res, 401, { error: "no_session" });
+    if (!bot.enabled()) return send(res, 503, { error: "no_bot" });
+    const code = bot.makeCode(botCtx.q, { kind: "student", userId: ps.user_id, studentId: ps.student_id });
+    send(res, 200, { ok: true, url: `https://t.me/${botCtx.botName}?start=${code}`, bot: botCtx.botName });
+  },
+
   "POST /api/school/plan": async (req, res, user) => {
     if (!user) return send(res, 401, { error: "no_session" });
     if (user.role !== "owner") return send(res, 403, { error: "not_owner" });
@@ -510,6 +543,9 @@ const routes = {
     const id = uid();
     q.addMsg.run(id, ps.user_id, ps.student_id, "student", text, body.fileId || null, now());
     send(res, 200, { ok: true, id });
+    const who = (readDoc(ps.user_id).doc.students || []).find((x) => x.id === ps.student_id);
+    bot.notifyMessage(botCtx, { userId: ps.user_id, studentId: ps.student_id, author: "student",
+                                text: text || "прислал файл", studentName: who && who.name });
   },
 
   /* ученик загружает файл или своё фото */
@@ -566,8 +602,12 @@ const routes = {
     const text = String(body.text || "").trim().slice(0, 4000);
     if (!text && !body.fileId) return send(res, 400, { error: "empty" });
     const id = uid();
-    q.addMsg.run(id, user.id, String(body.studentId || ""), "teacher", text, body.fileId || null, now());
+    const sid = String(body.studentId || "");
+    q.addMsg.run(id, user.id, sid, "teacher", text, body.fileId || null, now());
     send(res, 200, { ok: true, id });
+    /* ученику в телеграм — уже после ответа, чтобы не задерживать отправку */
+    bot.notifyMessage(botCtx, { userId: user.id, studentId: sid, author: "teacher",
+                                text: text || "прислал файл", teacherName: user.name });
   },
 
 };
@@ -702,6 +742,15 @@ function lanAddress() {
   return null;
 }
 
+/* всё, что нужно боту: свои таблицы, документы преподавателей и лог */
+const botCtx = {
+  q: bot.makeQueries(db),
+  readDoc,
+  allUsers: () => q.allUsers.all(),
+  log: (m) => console.log("[slate/бот]", m),
+  botName: "",
+};
+
 server.listen(PORT, () => {
   console.log(`[slate] сервер на http://localhost:${PORT}`);
   const lan = lanAddress();
@@ -711,6 +760,7 @@ server.listen(PORT, () => {
     ? `[slate] письма через ${mail.PROVIDER}, отправитель ${mail.FROM}`
     : "[slate] почта не настроена — коды входа видны на экране и в логе (см. README)");
   if (DEV_CODES && mail.configured()) console.log("[slate] код входа всё ещё показывается на экране: SLATE_DEV_CODES=1");
+  bot.start(botCtx);
 });
 
 module.exports = server;

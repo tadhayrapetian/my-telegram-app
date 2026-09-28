@@ -63,6 +63,7 @@ id -u slate >/dev/null 2>&1 || adduser --system --group --home "$APP_DIR" slate
 mkdir -p "$APP_DIR/public" "$APP_DIR/data" "$APP_DIR/backup"
 install -m 644 "$SRC_DIR/server.js" "$APP_DIR/server.js"
 install -m 644 "$SRC_DIR/mail.js" "$APP_DIR/mail.js"
+install -m 644 "$SRC_DIR/bot.js" "$APP_DIR/bot.js"
 install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || true
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
 install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"
@@ -82,6 +83,9 @@ if [[ ! -f "$APP_DIR/slate.env" ]]; then
 # SLATE_MAIL=brevo
 # BREVO_API_KEY=xkeysib-xxxxxxxx
 # SLATE_MAIL_FROM=Slate <hello@ВАШ-ДОМЕН>
+#
+# Напоминания в Telegram: создайте бота у @BotFather и впишите токен:
+# SLATE_BOT_TOKEN=123456:AA...
 #
 # После правки: systemctl restart slate
 ENVFILE

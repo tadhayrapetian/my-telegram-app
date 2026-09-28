@@ -123,6 +123,11 @@ var T = {
   noMsg:{en:"No messages yet",ru:"Сообщений пока нет",hy:"Հաղորդագրություններ դեռ չկան"},
   you:{en:"You",ru:"Вы",hy:"Դուք"},
   photo:{en:"Add a photo",ru:"Добавить фото",hy:"Ավելացնել լուսանկար"},
+  tgTitle:{en:"Reminders in Telegram",ru:"Напоминания в Telegram",hy:"Հիշեցումներ Telegram-ում"},
+  tgWhat:{en:"A reminder the evening before and two hours before each lesson, plus messages from your teacher.",
+          ru:"Напоминание накануне вечером и за два часа до занятия, а также сообщения преподавателя.",
+          hy:"Հիշեցում նախորդ երեկոյան և դասից երկու ժամ առաջ, ինչպես նաև ուսուցչի հաղորդագրությունները։"},
+  tgConnect:{en:"Connect Telegram",ru:"Подключить Telegram",hy:"Միացնել Telegram"},
   changePhoto:{en:"Change photo",ru:"Изменить фото",hy:"Փոխել լուսանկարը"},
   uploading:{en:"Sending…",ru:"Отправляю…",hy:"Ուղարկում…"},
   tooBig:{en:"The file is larger than 15 MB",ru:"Файл больше 15 МБ",hy:"Ֆայլը 15 ՄԲ-ից մեծ է"},
@@ -317,6 +322,10 @@ function show(d){
     '<button class="btn btn-p" id="m-send">' + esc(t("send")) + "</button></div>" +
     "</div></div>" +
 
+    '<div class="card" id="tg-card" hidden><div class="card-h"><h2>' + esc(t("tgTitle")) + '</h2></div><div class="card-b">' +
+      '<div class="row"><div class="g"><div class="sb">' + esc(t("tgWhat")) + "</div></div>" +
+      '<button class="btn btn-p" id="tg-go">' + esc(t("tgConnect")) + "</button></div></div></div>" +
+
     (d.payments.length ? '<div class="card"><div class="card-h"><h2>' + esc(t("pay")) + '</h2></div><div class="card-b">' +
       d.payments.map(function(p){
         return '<div class="row"><div class="g"><div class="nm">' + esc(money(p.amount, p.currency)) + " · " + p.lessons + " " + esc(t("lessons")) + "</div>" +
@@ -325,6 +334,16 @@ function show(d){
 
   var ph = document.getElementById("ph-add");
   if (ph) ph.onclick = function(){ pick("photo", reload); };
+  /* кнопку показываем, только если у преподавателя подключён бот */
+  var tgGo = document.getElementById("tg-go");
+  if (tgGo) tgGo.onclick = function(){
+    fetch("/api/portal/telegram", { method: "POST" }).then(function(r){ return r.json(); }).then(function(x){
+      if (x && x.url) location.href = x.url;
+    });
+  };
+  fetch("/api/portal/telegram", { method: "POST" }).then(function(r){
+    if (r.status === 200) { var c = document.getElementById("tg-card"); if (c) c.hidden = false; }
+  });
   var fa = document.getElementById("f-add");
   if (fa) fa.onclick = function(){ pick("file", reload); };
   var ms = document.getElementById("m-send");

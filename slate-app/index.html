@@ -490,6 +490,15 @@ var T = {
 "c.importBad":{en:"That file is not a Slate backup",ru:"Это не файл с данными Slate",hy:"Սա Slate-ի տվյալների ֆայլ չէ"},
 "c.storageBad":{en:"This browser does not save data on file:// — open the app through a local server (see README) or the entries will be lost when you close the tab.",ru:"Этот браузер не сохраняет данные при открытии файла напрямую — запустите приложение через локальный сервер (см. README), иначе записи пропадут при закрытии вкладки.",hy:"Այս դիտարկիչը չի պահում տվյալները ֆայլն ուղիղ բացելիս — գործարկեք հավելվածը տեղական սերվերով (տես README), այլապես գրառումները կկորչեն։"},
 
+"tg.title":{en:"Telegram reminders",ru:"Напоминания в Telegram",hy:"Հիշեցումներ Telegram-ում"},
+"tg.connect":{en:"Connect Telegram",ru:"Подключить Telegram",hy:"Միացնել Telegram"},
+"tg.off":{en:"Disconnect",ru:"Отключить",hy:"Անջատել"},
+"tg.on":{en:"Connected",ru:"Подключено",hy:"Միացված է"},
+"tg.teacherWhat":{en:"Every morning — your day’s lessons; a reminder about unmarked ones; messages from students.",ru:"Утром — занятия на день, напоминание про неотмеченные, сообщения от учеников.",hy:"Առավոտյան՝ օրվա դասերը, հիշեցում չնշվածների մասին, աշակերտների հաղորդագրությունները։"},
+"tg.studentWhat":{en:"A reminder the evening before and two hours before the lesson, and messages from your teacher.",ru:"Напоминание накануне вечером и за два часа до занятия, а также сообщения преподавателя.",hy:"Հիշեցում նախորդ երեկոյան և դասից երկու ժամ առաջ, ինչպես նաև ուսուցչի հաղորդագրությունները։"},
+"tg.open":{en:"Open the bot",ru:"Открыть бота",hy:"Բացել բոտը"},
+"tg.howto":{en:"Tap the button, then press Start in Telegram — that is all.",ru:"Нажмите кнопку и в Telegram нажмите «Старт» — это всё.",hy:"Սեղմեք կոճակը և Telegram-ում սեղմեք «Start» — վերջ։"},
+"tg.noBot":{en:"Reminders are not set up on this server yet.",ru:"Напоминания на этом сервере ещё не настроены.",hy:"Այս սերվերում հիշեցումները դեռ կարգավորված չեն։"},
 "c.teacher":{en:"Your name (the student sees it)",ru:"Ваше имя (его видит ученик)",hy:"Ձեր անունը (աշակերտը տեսնում է)"},
 "au.title":{en:"Sign in to Slate",ru:"Вход в Slate",hy:"Մուտք Slate"},
 "au.email":{en:"Your email",ru:"Ваша почта",hy:"Ձեր էլ. փոստը"},
@@ -810,6 +819,13 @@ function activeStudents(){ return S.students.filter(function(s){ return !s.archi
 /* Программа работает в двух режимах: локально (файл, localStorage) и на сервере
    (аккаунт, изоляция данных, лимиты тарифа). Режим определяется при запуске. */
 var API = { on: false, me: null, ver: 0, portal: {}, timer: null, busy: false, again: false };
+var TG = { enabled: false, linked: false, bot: "", students: {} };   /* напоминания */
+function pullTelegram(){
+  if (!API.on) return Promise.resolve();
+  return apiCall("GET", "/api/telegram").then(function(r){
+    if (r.status === 200) TG = r.data;
+  }, function(){});
+}
 
 function apiCall(method, url, body){
   return fetch(url, {
@@ -942,7 +958,7 @@ function boot(){
     return r.json().then(function(me){
       API.me = me;
       if (me.user && !S.teacher) { /* имя для кабинета ученика */ }
-      return pullState().then(function(){ route(); });
+      return pullState().then(pullTelegram).then(function(){ route(); });
     });
   }).catch(function(){ API.on = false; route(); });
 }
@@ -1339,6 +1355,15 @@ function viewSettings(){
       ["free","pro","studio"].map(function(pn){
         return '<button class="btn ' + (planName() === pn ? "btn-p" : "btn-g") + '" data-act="set-plan" data-plan="' + pn + '">' + esc(t("pl." + pn)) + "</button>";
       }).join("") + "</div></div></div>" : "") +
+    (API.on ? '<div class="card"><div class="card-h"><h2>' + esc(t("tg.title")) + '</h2>' +
+      (TG.linked ? '<span class="chip ok">' + esc(t("tg.on")) + "</span>" : "") + '</div><div class="card-b">' +
+      '<p class="hint" style="padding:10px 0 14px">' + esc(TG.enabled ? t("tg.teacherWhat") : t("tg.noBot")) + "</p>" +
+      (TG.enabled ? '<div style="display:flex;gap:9px;flex-wrap:wrap;padding-bottom:12px">' +
+        (TG.linked
+          ? '<button class="btn btn-g" data-act="tg-off">' + esc(t("tg.off")) + "</button>"
+          : '<button class="btn btn-p" data-act="tg-link">' + esc(t("tg.connect")) + "</button>") +
+        "</div>" : "") +
+      "</div></div>" : "") +
     '<div class="card"><div class="card-h"><h2>' + esc(t("c.data")) + '</h2></div><div class="card-b">' +
       '<p class="hint" style="padding:10px 0 14px">' + esc(t("c.dataNote")) + "</p>" +
       '<div style="display:flex;gap:9px;flex-wrap:wrap;padding-bottom:12px">' +
@@ -2079,6 +2104,24 @@ document.addEventListener("click", function(e){
     case "au-send": authSend(); break;
     case "au-verify": authVerify(); break;
     case "au-back": authStage = "email"; authDev = ""; renderAuth(); break;
+    case "tg-link": {
+      apiCall("POST", "/api/telegram/link").then(function(r){
+        if (r.status !== 200) return toast(t("tg.noBot"));
+        modal(t("tg.title"),
+          '<div class="f"><p class="hint">' + esc(t("tg.howto")) + "</p>" +
+          '<a class="btn btn-p" href="' + esc(r.data.url) + '" target="_blank" rel="noopener" style="text-decoration:none">' +
+            esc(t("tg.open")) + "</a>" +
+          '<input class="inp" id="st-text" value="' + esc(r.data.url) + '" readonly></div>',
+          '<button class="btn btn-g" data-act="copy-text">' + esc(t("a.copy")) + "</button>" +
+          '<button class="btn btn-p" data-act="tg-done">' + esc(t("a.close")) + "</button>");
+      });
+      break;
+    }
+    case "tg-done": closeModal(); pullTelegram().then(render); break;
+    case "tg-off":
+      apiCall("POST", "/api/telegram/off").then(function(){ pullTelegram().then(render); toast(t("a.saved")); });
+      break;
+
     case "au-mode": authMode = el.dataset.mode === "signup" ? "signup" : "login"; renderAuth(); break;
     case "logout": apiCall("POST", "/api/auth/logout").then(function(){ location.href = "/"; }); break;
     case "go-settings": closeModal(); go("settings"); break;
