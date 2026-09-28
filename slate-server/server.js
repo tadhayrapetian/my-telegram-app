@@ -12,6 +12,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const os = require("node:os");
+const mail = require("./mail");
 const { DatabaseSync } = require("node:sqlite");
 
 const PORT = +process.env.PORT || 3000;
@@ -19,7 +20,11 @@ const DATA_DIR = process.env.SLATE_DATA || path.join(__dirname, "data");
 const PUBLIC_DIR = path.join(__dirname, "public");
 /* Пока нет доставки кодов (почта или Telegram), код входа возвращается в ответе.
    На боевом сервере поставьте SLATE_DEV_CODES=0 — тогда код только в логах. */
-const DEV_CODES = process.env.SLATE_DEV_CODES !== "0";
+/* Пока письма не настроены, код показываем на экране — иначе войти нельзя.
+   Как только почтовая служба подключена, код уходит только письмом;
+   SLATE_DEV_CODES=1 оставляет его на экране принудительно (для отладки). */
+const DEV_CODES = process.env.SLATE_DEV_CODES === "1" ||
+                  (!mail.configured() && process.env.SLATE_DEV_CODES !== "0");
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -297,8 +302,20 @@ const routes = {
     }
     const code = String(crypto.randomInt(100000, 1000000));
     q.putCode.run(email, hmac(code), now() + 10 * 60000);
-    console.log(`[slate] код входа для ${email}: ${code}`);
-    send(res, 200, DEV_CODES ? { ok: true, devCode: code } : { ok: true });
+
+    let sent = false;
+    try {
+      const letter = mail.codeLetter(code);
+      sent = await mail.send({ to: email, subject: letter.subject, text: letter.text });
+    } catch (e) {
+      /* письмо не ушло — аккаунт уже заведён, но войти человек не сможет:
+         честно отвечаем ошибкой, а код остаётся в логе сервера */
+      console.error(`[slate] письмо на ${email} не ушло:`, e.message);
+      console.log(`[slate] код входа для ${email}: ${code}`);
+      return send(res, 502, { error: "mail_failed" });
+    }
+    if (!sent) console.log(`[slate] код входа для ${email}: ${code}`);
+    send(res, 200, DEV_CODES ? { ok: true, devCode: code, mailed: sent } : { ok: true, mailed: sent });
   },
 
   "POST /api/auth/verify": async (req, res) => {
@@ -690,7 +707,10 @@ server.listen(PORT, () => {
   const lan = lanAddress();
   if (lan) console.log(`[slate] с телефона и планшета в той же сети: http://${lan}:${PORT}`);
   console.log(`[slate] данные в ${DATA_DIR}`);
-  if (DEV_CODES) console.log("[slate] коды входа возвращаются в ответе (SLATE_DEV_CODES=0 отключает)");
+  console.log(mail.configured()
+    ? `[slate] письма через ${mail.PROVIDER}, отправитель ${mail.FROM}`
+    : "[slate] почта не настроена — коды входа видны на экране и в логе (см. README)");
+  if (DEV_CODES && mail.configured()) console.log("[slate] код входа всё ещё показывается на экране: SLATE_DEV_CODES=1");
 });
 
 module.exports = server;

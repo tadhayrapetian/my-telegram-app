@@ -62,12 +62,34 @@ echo "==> 4/7 Программа в $APP_DIR"
 id -u slate >/dev/null 2>&1 || adduser --system --group --home "$APP_DIR" slate
 mkdir -p "$APP_DIR/public" "$APP_DIR/data" "$APP_DIR/backup"
 install -m 644 "$SRC_DIR/server.js" "$APP_DIR/server.js"
+install -m 644 "$SRC_DIR/mail.js" "$APP_DIR/mail.js"
 install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || true
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
 install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"
 install -m 644 "$SRC_DIR/public/portal.html" "$APP_DIR/public/portal.html"
+# настройки почты живут отдельным файлом: обновление программы их не трогает
+if [[ ! -f "$APP_DIR/slate.env" ]]; then
+  cat > "$APP_DIR/slate.env" <<'ENVFILE'
+# Почта для кодов входа. Пока файл пустой, код виден на экране —
+# для себя это удобно, но для чужих людей так оставлять нельзя.
+#
+# Resend (resend.com): подтвердите домен, создайте ключ и впишите три строки:
+# SLATE_MAIL=resend
+# RESEND_API_KEY=re_xxxxxxxxxxxx
+# SLATE_MAIL_FROM=Slate <hello@ВАШ-ДОМЕН>
+#
+# Brevo (brevo.com) — то же самое:
+# SLATE_MAIL=brevo
+# BREVO_API_KEY=xkeysib-xxxxxxxx
+# SLATE_MAIL_FROM=Slate <hello@ВАШ-ДОМЕН>
+#
+# После правки: systemctl restart slate
+ENVFILE
+fi
+
 chown -R slate:slate "$APP_DIR"
 chmod 700 "$APP_DIR/data"
+chmod 600 "$APP_DIR/slate.env"
 
 echo "==> 5/7 Служба"
 cat > /etc/systemd/system/slate.service <<UNIT
@@ -82,7 +104,7 @@ Group=slate
 WorkingDirectory=$APP_DIR
 Environment=PORT=3000
 Environment=SLATE_DATA=$APP_DIR/data
-Environment=SLATE_DEV_CODES=0
+EnvironmentFile=-$APP_DIR/slate.env
 ExecStart=/usr/bin/node --no-warnings $APP_DIR/server.js
 Restart=always
 RestartSec=2
@@ -128,6 +150,12 @@ if systemctl is-active --quiet slate; then
   echo
   echo "Готово. Откройте https://$DOMAIN"
   echo
+  if ! grep -qE '^SLATE_MAIL=' "$APP_DIR/slate.env"; then
+    echo "Почта ещё не подключена: коды входа показываются прямо на экране."
+    echo "Для чужих людей так нельзя — заполните $APP_DIR/slate.env"
+    echo "(внутри написано, что вписать) и выполните: systemctl restart slate"
+    echo
+  fi
   echo "Доставка кодов входа ещё не подключена, поэтому код смотрите в логе:"
   echo "    journalctl -u slate -f | grep 'код входа'"
   echo

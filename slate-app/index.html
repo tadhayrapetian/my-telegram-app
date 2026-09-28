@@ -508,6 +508,8 @@ var T = {
 "au.exists":{en:"This address is already registered — sign in instead.",ru:"Этот адрес уже зарегистрирован — войдите.",hy:"Այս հասցեն արդեն գրանցված է՝ մուտք գործեք։"},
 "au.noAccount":{en:"No account for this address — create one.",ru:"Аккаунта с таким адресом нет — зарегистрируйтесь.",hy:"Այս հասցեով հաշիվ չկա՝ գրանցվեք։"},
 "au.badName":{en:"Please write your name",ru:"Напишите, как вас зовут",hy:"Գրեք ձեր անունը"},
+"au.sentTo":{en:"We sent the code to",ru:"Код отправлен на",hy:"Կոդն ուղարկվել է"},
+"au.mailFailed":{en:"The email did not go through. Try again in a minute.",ru:"Письмо не ушло. Попробуйте ещё раз через минуту.",hy:"Նամակը չուղարկվեց։ Փորձեք մեկ րոպեից։"},
 "au.badEmail":{en:"Check the email address",ru:"Проверьте адрес почты",hy:"Ստուգեք էլ. փոստի հասցեն"},
 "au.devCode":{en:"Delivery is not connected yet, so the code is shown here:",ru:"Доставка кодов ещё не подключена, поэтому код показан здесь:",hy:"Կոդերի առաքումը դեռ միացված չէ, ուստի կոդը ցուցադրվում է այստեղ՝"},
 "au.bad":{en:"Wrong or expired code",ru:"Неверный или устаревший код",hy:"Սխալ կամ ժամկետանց կոդ"},
@@ -863,7 +865,7 @@ function planWall(msg){
 }
 
 /* ---- вход и регистрация ---- */
-var authEmail = "", authName = "", authStage = "email", authDev = "", authMode = "login", authScreen = false;
+var authEmail = "", authName = "", authStage = "email", authDev = "", authMode = "login", authScreen = false, authMailed = false;
 function renderAuth(){
   authScreen = true;
   document.querySelector(".app").classList.add("cab-mode");
@@ -887,7 +889,7 @@ function renderAuth(){
         '<label class="fl">' + esc(t("au.email")) + '<input class="inp" id="au-email" type="email" autocomplete="email" value="' + esc(authEmail) + '" placeholder="you@mail.com"></label>' +
         '<button class="btn btn-p" data-act="au-send">' + esc(signup ? t("au.create") : t("au.send")) + "</button>" +
         '<p class="hint">' + esc(signup ? t("au.free") : t("au.hint")) + "</p>"
-      : '<p class="hint">' + esc(authEmail) + "</p>" +
+      : '<p class="hint">' + esc(authMailed ? t("au.sentTo") + " " + authEmail : authEmail) + "</p>" +
         (authDev ? '<div class="banner" style="margin:0">' + esc(t("au.devCode")) + " <b>" + esc(authDev) + "</b></div>" : "") +
         '<label class="fl">' + esc(t("au.code")) + '<input class="inp tnum" id="au-code" inputmode="numeric" style="font-size:22px;letter-spacing:.2em;text-align:center" placeholder="••••••"></label>' +
         '<button class="btn btn-p" data-act="au-verify">' + esc(t("au.enter")) + "</button>" +
@@ -910,8 +912,10 @@ function authSend(){
   apiCall("POST", "/api/auth/request", { email: email, name: name, mode: signup ? "signup" : "login" }).then(function(r){
     if (r.status === 409) { authMode = "login"; renderAuth(); return toast(t("au.exists")); }
     if (r.status === 404) { authMode = "signup"; renderAuth(); return toast(t("au.noAccount")); }
+    if (r.status === 502) return toast(t("au.mailFailed"));
     if (r.status !== 200) return toast(t("sv.offline"));
-    authDev = r.data.devCode || ""; authStage = "code"; renderAuth();
+    authDev = r.data.devCode || ""; authMailed = !!r.data.mailed;
+    authStage = "code"; renderAuth();
   });
 }
 function authVerify(){
