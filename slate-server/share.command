@@ -11,7 +11,6 @@
 #
 # Первый запуск: chmod +x share.command, дальше — двойной клик.
 # =============================================================================
-set -u
 cd "$(dirname "$0")"
 
 PORT="${PORT:-3000}"
@@ -33,7 +32,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 MAJOR=$(node -p "process.versions.node.split('.')[0]")
 MINOR=$(node -p "process.versions.node.split('.')[1]")
-if [[ "$MAJOR" -lt 22 || ( "$MAJOR" -eq 22 && "$MINOR" -lt 5 ) ]]; then
+if [[ "${MAJOR}" -lt 22 || ( "${MAJOR}" -eq 22 && "${MINOR}" -lt 5 ) ]]; then
   say "Нужен Node 22.5 или новее, а стоит $(node -v)."
   say "Обновите с https://nodejs.org и запустите файл ещё раз."
   say ""
@@ -59,43 +58,43 @@ LOG="$(mktemp "${TMPDIR:-/tmp}/slate-tunnel.XXXXXX")"
 cleanup() {
   say ""
   say "Останавливаю…"
-  [[ -n "${TUN_PID:-}" ]] && kill "$TUN_PID" 2>/dev/null
-  [[ -n "${SRV_PID:-}" ]] && kill "$SRV_PID" 2>/dev/null
-  rm -f "$LOG"
+  [[ -n "${TUN_PID:-}" ]] && kill "${TUN_PID}" 2>/dev/null
+  [[ -n "${SRV_PID:-}" ]] && kill "${SRV_PID}" 2>/dev/null
+  rm -f "${LOG}"
 }
 trap cleanup EXIT INT TERM
 
-say "Запускаю Slate на порту $PORT…"
-PORT="$PORT" node --no-warnings server.js &
+say "Запускаю Slate на порту ${PORT}…"
+PORT="${PORT}" node --no-warnings server.js &
 SRV_PID=$!
 sleep 2
-if ! kill -0 "$SRV_PID" 2>/dev/null; then
+if ! kill -0 "${SRV_PID}" 2>/dev/null; then
   say "Slate не запустился. Проверьте сообщения выше."
   read -r -p "Нажмите Enter, чтобы закрыть."
   exit 1
 fi
 
 say "Спрашиваю ссылку у Cloudflare…"
-cloudflared tunnel --no-autoupdate --url "http://127.0.0.1:$PORT" >"$LOG" 2>&1 &
+cloudflared tunnel --no-autoupdate --url "http://127.0.0.1:${PORT}" >"${LOG}" 2>&1 &
 TUN_PID=$!
 
 URL=""
 for _ in $(seq 1 40); do
-  URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "$LOG" | head -1)
-  [[ -n "$URL" ]] && break
+  URL=$(grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com' "${LOG}" | head -1)
+  [[ -n "${URL}" ]] && break
   sleep 1
 done
 
 line
-if [[ -z "$URL" ]]; then
+if [[ -z "${URL}" ]]; then
   say "Ссылку получить не удалось. Последние строки:"
-  tail -n 12 "$LOG"
+  tail -n 12 "${LOG}"
 else
   say "  Готово. Ссылка на вашу программу:"
   say ""
-  say "    $URL"
+  say "    ${URL}"
   say ""
-  say "  Регистрация:        $URL/app#signup"
+  say "  Регистрация:        ${URL}/app#signup"
   say "  Кабинет ученика — кнопка «Кабинет» в карточке ученика."
   say ""
   say "  Пока это окно открыто — ссылка работает."
@@ -103,4 +102,4 @@ else
 fi
 line
 say "Остановить: закройте окно или нажмите Control+C."
-wait "$SRV_PID"
+wait "${SRV_PID}"
