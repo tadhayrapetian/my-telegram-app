@@ -532,6 +532,7 @@ var T = {
 "pl.limitPro":{en:"Pro holds 15 students. Studio has no limit.",ru:"На Pro помещается 15 учеников. На Studio ограничения нет.",hy:"Pro-ում տեղավորվում է 15 աշակերտ։ Studio-ում սահմանափակում չկա։"},
 "pl.needMoney":{en:"Payments and packages are on Pro and above.",ru:"Оплаты и абонементы — на тарифе Pro и выше.",hy:"Վճարումներն ու փաթեթները՝ Pro և ավելի բարձր սակագներում։"},
 "pl.needPortal":{en:"The student portal is on Pro and above.",ru:"Кабинет ученика — на тарифе Pro и выше.",hy:"Աշակերտի էջը՝ Pro և ավելի բարձր սակագներում։"},
+"pl.needReports":{en:"Reports are on Pro and above.",ru:"Отчёты — на тарифе Pro и выше.",hy:"Հաշվետվությունները՝ Pro և ավելի բարձր սակագներում։"},
 "pl.needTeachers":{en:"Several teachers work on Studio.",ru:"Несколько преподавателей — на тарифе Studio.",hy:"Մի քանի դասավանդող՝ Studio սակագնում։"},
 "pl.change":{en:"Change plan",ru:"Сменить тариф",hy:"Փոխել սակագինը"},
 "pl.noBilling":{en:"Payment is not connected yet, so the plan switches by hand.",ru:"Оплата ещё не подключена, поэтому тариф переключается вручную.",hy:"Վճարումը դեռ միացված չէ, ուստի սակագինը փոխվում է ձեռքով։"},
@@ -975,14 +976,23 @@ var ICONS = {
 };
 var TABS_ALL = ["today","week","students","money","reports","school","settings"];
 function TABS(){
-  var lim = planLimits();
+  /* Разделы, закрытые тарифом, не прячем: человек ищет их и думает, что
+     программа их не умеет. Показываем и объясняем, чего не хватает. */
   return TABS_ALL.filter(function(k){
     if (k === "school") return API.on && isOwner() && planLimits().teachers > 1;
-    if (k === "money") return !API.on || lim.money;
-    if (k === "reports") return !API.on || lim.reports;
     return true;
   });
 }
+/* Заглушка вместо раздела, который закрыт тарифом. */
+function planStub(title, msg){
+  return head(title, "") +
+    '<div class="card"><div class="card-b"><div class="empty" style="padding:38px 16px">' +
+      "<b>" + esc(msg) + "</b>" +
+      '<p style="margin:8px 0 16px">' + esc(t("pl.noBilling")) + "</p>" +
+      (isOwner() ? '<button class="btn btn-p" data-act="go-settings">' + esc(t("pl.change")) + "</button>" : "") +
+    "</div></div></div>";
+}
+function planHas(what){ return !API.on || planLimits()[what]; }
 var tab = "today", weekOf = weekStart(today()), calMode = "week";
 
 function renderMenu(){
@@ -1216,6 +1226,7 @@ function viewMoney(){
       '<div class="act"><button class="btn btn-d btn-s" data-act="pay-del" data-id="' + p.id + '">' + esc(t("a.delete")) + "</button></div></div>";
   }).join("") : '<div class="empty">' + esc(t("p.none")) + "</div>";
 
+  if (!planHas("money")) return planStub(t("nav.money"), t("pl.needMoney"));
   return head(t("nav.money"), t("p.month") + ": " + fmtMap(incomeMap(mr.from, mr.to)),
       '<button class="btn btn-p" data-act="pay-new">+ ' + esc(t("p.add")) + "</button>") +
     '<div class="card"><div class="card-b">' + body + "</div></div>";
@@ -1224,6 +1235,7 @@ function viewMoney(){
 /* ---------------------------- вид: отчёты ---------------------------- */
 var chartCur = null;
 function viewReports(){
+  if (!planHas("reports")) return planStub(t("nav.reports"), t("pl.needReports"));
   if (!CUR[chartCur]) chartCur = S.cur;
   var months = [], max = 0;
   for (var i = 5; i >= 0; i--) {
@@ -1442,7 +1454,7 @@ function studentForm(id){
       S.students.push(Object.assign({ id: freshId, archived: false, code: String(Math.floor(1000 + Math.random() * 9000)) }, data));
     }
     save(); closeModal(); render();
-    if (freshId && (!API.on || planLimits().money)) {
+    if (freshId) {
       /* сразу предлагаем завести абонемент — иначе про него забывают */
       modal(t("s.added"),
         '<p class="lead" style="font-size:15px">' + esc(name) + " · " + esc(t("s.thenPack")) + "</p>",
@@ -1561,6 +1573,7 @@ function studentText(id){
 
 /* --- абонемент: N занятий, дни недели, последний день считается сам --- */
 function packForm(sid){
+  if (!planHas("money")) return planWall(t("pl.needMoney"));
   if (!activeStudents().length) { studentForm(); return; }
   var pre = sid || (activeStudents()[0] || {}).id, s = student(pre) || {};
   var dayBoxes = DKEYS.map(function(k, i){
@@ -1729,6 +1742,7 @@ function setStatus(id, st){
 
 /* --- оплата --- */
 function paymentForm(sid){
+  if (!planHas("money")) return planWall(t("pl.needMoney"));
   if (!activeStudents().length) { studentForm(); return; }
   var pre = sid || (activeStudents()[0] || {}).id, s = student(pre) || {};
   modal(t("p.new"),
