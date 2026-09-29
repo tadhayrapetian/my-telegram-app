@@ -64,6 +64,7 @@ mkdir -p "$APP_DIR/public" "$APP_DIR/data" "$APP_DIR/backup"
 install -m 644 "$SRC_DIR/server.js" "$APP_DIR/server.js"
 install -m 644 "$SRC_DIR/mail.js" "$APP_DIR/mail.js"
 install -m 644 "$SRC_DIR/bot.js" "$APP_DIR/bot.js"
+install -m 644 "$SRC_DIR/smtp.js" "$APP_DIR/smtp.js"
 install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || true
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
 install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"
@@ -73,6 +74,18 @@ if [[ ! -f "$APP_DIR/slate.env" ]]; then
   cat > "$APP_DIR/slate.env" <<'ENVFILE'
 # Почта для кодов входа. Пока файл пустой, код виден на экране —
 # для себя это удобно, но для чужих людей так оставлять нельзя.
+#
+# Проще всего — через свой почтовый ящик, домен для этого не нужен.
+# Gmail: включите двухэтапную проверку, создайте «пароль приложения»
+# (myaccount.google.com/apppasswords) и впишите:
+# SLATE_MAIL=smtp
+# SMTP_HOST=smtp.gmail.com
+# SMTP_PORT=587
+# SMTP_USER=вашпочта@gmail.com
+# SMTP_PASS=пароль-приложения-16-букв
+#
+# Яндекс: SMTP_HOST=smtp.yandex.ru, порт 587, пароль приложения в Яндекс ID.
+# Mail.ru: SMTP_HOST=smtp.mail.ru, порт 587, пароль для внешних приложений.
 #
 # Resend (resend.com): подтвердите домен, создайте ключ и впишите три строки:
 # SLATE_MAIL=resend

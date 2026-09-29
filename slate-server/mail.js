@@ -3,6 +3,9 @@
    и одного fetch достаточно.
 
    Служба выбирается переменной SLATE_MAIL:
+     smtp    — обычный почтовый ящик (Gmail, Яндекс, Mail.ru) с паролем
+               приложения: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS.
+               Домен для этого не нужен — письма идут от вашего адреса.
      resend  — RESEND_API_KEY   (resend.com, 3000 писем в месяц бесплатно)
      brevo   — BREVO_API_KEY    (brevo.com, 300 писем в день бесплатно)
      custom  — SLATE_MAIL_URL   (свой приёмник, нужен для тестов)
@@ -13,10 +16,15 @@
    письма уйдут в спам или не уйдут вовсе.
    ========================================================================== */
 
+const { sendSmtp } = require("./smtp");
+
 const PROVIDER = (process.env.SLATE_MAIL || "").trim().toLowerCase();
-const FROM = process.env.SLATE_MAIL_FROM || "Slate <no-reply@localhost>";
+/* для почтового ящика отправитель по умолчанию — он сам */
+const FROM = process.env.SLATE_MAIL_FROM ||
+  (process.env.SMTP_USER ? `Slate <${process.env.SMTP_USER}>` : "Slate <no-reply@localhost>");
 
 const configured = () =>
+  (PROVIDER === "smtp" && !!process.env.SMTP_HOST && !!process.env.SMTP_USER) ||
   (PROVIDER === "resend" && !!process.env.RESEND_API_KEY) ||
   (PROVIDER === "brevo" && !!process.env.BREVO_API_KEY) ||
   (PROVIDER === "custom" && !!process.env.SLATE_MAIL_URL);
@@ -44,6 +52,17 @@ async function send({ to, subject, text }) {
   if (!configured()) return false;
   const from = parseFrom(FROM);
 
+  if (PROVIDER === "smtp") {
+    return sendSmtp({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || 587),
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS || "",
+      from: from.email, fromName: from.name, to, subject, text,
+      allowPlain: process.env.SMTP_ALLOW_PLAIN === "1",          /* только для тестов */
+      rejectUnauthorized: process.env.SMTP_INSECURE !== "1",
+    });
+  }
   if (PROVIDER === "resend") {
     return post("https://api.resend.com/emails",
       { authorization: `Bearer ${process.env.RESEND_API_KEY}` },
