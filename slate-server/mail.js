@@ -57,7 +57,9 @@ async function send({ to, subject, text }) {
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || 587),
       user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS || "",
+      /* Gmail показывает пароль приложения четвёрками через пробел —
+         пробелы в нём не значат ничего, убираем их за человека */
+      pass: (process.env.SMTP_PASS || "").replace(/\s+/g, ""),
       from: from.email, fromName: from.name, to, subject, text,
       allowPlain: process.env.SMTP_ALLOW_PLAIN === "1",          /* только для тестов */
       rejectUnauthorized: process.env.SMTP_INSECURE !== "1",
