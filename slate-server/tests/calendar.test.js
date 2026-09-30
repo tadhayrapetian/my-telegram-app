@@ -132,6 +132,12 @@ let calStatus = 200, calType = 'text/calendar';
   ok((await p.locator('.lsn.busy').first().innerText()).includes('Врач'), 'с названием события');
   await p.screenshot({ path: out + '/slate-calendar-week.png' });
 
+  /* месяц тоже показывает личные дела */
+  await p.click('[data-act="cal-mode"][data-mode="month"]'); await p.waitForTimeout(700);
+  ok(await p.locator('.mc .lsn.busy').count() >= 1, 'в месяце видны личные дела: ' + await p.locator('.mc .lsn.busy').count());
+  await p.screenshot({ path: out + '/slate-calendar-month.png' });
+  await p.click('[data-act="cal-mode"][data-mode="week"]'); await p.waitForTimeout(500);
+
   await p.click('[data-tab="settings"]'); await p.waitForTimeout(700);
   const link = await p.locator('#cal-url').inputValue();
   ok(/\/ics\//.test(link), 'в настройках есть ссылка для подписки: ' + link);

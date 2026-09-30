@@ -1193,12 +1193,17 @@ function viewMonth(){
   for (var i = 0; i < 42; i++) {
     var d = addDays(gridStart, i), dt = parse(d);
     if (i >= 35 && dt.getMonth() !== m) break;
-    var ls = lessonsOn(d), out = dt.getMonth() !== m;
+    var ls = lessonsOn(d), bs = busyOn(d), out = dt.getMonth() !== m;
+    /* в клетку помещается немного: показываем занятия, потом личные дела,
+       остальное прячем за «ещё» */
+    var room = 4, showL = ls.slice(0, room), showB = bs.slice(0, Math.max(0, room - showL.length));
+    var hidden = (ls.length - showL.length) + (bs.length - showB.length);
     cells += '<div class="mc ' + (d === td ? "today" : "") + (out ? " out" : "") + '" data-day="' + d + '">' +
       '<div class="mc-h"><button class="mc-d" data-act="week-of" data-date="' + d + '">' + dt.getDate() + "</button>" +
       '<button class="mc-add" data-act="lesson-new" data-date="' + d + '">+</button></div>' +
-      ls.slice(0, 4).map(function(l){ return lessonCell(l); }).join("") +
-      (ls.length > 4 ? '<button class="mc-more" data-act="week-of" data-date="' + d + '">+' + (ls.length - 4) + " " + esc(t("w.more")) + "</button>" : "") +
+      showL.map(function(l){ return lessonCell(l); }).join("") +
+      showB.map(busyCell).join("") +
+      (hidden > 0 ? '<button class="mc-more" data-act="week-of" data-date="' + d + '">+' + hidden + " " + esc(t("w.more")) + "</button>" : "") +
       "</div>";
   }
   return head(t("w.title"), t("w.hintMonth"),
