@@ -20,6 +20,14 @@ let calBody = [
   'BEGIN:VCALENDAR', 'VERSION:2.0', 'X-WR-CALNAME:Личное',
   'BEGIN:VEVENT', 'UID:doc-1', 'SUMMARY:Врач', `DTSTART:${stamp(0, 9)}`, `DTEND:${stamp(0, 10)}`, 'END:VEVENT',
   'BEGIN:VEVENT', 'UID:trip', 'SUMMARY:Поездка\\, важная', `DTSTART;VALUE=DATE:${day(1).replace(/-/g, '')}`, 'END:VEVENT',
+  /* еженедельное занятие с одним пропуском и одним переносом */
+  'BEGIN:VEVENT', 'UID:weekly', 'SUMMARY:Lesson with Ruben',
+  `DTSTART:${stamp(0, 8)}`, `DTEND:${stamp(0, 9)}`, 'RRULE:FREQ=WEEKLY',
+  `EXDATE:${stamp(14, 8)}`, 'END:VEVENT',
+  'BEGIN:VEVENT', 'UID:weekly', 'SUMMARY:Lesson with Ruben (перенос)',
+  `RECURRENCE-ID:${stamp(7, 8)}`, `DTSTART:${stamp(7, 12)}`, `DTEND:${stamp(7, 13)}`, 'END:VEVENT',
+  /* ежемесячное, ровно три раза */
+  'BEGIN:VEVENT', 'UID:rent', 'SUMMARY:Аренда', `DTSTART:${stamp(1, 12)}`, 'RRULE:FREQ=MONTHLY;COUNT=3', 'END:VEVENT',
   'END:VCALENDAR',
 ].join('\r\n');
 let calStatus = 200, calType = 'text/calendar';
@@ -96,18 +104,36 @@ let calStatus = 200, calType = 'text/calendar';
   calStatus = 200;
 
   const feed = await api('POST', '/api/calendar/feed', { url: feedUrl });
-  ok(feed.status === 200 && feed.data.feed.events === 2, 'календарь подключён, событий: ' +
+  ok(feed.status === 200 && feed.data.feed.events > 20, 'календарь подключён, событий: ' +
      (feed.data.feed && feed.data.feed.events));
   ok(feed.data.feed.name === 'Личное', 'имя календаря прочитано: ' + feed.data.feed.name);
 
   const state = await api('GET', '/api/state');
-  ok(state.data.busy && state.data.busy.events.length === 2, 'события приходят вместе с данными');
+  ok(state.data.busy && state.data.busy.events.length > 20, 'события приходят вместе с данными: ' +
+     (state.data.busy && state.data.busy.events.length));
   const doc = state.data.busy.events.find(e => e.title === 'Врач');
   ok(!!doc, 'событие «Врач» на месте');
   ok(new Date(doc.start).getHours() === 9, 'время события местное: ' + new Date(doc.start).getHours());
   const trip = state.data.busy.events.find(e => /Поездка/.test(e.title));
   ok(trip && trip.allDay === true, 'событие на весь день помечено');
   ok(trip && trip.title === 'Поездка, важная', 'экранированная запятая разобрана: ' + (trip && trip.title));
+
+  /* --- повторяющиеся события --- */
+  const all = (await api('GET', '/api/state')).data.busy.events;
+  const weekly = all.filter(e => /Lesson with Ruben$/.test(e.title));
+  ok(weekly.length > 20, 'еженедельное событие развернулось на весь период: ' + weekly.length);
+  const oneWeek = 7 * 86400000;
+  /* один повтор перенесён, другой пропущен — поэтому шаг кратен неделе, но не всегда ровно неделя */
+  const gaps = weekly.slice(1, 8).map((e, i) => (e.start - weekly[i].start) / oneWeek);
+  ok(gaps.every(g => Number.isInteger(g) && g >= 1 && g <= 3), 'шаг повторов кратен неделе: ' + gaps.join(","));
+  ok(gaps.filter(g => g === 1).length >= 4, 'и обычно это ровно неделя: ' + gaps.join(","));
+  const skipped = new Date(day(14) + 'T08:00:00').getTime();
+  ok(!weekly.some(e => e.start === skipped), 'пропущенная дата не показывается');
+  const movedOne = all.find(e => /перенос/.test(e.title));
+  ok(!!movedOne && new Date(movedOne.start).getHours() === 12, 'перенесённый повтор стоит на новом времени');
+  ok(!weekly.some(e => e.start === new Date(day(7) + 'T08:00:00').getTime()), 'а на старом его больше нет');
+  const rent = all.filter(e => e.title === 'Аренда');
+  ok(rent.length === 3, 'ежемесячное повторилось ровно три раза: ' + rent.length);
 
   /* webcal:// тоже принимаем */
   const webcal = await api('POST', '/api/calendar/feed', { url: feedUrl.replace('http://', 'webcal://') });
@@ -129,7 +155,8 @@ let calStatus = 200, calType = 'text/calendar';
 
   await p.click('[data-tab="week"]'); await p.waitForTimeout(700);
   ok(await p.locator('.lsn.busy').count() >= 1, 'личные дела видны в расписании: ' + await p.locator('.lsn.busy').count());
-  ok((await p.locator('.lsn.busy').first().innerText()).includes('Врач'), 'с названием события');
+  const busyTexts = (await p.locator('.lsn.busy').allInnerTexts()).join(' | ');
+  ok(/Врач/.test(busyTexts), 'с названиями событий: ' + busyTexts.replace(/\n/g, ' ').slice(0, 80));
   await p.screenshot({ path: out + '/slate-calendar-week.png' });
 
   /* месяц тоже показывает личные дела */

@@ -158,30 +158,103 @@ function parseStamp(value, params) {
   return { ms, allDay: false };
 }
 
+/* Повторяющиеся события: разворачиваем правило в отдельные даты.
+   Поддержан обычный набор, который присылают Apple и Google:
+   FREQ (день/неделя/месяц/год), INTERVAL, COUNT, UNTIL, BYDAY, BYMONTHDAY. */
+const WD = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+function ruleParts(rule) {
+  const out = {};
+  String(rule || "").split(";").forEach((chunk) => {
+    const i = chunk.indexOf("=");
+    if (i > 0) out[chunk.slice(0, i).toUpperCase()] = chunk.slice(i + 1);
+  });
+  return out;
+}
+
+function expand(ev, fromMs, toMs) {
+  const r = ruleParts(ev.rrule);
+  const freq = (r.FREQ || "").toUpperCase();
+  if (!freq) return [ev.start];
+
+  const interval = Math.max(1, parseInt(r.INTERVAL || "1", 10) || 1);
+  const count = r.COUNT ? parseInt(r.COUNT, 10) : 0;
+  const until = r.UNTIL ? parseStamp(r.UNTIL).ms : 0;
+  const byDay = (r.BYDAY || "").split(",").map((x) => x.trim()).filter(Boolean);
+  const byMonthDay = (r.BYMONTHDAY || "").split(",").map((x) => parseInt(x, 10)).filter(Boolean);
+
+  const first = new Date(ev.start);
+  const hh = first.getHours(), mi = first.getMinutes();
+  const out = [];
+  const stop = Math.min(toMs, until || toMs);
+  let made = 0, guard = 0;
+
+  const push = (d) => {
+    const ms = d.getTime();
+    if (ms < ev.start) return;
+    if (until && ms > until) return;
+    if (ms > toMs) return;
+    if (ms >= fromMs) out.push(ms);
+    made++;
+  };
+
+  if (freq === "WEEKLY") {
+    const days = byDay.length ? byDay.map((d) => WD[d.slice(-2)]).filter((x) => x !== undefined)
+                              : [first.getDay()];
+    /* идём по неделям от недели первого события */
+    const weekStart = new Date(first);
+    weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+    weekStart.setHours(hh, mi, 0, 0);
+    while (weekStart.getTime() <= stop && guard++ < 700 && (!count || made < count)) {
+      for (const wd of days) {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() + ((wd + 6) % 7));
+        d.setHours(hh, mi, 0, 0);
+        if (!count || made < count) push(d);
+      }
+      weekStart.setDate(weekStart.getDate() + 7 * interval);
+    }
+  } else if (freq === "DAILY") {
+    const d = new Date(first);
+    while (d.getTime() <= stop && guard++ < 1500 && (!count || made < count)) {
+      push(new Date(d));
+      d.setDate(d.getDate() + interval);
+    }
+  } else if (freq === "MONTHLY") {
+    const days = byMonthDay.length ? byMonthDay : [first.getDate()];
+    const cursor = new Date(first.getFullYear(), first.getMonth(), 1);
+    while (cursor.getTime() <= stop && guard++ < 400 && (!count || made < count)) {
+      for (const dayNum of days) {
+        const d = new Date(cursor.getFullYear(), cursor.getMonth(), dayNum, hh, mi, 0, 0);
+        if (d.getMonth() === cursor.getMonth() && (!count || made < count)) push(d);
+      }
+      cursor.setMonth(cursor.getMonth() + interval);
+    }
+  } else if (freq === "YEARLY") {
+    const d = new Date(first);
+    while (d.getTime() <= stop && guard++ < 60 && (!count || made < count)) {
+      push(new Date(d));
+      d.setFullYear(d.getFullYear() + interval);
+    }
+  } else {
+    return [ev.start];
+  }
+  return out;
+}
+
 function parse(text, opts) {
   const o = opts || {};
   const limitPast = Date.now() - (o.pastDays || 14) * 86400000;
-  const limitAhead = Date.now() + (o.aheadDays || 120) * 86400000;
-  const out = [];
+  const limitAhead = Date.now() + (o.aheadDays || 240) * 86400000;
+  const raws = [];
   let name = "";
   let cur = null;
 
   for (const raw of unfold(text).split("\n")) {
     const line = raw.trim();
     if (!line) continue;
-    if (line === "BEGIN:VEVENT") { cur = {}; continue; }
-    if (line === "END:VEVENT") {
-      if (cur && cur.start && out.length < 500 &&
-          cur.start >= limitPast && cur.start <= limitAhead) {
-        out.push({
-          id: cur.uid || String(cur.start),
-          title: cur.title || "Занято",
-          start: cur.start, end: cur.end || cur.start + 3600000,
-          allDay: !!cur.allDay,
-        });
-      }
-      cur = null; continue;
-    }
+    if (line === "BEGIN:VEVENT") { cur = { ex: [] }; continue; }
+    if (line === "END:VEVENT") { if (cur && cur.start) raws.push(cur); cur = null; continue; }
     const colon = line.indexOf(":");
     if (colon < 0) continue;
     const left = line.slice(0, colon), value = line.slice(colon + 1);
@@ -189,15 +262,47 @@ function parse(text, opts) {
     const key = (semi < 0 ? left : left.slice(0, semi)).toUpperCase();
     const params = semi < 0 ? "" : left.slice(semi + 1);
 
-    if (!cur) {
-      if (key === "X-WR-CALNAME") name = unesc(value);
-      continue;
-    }
+    if (!cur) { if (key === "X-WR-CALNAME") name = unesc(value); continue; }
     if (key === "UID") cur.uid = value;
     else if (key === "SUMMARY") cur.title = unesc(value);
     else if (key === "DTSTART") { const p = parseStamp(value, params); cur.start = p.ms; cur.allDay = p.allDay; }
     else if (key === "DTEND") cur.end = parseStamp(value, params).ms;
+    else if (key === "RRULE") cur.rrule = value;
+    else if (key === "RECURRENCE-ID") cur.recurrenceId = parseStamp(value, params).ms;
+    else if (key === "EXDATE") value.split(",").forEach((v) => cur.ex.push(parseStamp(v.trim(), params).ms));
   }
+
+  /* правки отдельных повторов: их даты из общего ряда убираем */
+  const moved = {};
+  raws.forEach((e) => {
+    if (e.recurrenceId) {
+      moved[e.uid] = moved[e.uid] || new Set();
+      moved[e.uid].add(e.recurrenceId);
+    }
+  });
+
+  const out = [];
+  const add = (e, ms) => {
+    const length = (e.end && e.end > e.start) ? e.end - e.start : (e.allDay ? 86400000 : 3600000);
+    out.push({
+      id: (e.uid || "e") + ":" + ms,
+      title: e.title || "Занято",
+      start: ms, end: ms + length, allDay: !!e.allDay,
+    });
+  };
+
+  for (const e of raws) {
+    if (e.recurrenceId) { add(e, e.start); continue; }        /* перенесённый повтор */
+    const skip = new Set([...(e.ex || []), ...(moved[e.uid] || [])]);
+    const times = e.rrule ? expand(e, limitPast, limitAhead) : [e.start];
+    for (const ms of times) {
+      if (skip.has(ms)) continue;
+      if (ms < limitPast || ms > limitAhead) continue;
+      if (out.length >= 800) break;
+      add(e, ms);
+    }
+  }
+
   out.sort((a, b) => a.start - b.start);
   return { name, events: out };
 }
