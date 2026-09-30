@@ -86,6 +86,35 @@ async function signup(api, email, name) {
   const bad = await boss('POST', '/api/admin/plan', { schoolId: school.id, plan: 'выдумка' });
   ok(bad.status === 400, 'несуществующий тариф отклонён: ' + bad.status);
 
+  /* --- удаление школы --- */
+  const victim = client();
+  await signup(victim, 'lishniy@mail.com', 'Лишний');
+  await victim('PUT', '/api/state', { version: 0, doc: {
+    v: 2, students: [{ id: 'x1', name: 'Ученик', code: '3333' }], lessons: [], payments: [], packs: [] } });
+  const before = (await boss('GET', '/api/admin')).data.schools;
+  const target = before.find(x => x.people.some(p => p.email === 'lishniy@mail.com'));
+  ok(!!target, 'лишняя школа появилась в списке');
+
+  const noConfirm = await boss('POST', '/api/admin/delete', { schoolId: target.id, confirm: 'не та почта' });
+  ok(noConfirm.status === 400 && noConfirm.data.error === 'confirm', 'без верного подтверждения не удаляет: ' + noConfirm.status);
+
+  const mine = before.find(x => x.mine);
+  ok(!!mine, 'своя школа помечена как своя');
+  const selfKill = await boss('POST', '/api/admin/delete', { schoolId: mine.id, confirm: 'boss@mail.com' });
+  ok(selfKill.status === 400 && selfKill.data.error === 'self', 'свою школу удалить нельзя: ' + selfKill.status);
+
+  const byStranger = await anna('POST', '/api/admin/delete', { schoolId: target.id, confirm: 'lishniy@mail.com' });
+  ok(byStranger.status === 403, 'посторонний удалить не может: ' + byStranger.status);
+
+  const killed = await boss('POST', '/api/admin/delete', { schoolId: target.id, confirm: 'LISHNIY@mail.com' });
+  ok(killed.status === 200 && killed.data.people === 1, 'школа удалена: ' + JSON.stringify(killed.data));
+  const after = (await boss('GET', '/api/admin')).data.schools;
+  ok(!after.some(x => x.id === target.id), 'её больше нет в списке: осталось ' + after.length);
+  const ghost = await victim('GET', '/api/me');
+  ok(ghost.status === 401, 'вход удалённого больше не работает: ' + ghost.status);
+  const reborn = await victim('POST', '/api/auth/request', { email: 'lishniy@mail.com' });
+  ok(reborn.status === 404, 'и аккаунта с этой почтой не осталось: ' + reborn.status);
+
   /* --- страница --- */
   const b = await chromium.launch();
   const p = await b.newPage({ viewport: { width: 1200, height: 900 }, deviceScaleFactor: 1.5 });
@@ -114,12 +143,12 @@ async function signup(api, email, name) {
   await p.screenshot({ path: out + '/slate-admin.png', fullPage: true });
 
   /* меняем тариф кнопкой */
-  const target = p.locator('.row', { hasText: 'anna@mail.com' }).locator('[data-plan="studio"]');
-  await target.click();
+  const annaRow = p.locator('.row', { hasText: 'anna@mail.com' }).locator('[data-plan="studio"]');
+  await annaRow.click();
   await p.waitForTimeout(1200);
-  const after = await boss('GET', '/api/admin');
-  const now = after.data.schools.find(s => s.id === school.id);
-  ok(now.plan === 'studio', 'кнопка в админке сменила тариф: ' + now.plan);
+  const fresh = await boss('GET', '/api/admin');
+  const nowSchool = fresh.data.schools.find(s => s.id === school.id);
+  ok(nowSchool.plan === 'studio', 'кнопка в админке сменила тариф: ' + nowSchool.plan);
   ok(errs.length === 0, 'без ошибок JS', errs[0]);
 
   await b.close(); SRV.kill();

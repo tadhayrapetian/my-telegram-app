@@ -96,6 +96,17 @@ const q = {
   usersOfSchool: db.prepare("SELECT * FROM users WHERE school_id = ? ORDER BY created_at"),
   allUsers: db.prepare("SELECT * FROM users"),
   allSchools: db.prepare("SELECT * FROM schools ORDER BY created_at DESC"),
+  /* полное удаление школы: всё, что связано с её людьми */
+  countFiles: db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(size),0) AS bytes FROM files WHERE user_id = ?"),
+  countMsgs: db.prepare("SELECT COUNT(*) AS n FROM messages WHERE user_id = ?"),
+  wipeFiles: db.prepare("DELETE FROM files WHERE user_id = ?"),
+  wipeMsgs: db.prepare("DELETE FROM messages WHERE user_id = ?"),
+  wipeDoc: db.prepare("DELETE FROM docs WHERE user_id = ?"),
+  wipePortal: db.prepare("DELETE FROM portal WHERE user_id = ?"),
+  wipePS: db.prepare("DELETE FROM psessions WHERE user_id = ?"),
+  wipeSessions: db.prepare("DELETE FROM sessions WHERE user_id = ?"),
+  wipeUser: db.prepare("DELETE FROM users WHERE id = ?"),
+  wipeSchool: db.prepare("DELETE FROM schools WHERE id = ?"),
   addUser: db.prepare("INSERT INTO users (id,school_id,email,name,role,created_at) VALUES (?,?,?,?,?,?)"),
   delUser: db.prepare("DELETE FROM users WHERE id = ? AND school_id = ?"),
   setUserName: db.prepare("UPDATE users SET name = ? WHERE id = ?"),
@@ -501,9 +512,16 @@ const routes = {
           lessons += (doc.lessons || []).length;
         } catch (e) { /* испорченный документ не должен ронять админку */ }
       }
+      let files = 0, bytes = 0, msgs = 0;
+      for (const u of people) {
+        const f = q.countFiles.get(u.id);
+        files += f.n; bytes += f.bytes;
+        msgs += q.countMsgs.get(u.id).n;
+      }
       schools.push({
         id: school.id, name: school.name, plan: school.plan, created_at: school.created_at,
-        students, lessons, updated_at: updated,
+        students, lessons, files, bytes, msgs, updated_at: updated,
+        mine: school.id === user.school_id,
         people: people.map((u) => ({ id: u.id, email: u.email, name: u.name, role: u.role,
                                      created_at: u.created_at,
                                      telegram: botCtx.q.chatsOf.all(u.id, "teacher").length > 0 })),
@@ -533,6 +551,36 @@ const routes = {
       rebuildPortal(u, readDoc(u.id).doc, PLANS[plan]);
     }
     send(res, 200, { ok: true, plan });
+  },
+
+  "POST /api/admin/delete": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    if (!isAdmin(user)) return send(res, 403, { error: "not_admin" });
+    const body = await readBody(req);
+    const school = q.schoolById.get(String(body.schoolId || ""));
+    if (!school) return send(res, 404, { error: "no_school" });
+    /* свою школу не удаляем: так легко остаться без входа */
+    if (school.id === user.school_id) return send(res, 400, { error: "self" });
+
+    const people = q.usersOfSchool.all(school.id);
+    /* подтверждение — почта владельца: случайным нажатием не сотрёшь */
+    const owner = (people.find((p) => p.role === "owner") || people[0] || {}).email || "";
+    if (String(body.confirm || "").trim().toLowerCase() !== owner.toLowerCase())
+      return send(res, 400, { error: "confirm", owner });
+
+    let files = 0;
+    for (const u of people) {
+      files += q.countFiles.get(u.id).n;
+      try { fs.rmSync(path.join(FILES_DIR, u.id), { recursive: true, force: true }); } catch (e) {}
+      q.wipeFiles.run(u.id); q.wipeMsgs.run(u.id); q.wipeDoc.run(u.id);
+      q.wipePortal.run(u.id); q.wipePS.run(u.id); q.wipeSessions.run(u.id);
+      for (const row of botCtx.q.chatsOf.all(u.id, "teacher")) botCtx.q.unlink.run(row.chat_id);
+      for (const row of botCtx.q.chatsOf.all(u.id, "student")) botCtx.q.unlink.run(row.chat_id);
+      q.wipeUser.run(u.id);
+    }
+    q.wipeSchool.run(school.id);
+    console.log(`[slate] админ ${user.email} удалил школу ${owner} (людей: ${people.length}, файлов: ${files})`);
+    send(res, 200, { ok: true, people: people.length, files });
   },
 
   "POST /api/school/plan": async (req, res, user) => {
