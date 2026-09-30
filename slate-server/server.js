@@ -24,6 +24,12 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 /* Пока письма не настроены, код показываем на экране — иначе войти нельзя.
    Как только почтовая служба подключена, код уходит только письмом;
    SLATE_DEV_CODES=1 оставляет его на экране принудительно (для отладки). */
+/* Хозяин сервиса: видит все школы, меняет тарифы. Список адресов
+   через запятую в SLATE_ADMIN. Пусто — админки нет ни у кого. */
+const ADMINS = (process.env.SLATE_ADMIN || "").toLowerCase().split(",")
+  .map((x) => x.trim()).filter(Boolean);
+const isAdmin = (user) => !!user && ADMINS.includes(String(user.email || "").toLowerCase());
+
 const DEV_CODES = process.env.SLATE_DEV_CODES === "1" ||
                   (!mail.configured() && process.env.SLATE_DEV_CODES !== "0");
 
@@ -89,6 +95,7 @@ const q = {
   userById: db.prepare("SELECT * FROM users WHERE id = ?"),
   usersOfSchool: db.prepare("SELECT * FROM users WHERE school_id = ? ORDER BY created_at"),
   allUsers: db.prepare("SELECT * FROM users"),
+  allSchools: db.prepare("SELECT * FROM schools ORDER BY created_at DESC"),
   addUser: db.prepare("INSERT INTO users (id,school_id,email,name,role,created_at) VALUES (?,?,?,?,?,?)"),
   delUser: db.prepare("DELETE FROM users WHERE id = ? AND school_id = ?"),
   setUserName: db.prepare("UPDATE users SET name = ? WHERE id = ?"),
@@ -474,6 +481,60 @@ const routes = {
     send(res, 200, { ok: true, url: `https://t.me/${botCtx.botName}?start=${code}`, bot: botCtx.botName });
   },
 
+  /* --- админка сервиса --- */
+  "GET /api/admin": async (req, res, user) => {
+    /* «не вошёл» и «вошёл, но не хозяин» — разные ответы: страница
+       по первому предлагает войти, по второму объясняет про права */
+    if (!user) return send(res, 401, { error: "no_session" });
+    if (!isAdmin(user)) return send(res, 403, { error: "not_admin" });
+    const schools = [];
+    for (const school of q.allSchools.all()) {
+      const people = q.usersOfSchool.all(school.id);
+      let students = 0, lessons = 0, updated = 0;
+      for (const u of people) {
+        const row = q.getDoc.get(u.id);
+        if (!row) continue;
+        updated = Math.max(updated, row.updated_at || 0);
+        try {
+          const doc = JSON.parse(row.data);
+          students += activeStudents(doc).length;
+          lessons += (doc.lessons || []).length;
+        } catch (e) { /* испорченный документ не должен ронять админку */ }
+      }
+      schools.push({
+        id: school.id, name: school.name, plan: school.plan, created_at: school.created_at,
+        students, lessons, updated_at: updated,
+        people: people.map((u) => ({ id: u.id, email: u.email, name: u.name, role: u.role,
+                                     created_at: u.created_at,
+                                     telegram: botCtx.q.chatsOf.all(u.id, "teacher").length > 0 })),
+      });
+    }
+    schools.sort((a, b) => (b.updated_at || b.created_at) - (a.updated_at || a.created_at));
+    send(res, 200, {
+      you: user.email,
+      plans: Object.keys(PLANS),
+      mail: mail.configured() ? mail.PROVIDER : null,
+      telegram: bot.enabled(),
+      schools,
+    });
+  },
+
+  "POST /api/admin/plan": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    if (!isAdmin(user)) return send(res, 403, { error: "not_admin" });
+    const body = await readBody(req);
+    const plan = String(body.plan || "");
+    if (!PLANS[plan]) return send(res, 400, { error: "bad_plan" });
+    const school = q.schoolById.get(String(body.schoolId || ""));
+    if (!school) return send(res, 404, { error: "no_school" });
+    q.setPlan.run(plan, school.id);
+    /* кабинеты учеников появляются и исчезают вместе с тарифом */
+    for (const u of q.usersOfSchool.all(school.id)) {
+      rebuildPortal(u, readDoc(u.id).doc, PLANS[plan]);
+    }
+    send(res, 200, { ok: true, plan });
+  },
+
   "POST /api/school/plan": async (req, res, user) => {
     if (!user) return send(res, 401, { error: "no_session" });
     if (user.role !== "owner") return send(res, 403, { error: "not_owner" });
@@ -714,6 +775,7 @@ const server = http.createServer(async (req, res) => {
     /* корень — страница продукта, программа живёт на /app */
     if (p === "/") return serveFile(res, path.join(PUBLIC_DIR, "landing.html"));
     if (p === "/app" || p === "/app/") return serveFile(res, path.join(PUBLIC_DIR, "index.html"));
+    if (p === "/admin" || p === "/admin/") return serveFile(res, path.join(PUBLIC_DIR, "admin.html"));
 
     const key = req.method + " " + p;
     if (routes[key]) return await routes[key](req, res, sessionUser(req));

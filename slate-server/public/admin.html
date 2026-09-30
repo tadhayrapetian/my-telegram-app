@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slate — админка</title>
+<style>
+:root{
+  --paper:#F4EFE3; --paper-2:#FBF8F1; --paper-3:#EAE3D2;
+  --olive-50:#EDF0E2; --olive-100:#DDE3CB; --olive-200:#C3CDA6; --olive-300:#A2B07E;
+  --olive-500:#657646; --olive-600:#4F5D34; --olive-700:#3A4429;
+  --ink:#23261C; --ink-2:#484D3C; --ink-3:#787D68;
+  --line:rgba(35,38,28,.12); --line-2:rgba(35,38,28,.07);
+  --clay-soft:#F1E2D2; --clay-ink:#8A5A32; --red:#A6483C; --red-soft:#F3DED9;
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 20px 70px}
+h1{font-size:27px;margin:0;letter-spacing:-.02em}
+.sub{color:var(--ink-3);font-size:14px;margin-top:5px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.kpi .l{font-size:12.5px;color:var(--ink-3)}
+.kpi .v{font-size:27px;font-weight:700;letter-spacing:-.02em;color:var(--olive-600);margin-top:3px}
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.row .g{flex:1;min-width:220px}
+.nm{font-weight:600;letter-spacing:-.01em}
+.sb{font-size:12.5px;color:var(--ink-3);margin-top:3px}
+.nums{display:flex;gap:16px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.nums b{font-weight:640}
+.plans{display:flex;gap:6px}
+.plans button{border:1px solid var(--line);background:var(--paper);color:var(--ink-2);cursor:pointer;
+  border-radius:999px;padding:6px 13px;font:inherit;font-size:13px;font-weight:560}
+.plans button:hover{border-color:var(--olive-300)}
+.plans button.on{background:var(--olive-600);border-color:var(--olive-600);color:var(--paper-2)}
+.chip{font-size:11.5px;font-weight:620;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.chip.ok{background:var(--olive-50);color:var(--olive-600)}
+.chip.mut{background:var(--paper-3);color:var(--ink-3)}
+.chip.warn{background:var(--clay-soft);color:var(--clay-ink)}
+.empty{padding:40px 18px;text-align:center;color:var(--ink-3)}
+.empty b{display:block;color:var(--ink-2);font-size:16px;margin-bottom:6px}
+.state{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+a{color:var(--olive-600)}
+@media (max-width:640px){ .kpis{grid-template-columns:1fr 1fr} .nums{width:100%} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Slate — админка</h1><div class="sub" id="who">загружаю…</div></div>
+    <a href="/app">← в программу</a>
+  </div>
+  <div id="view"></div>
+</div>
+
+<script>
+/* Админка владельца сервиса: все школы, их тарифы и нагрузка.
+   Доступ даёт сервер по адресу почты из SLATE_ADMIN — здесь проверок нет,
+   любой запрос без прав получит 403. */
+var esc = function (s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+};
+function when(ms) {
+  if (!ms) return "—";
+  var d = new Date(ms), day = 86400000, diff = Date.now() - ms;
+  if (diff < day) return "сегодня";
+  if (diff < 2 * day) return "вчера";
+  if (diff < 30 * day) return Math.round(diff / day) + " дн. назад";
+  return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "2-digit" });
+}
+var PLAN_NAME = { free: "Free", pro: "Pro", studio: "Studio" };
+
+function load() {
+  fetch("/api/admin", { credentials: "same-origin" }).then(function (r) {
+    if (r.status === 401) return show(null, "Сначала войдите в программу: <a href='/app'>/app</a>");
+    if (r.status === 403) return show(null, "У этого аккаунта нет прав администратора.<br>Адрес задаётся в SLATE_ADMIN на сервере.");
+    return r.json().then(function (d) { show(d); });
+  }, function () { show(null, "Сервер не отвечает"); });
+}
+
+function show(d, msg) {
+  var view = document.getElementById("view");
+  if (!d) {
+    document.getElementById("who").textContent = "";
+    view.innerHTML = '<div class="card"><div class="empty"><b>Нет доступа</b>' + (msg || "") + "</div></div>";
+    return;
+  }
+  document.getElementById("who").innerHTML = "вы вошли как " + esc(d.you);
+
+  var teachers = 0, students = 0, lessons = 0;
+  d.schools.forEach(function (s) { teachers += s.people.length; students += s.students; lessons += s.lessons; });
+
+  view.innerHTML =
+    '<div class="kpis">' +
+      kpi("Школ", d.schools.length) + kpi("Преподавателей", teachers) +
+      kpi("Учеников", students) + kpi("Занятий", lessons) +
+    "</div>" +
+    '<div class="state">' +
+      chip(d.mail ? "Почта: " + d.mail : "Почта не настроена", d.mail ? "ok" : "warn") +
+      chip(d.telegram ? "Телеграм подключён" : "Телеграм не настроен", d.telegram ? "ok" : "warn") +
+    "</div>" +
+    '<div class="card">' + (d.schools.length ? d.schools.map(school).join("") :
+      '<div class="empty"><b>Пока никто не зарегистрировался</b>Поделитесь ссылкой на регистрацию</div>') +
+    "</div>";
+}
+function kpi(l, v) { return '<div class="kpi"><div class="l">' + esc(l) + '</div><div class="v">' + v + "</div></div>"; }
+function chip(text, tone) { return '<span class="chip ' + tone + '">' + esc(text) + "</span>"; }
+
+function school(s) {
+  var owner = s.people.filter(function (p) { return p.role === "owner"; })[0] || s.people[0] || {};
+  var others = s.people.length - 1;
+  return '<div class="row">' +
+    '<div class="g"><div class="nm">' + esc(s.name || owner.email || "школа") + "</div>" +
+      '<div class="sb">' + esc(owner.email || "—") +
+        (others > 0 ? " · и ещё " + others : "") +
+        " · создана " + when(s.created_at) + " · активность " + when(s.updated_at) +
+        (owner.telegram ? " · телеграм подключён" : "") + "</div></div>" +
+    '<div class="nums"><span><b>' + s.students + "</b> учеников</span>" +
+      "<span><b>" + s.lessons + "</b> занятий</span></div>" +
+    '<div class="plans">' + ["free", "pro", "studio"].map(function (p) {
+      return '<button data-school="' + esc(s.id) + '" data-plan="' + p + '"' +
+        (s.plan === p ? ' class="on"' : "") + ">" + PLAN_NAME[p] + "</button>";
+    }).join("") + "</div></div>";
+}
+
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("[data-plan]");
+  if (!b || b.classList.contains("on")) return;
+  b.disabled = true;
+  fetch("/api/admin/plan", {
+    method: "POST", credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ schoolId: b.dataset.school, plan: b.dataset.plan }),
+  }).then(function (r) {
+    if (!r.ok) { b.disabled = false; alert("Не получилось сменить тариф"); return; }
+    load();
+  }, function () { b.disabled = false; alert("Сервер не отвечает"); });
+});
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

@@ -69,6 +69,7 @@ install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || tr
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
 install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"
 install -m 644 "$SRC_DIR/public/portal.html" "$APP_DIR/public/portal.html"
+install -m 644 "$SRC_DIR/public/admin.html" "$APP_DIR/public/admin.html"
 # настройки почты живут отдельным файлом: обновление программы их не трогает
 if [[ ! -f "$APP_DIR/slate.env" ]]; then
   cat > "$APP_DIR/slate.env" <<'ENVFILE'
@@ -96,6 +97,10 @@ if [[ ! -f "$APP_DIR/slate.env" ]]; then
 # SLATE_MAIL=brevo
 # BREVO_API_KEY=xkeysib-xxxxxxxx
 # SLATE_MAIL_FROM=Slate <hello@ВАШ-ДОМЕН>
+#
+# Админка сервиса на /admin — впишите свою почту, и она откроется
+# после обычного входа в программу:
+# SLATE_ADMIN=вашапочта@gmail.com
 #
 # Напоминания в Telegram: создайте бота у @BotFather и впишите токен:
 # SLATE_BOT_TOKEN=123456:AA...
