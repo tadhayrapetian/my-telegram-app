@@ -160,9 +160,19 @@ async function tick(ctx) {
         .filter((l) => l.date === today && l.status === "planned")
         .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
       const hour = new Date().getHours();
-      if (hour >= 7 && mine.length) {
-        const text = `Сегодня, ${human(today)} — занятий: ${mine.length}\n\n` +
-          mine.map((l) => `${l.time}  ${nameOf(l.studentId)}`).join("\n");
+      /* личные дела из подключённого календаря — в том же списке */
+      const busy = (ctx.busyOf ? ctx.busyOf(user.id) : []).filter((e) => isoDay(new Date(e.start)) === today);
+      if (hour >= 7 && (mine.length || busy.length)) {
+        const items = mine.map((l) => ({ at: at(l.date, l.time), line: `${l.time}  ${nameOf(l.studentId)}` }))
+          .concat(busy.map((e) => {
+            const d = new Date(e.start);
+            const hhmm = e.allDay ? "весь день" : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            return { at: e.start, line: `${hhmm}  ${e.title} · из календаря` };
+          }))
+          .sort((a, b) => a.at - b.at);
+        const text = `Сегодня, ${human(today)} — занятий: ${mine.length}` +
+          (busy.length ? `, своих дел: ${busy.length}` : "") + "\n\n" +
+          items.map((x) => x.line).join("\n");
         for (const t of teachers) if (await send(t.chat_id, text, `agenda:${user.id}:${today}`)) sent++;
       }
       /* вчерашние неотмеченные */

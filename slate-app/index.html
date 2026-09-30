@@ -164,6 +164,11 @@ h1,h2,h3{margin:0;font-family:var(--display);font-weight:700;letter-spacing:-.01
 .lsn.moved_teacher .t,.lsn.moved_teacher .s,.lsn.moved_student .t,.lsn.moved_student .s{color:#9C6B41}
 .lsn.moved_student{border-style:dashed}
 .lsn.no_show{background:var(--red-soft);border-color:#E6C4BD;color:var(--red)}
+/* дела из личного календаря: видно, но в глаза не лезет */
+.lsn.busy{background:repeating-linear-gradient(135deg,rgba(35,38,28,.045),rgba(35,38,28,.045) 6px,transparent 6px,transparent 12px);
+  border-color:var(--line);color:var(--ink-3);cursor:default}
+.lsn.busy .n{font-weight:560}
+.lsn.busy:hover{transform:none;box-shadow:none;border-color:var(--line)}
 .lsn.no_show .t,.lsn.no_show .s{color:#96564B}
 .lsn.dragging{opacity:.45}
 .day-add{border:1px dashed var(--line);background:transparent;color:var(--ink-3);border-radius:9px;padding:6px;cursor:pointer;font-size:12px}
@@ -490,6 +495,20 @@ var T = {
 "c.importBad":{en:"That file is not a Slate backup",ru:"Это не файл с данными Slate",hy:"Սա Slate-ի տվյալների ֆայլ չէ"},
 "c.storageBad":{en:"This browser does not save data on file:// — open the app through a local server (see README) or the entries will be lost when you close the tab.",ru:"Этот браузер не сохраняет данные при открытии файла напрямую — запустите приложение через локальный сервер (см. README), иначе записи пропадут при закрытии вкладки.",hy:"Այս դիտարկիչը չի պահում տվյալները ֆայլն ուղիղ բացելիս — գործարկեք հավելվածը տեղական սերվերով (տես README), այլապես գրառումները կկորչեն։"},
 
+"cal.title":{en:"Calendar",ru:"Календарь",hy:"Օրացույց"},
+"cal.out":{en:"Slate lessons in your calendar",ru:"Занятия Slate в вашем календаре",hy:"Slate-ի դասերը ձեր օրացույցում"},
+"cal.outHow":{en:"Calendar on Mac → File → New Calendar Subscription → paste this link. Lessons will appear on iPhone and iPad too.",ru:"«Календарь» на маке → Файл → Новая подписка на календарь → вставьте эту ссылку. Занятия появятся и на айфоне с айпадом.",hy:"«Օրացույց» Mac-ում → Ֆայլ → Նոր բաժանորդագրություն → տեղադրեք այս հղումը։"},
+"cal.reset":{en:"New link",ru:"Сменить ссылку",hy:"Նոր հղում"},
+"cal.in":{en:"Your calendar inside Slate",ru:"Ваш календарь внутри Slate",hy:"Ձեր օրացույցը Slate-ում"},
+"cal.inHow":{en:"Share a calendar publicly in Calendar on Mac and paste its link here — its events will show in the schedule as busy time.",ru:"В «Календаре» на маке откройте общий доступ к календарю и вставьте его ссылку сюда — события появятся в расписании как занятое время.",hy:"Mac-ի «Օրացույց»-ում բացեք հանրային հասանելիություն և տեղադրեք հղումը այստեղ։"},
+"cal.inPh":{en:"webcal://… or https://…",ru:"webcal://… или https://…",hy:"webcal://… կամ https://…"},
+"cal.connect":{en:"Connect",ru:"Подключить",hy:"Միացնել"},
+"cal.off":{en:"Disconnect",ru:"Отключить",hy:"Անջատել"},
+"cal.events":{en:"events",ru:"событий",hy:"իրադարձություն"},
+"cal.badUrl":{en:"Could not read that calendar",ru:"Не удалось прочитать календарь",hy:"Չհաջողվեց կարդալ օրացույցը"},
+"cal.fromCalendar":{en:"from calendar",ru:"из календаря",hy:"օրացույցից"},
+"cal.allDay":{en:"all day",ru:"весь день",hy:"ամբողջ օրը"},
+"cal.warn":{en:"Public link: anyone who has it can see those events. Share a separate calendar, not your personal one.",ru:"Ссылка открытая: события увидит любой, у кого она есть. Лучше открывать отдельный календарь, а не личный.",hy:"Հղումը բաց է՝ իրադարձությունները կտեսնի յուրաքանչյուր ոք։ Ավելի լավ է առանձին օրացույց։"},
 "tg.title":{en:"Telegram reminders",ru:"Напоминания в Telegram",hy:"Հիշեցումներ Telegram-ում"},
 "tg.connect":{en:"Connect Telegram",ru:"Подключить Telegram",hy:"Միացնել Telegram"},
 "tg.off":{en:"Disconnect",ru:"Отключить",hy:"Անջատել"},
@@ -821,6 +840,31 @@ function activeStudents(){ return S.students.filter(function(s){ return !s.archi
    (аккаунт, изоляция данных, лимиты тарифа). Режим определяется при запуске. */
 var API = { on: false, me: null, ver: 0, portal: {}, timer: null, busy: false, again: false };
 var TG = { enabled: false, linked: false, bot: "", students: {} };   /* напоминания */
+var BUSY = [];            /* события из подключённого календаря (iCloud, Google) */
+var CAL = { url: "", feed: null };
+function isoOfMs(ms){
+  var d = new Date(ms);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function busyOn(day){
+  return BUSY.filter(function(e){ return isoOfMs(e.start) === day; })
+    .sort(function(a, b){ return a.start - b.start; });
+}
+function busyCell(e){
+  var d = new Date(e.start);
+  var time = e.allDay ? t("cal.allDay")
+    : String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  return '<div class="lsn busy" title="' + esc(e.title + " · " + t("cal.fromCalendar")) + '">' +
+    '<div class="t tnum">' + esc(time) + "</div>" +
+    '<div class="n">' + esc(e.title) + "</div>" +
+    '<div class="s">' + esc(t("cal.fromCalendar")) + "</div></div>";
+}
+function pullCalendar(){
+  if (!API.on) return Promise.resolve();
+  return apiCall("GET", "/api/calendar").then(function(r){
+    if (r.status === 200) CAL = r.data;
+  }, function(){});
+}
 function pullTelegram(){
   if (!API.on) return Promise.resolve();
   return apiCall("GET", "/api/telegram").then(function(r){
@@ -850,6 +894,8 @@ function pushState(){
     API.busy = false;
     if (r.status === 200) {
       API.ver = r.data.version; API.portal = r.data.portal || {};
+    BUSY = (r.data.busy && r.data.busy.events) || BUSY;
+      BUSY = (r.data.busy && r.data.busy.events) || BUSY;
       if (API.again) { API.again = false; pushState(); }
       return;
     }
@@ -872,6 +918,7 @@ function pullState(){
     if (r.status !== 200) return;
     S = migrate(Object.assign(blank(), r.data.doc));
     API.ver = r.data.version; API.portal = r.data.portal || {};
+    BUSY = (r.data.busy && r.data.busy.events) || BUSY;
   });
 }
 function planWall(msg){
@@ -959,7 +1006,7 @@ function boot(){
     return r.json().then(function(me){
       API.me = me;
       if (me.user && !S.teacher) { /* имя для кабинета ученика */ }
-      return pullState().then(pullTelegram).then(function(){ route(); });
+      return pullState().then(pullTelegram).then(pullCalendar).then(function(){ route(); });
     });
   }).catch(function(){ API.on = false; route(); });
 }
@@ -1175,6 +1222,7 @@ function viewWeek(){
       '<div class="day-h"><span class="dn">' + esc(t(DKEYS[i])) + '</span><span class="dd">' + esc(fmtDay(d)) + "</span></div>" +
       '<div class="day-b">' +
       ls.map(function(l){ return lessonCell(l, true); }).join("") +
+      busyOn(d).map(busyCell).join("") +
       '<button class="day-add" data-act="lesson-new" data-date="' + d + '">+</button>' +
       "</div></div>";
   }
@@ -1367,6 +1415,26 @@ function viewSettings(){
       ["free","pro","studio"].map(function(pn){
         return '<button class="btn ' + (planName() === pn ? "btn-p" : "btn-g") + '" data-act="set-plan" data-plan="' + pn + '">' + esc(t("pl." + pn)) + "</button>";
       }).join("") + "</div></div></div>" : "") +
+    (API.on ? '<div class="card"><div class="card-h"><h2>' + esc(t("cal.title")) + '</h2></div><div class="card-b">' +
+      '<div class="f" style="padding:12px 0">' +
+        '<label class="fl">' + esc(t("cal.out")) +
+          '<input class="inp" id="cal-url" value="' + esc(CAL.url || "") + '" readonly></label>' +
+        '<p class="hint">' + esc(t("cal.outHow")) + "</p>" +
+        '<div style="display:flex;gap:9px;flex-wrap:wrap">' +
+          '<button class="btn btn-g" data-act="cal-copy">' + esc(t("a.copy")) + "</button>" +
+          '<button class="btn btn-g" data-act="cal-reset">' + esc(t("cal.reset")) + "</button></div>" +
+        '<div style="height:10px"></div>' +
+        '<label class="fl">' + esc(t("cal.in")) +
+          '<input class="inp" id="cal-feed" value="' + esc((CAL.feed && CAL.feed.url) || "") + '" placeholder="' + esc(t("cal.inPh")) + '"></label>' +
+        '<p class="hint">' + esc(t("cal.inHow")) + "</p>" +
+        '<p class="hint">' + esc(t("cal.warn")) + "</p>" +
+        (CAL.feed && CAL.feed.error ? '<div class="banner" style="margin:0">' + esc(CAL.feed.error) + "</div>" : "") +
+        (CAL.feed && !CAL.feed.error ? '<span class="chip ok">' + CAL.feed.events + " " + esc(t("cal.events")) + "</span>" : "") +
+        '<div style="display:flex;gap:9px;flex-wrap:wrap">' +
+          '<button class="btn btn-p" data-act="cal-feed">' + esc(t("cal.connect")) + "</button>" +
+          (CAL.feed ? '<button class="btn btn-g" data-act="cal-feed-off">' + esc(t("cal.off")) + "</button>" : "") +
+        "</div>" +
+      "</div></div></div>" : "") +
     (API.on ? '<div class="card"><div class="card-h"><h2>' + esc(t("tg.title")) + '</h2>' +
       (TG.linked ? '<span class="chip ok">' + esc(t("tg.on")) + "</span>" : "") + '</div><div class="card-b">' +
       '<p class="hint" style="padding:10px 0 14px">' + esc(TG.enabled ? t("tg.teacherWhat") : t("tg.noBot")) + "</p>" +
@@ -2118,6 +2186,29 @@ document.addEventListener("click", function(e){
     case "au-send": authSend(); break;
     case "au-verify": authVerify(); break;
     case "au-back": authStage = "email"; authDev = ""; renderAuth(); break;
+    case "cal-copy": {
+      var cu = document.getElementById("cal-url");
+      if (cu) { cu.select(); try { document.execCommand("copy"); } catch (e) {} toast(t("a.copied")); }
+      break;
+    }
+    case "cal-reset":
+      apiCall("POST", "/api/calendar/reset").then(function(){ pullCalendar().then(render); toast(t("a.saved")); });
+      break;
+    case "cal-feed": {
+      var fv = (document.getElementById("cal-feed") || {}).value || "";
+      apiCall("POST", "/api/calendar/feed", { url: fv }).then(function(r){
+        if (r.status !== 200) return toast(t("cal.badUrl"));
+        pullCalendar().then(function(){ return pullState(); }).then(render);
+        toast(t("a.saved"));
+      });
+      break;
+    }
+    case "cal-feed-off":
+      apiCall("POST", "/api/calendar/feed", { url: "" }).then(function(){
+        BUSY = []; pullCalendar().then(render); toast(t("a.saved"));
+      });
+      break;
+
     case "tg-link": {
       apiCall("POST", "/api/telegram/link").then(function(r){
         if (r.status !== 200) return toast(t("tg.noBot"));

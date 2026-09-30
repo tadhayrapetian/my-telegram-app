@@ -65,6 +65,7 @@ install -m 644 "$SRC_DIR/server.js" "$APP_DIR/server.js"
 install -m 644 "$SRC_DIR/mail.js" "$APP_DIR/mail.js"
 install -m 644 "$SRC_DIR/bot.js" "$APP_DIR/bot.js"
 install -m 644 "$SRC_DIR/smtp.js" "$APP_DIR/smtp.js"
+install -m 644 "$SRC_DIR/ics.js" "$APP_DIR/ics.js"
 install -m 644 "$SRC_DIR/package.json" "$APP_DIR/package.json" 2>/dev/null || true
 install -m 644 "$SRC_DIR/public/index.html" "$APP_DIR/public/index.html"
 install -m 644 "$SRC_DIR/public/landing.html" "$APP_DIR/public/landing.html"

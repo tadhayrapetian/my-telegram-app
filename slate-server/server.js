@@ -14,6 +14,7 @@ const crypto = require("node:crypto");
 const os = require("node:os");
 const mail = require("./mail");
 const bot = require("./bot");
+const ics = require("./ics");
 const { DatabaseSync } = require("node:sqlite");
 
 const PORT = +process.env.PORT || 3000;
@@ -70,6 +71,16 @@ CREATE TABLE IF NOT EXISTS portal (
   token TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL, updated_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS portal_user ON portal(user_id);
+/* ссылка на наш календарь для подписки */
+CREATE TABLE IF NOT EXISTS ics (
+  user_id TEXT PRIMARY KEY, token TEXT NOT NULL UNIQUE, created_at INTEGER
+);
+CREATE INDEX IF NOT EXISTS ics_token ON ics(token);
+/* чужой календарь (iCloud, Google), который мы показываем внутри Slate */
+CREATE TABLE IF NOT EXISTS feeds (
+  user_id TEXT PRIMARY KEY, url TEXT NOT NULL, name TEXT,
+  events TEXT, fetched_at INTEGER, error TEXT
+);
 CREATE TABLE IF NOT EXISTS psessions (
   id TEXT PRIMARY KEY, user_id TEXT NOT NULL, student_id TEXT NOT NULL, expires INTEGER
 );
@@ -96,6 +107,15 @@ const q = {
   usersOfSchool: db.prepare("SELECT * FROM users WHERE school_id = ? ORDER BY created_at"),
   allUsers: db.prepare("SELECT * FROM users"),
   allSchools: db.prepare("SELECT * FROM schools ORDER BY created_at DESC"),
+  icsOf: db.prepare("SELECT * FROM ics WHERE user_id = ?"),
+  icsByToken: db.prepare("SELECT * FROM ics WHERE token = ?"),
+  setIcs: db.prepare("INSERT INTO ics (user_id,token,created_at) VALUES (?,?,?) " +
+                     "ON CONFLICT(user_id) DO UPDATE SET token=excluded.token, created_at=excluded.created_at"),
+  feedOf: db.prepare("SELECT * FROM feeds WHERE user_id = ?"),
+  setFeed: db.prepare("INSERT INTO feeds (user_id,url,name,events,fetched_at,error) VALUES (?,?,?,?,?,?) " +
+                      "ON CONFLICT(user_id) DO UPDATE SET url=excluded.url, name=excluded.name, " +
+                      "events=excluded.events, fetched_at=excluded.fetched_at, error=excluded.error"),
+  dropFeed: db.prepare("DELETE FROM feeds WHERE user_id = ?"),
   /* полное удаление школы: всё, что связано с её людьми */
   countFiles: db.prepare("SELECT COUNT(*) AS n, COALESCE(SUM(size),0) AS bytes FROM files WHERE user_id = ?"),
   countMsgs: db.prepare("SELECT COUNT(*) AS n FROM messages WHERE user_id = ?"),
@@ -389,7 +409,9 @@ const routes = {
     /* ссылки на кабинеты должны быть готовы к первому же открытию карточки */
     if (plan.portal && Object.keys(portal).length !== activeStudents(doc).length)
       portal = rebuildPortal(user, doc, plan);
-    send(res, 200, { version, doc, portal });
+    const feed = q.feedOf.get(user.id);
+    send(res, 200, { version, doc, portal,
+                     busy: feed ? { name: feed.name, events: safeJson(feed.events) } : null });
   },
 
   "PUT /api/state": async (req, res, user) => {
@@ -490,6 +512,41 @@ const routes = {
     if (!bot.enabled()) return send(res, 503, { error: "no_bot" });
     const code = bot.makeCode(botCtx.q, { kind: "student", userId: ps.user_id, studentId: ps.student_id });
     send(res, 200, { ok: true, url: `https://t.me/${botCtx.botName}?start=${code}`, bot: botCtx.botName });
+  },
+
+  /* --- календарь: наружу подпиской, внутрь по ссылке --- */
+  "GET /api/calendar": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    let row = q.icsOf.get(user.id);
+    if (!row) { const token = crypto.randomBytes(18).toString("base64url"); q.setIcs.run(user.id, token, now()); row = q.icsOf.get(user.id); }
+    const feed = q.feedOf.get(user.id);
+    send(res, 200, {
+      url: `${publicBase(req)}/ics/${row.token}.ics`,
+      feed: feed ? { url: feed.url, name: feed.name, fetched_at: feed.fetched_at, error: feed.error,
+                     events: safeJson(feed.events).length } : null,
+    });
+  },
+
+  "POST /api/calendar/reset": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const token = crypto.randomBytes(18).toString("base64url");
+    q.setIcs.run(user.id, token, now());
+    send(res, 200, { ok: true, url: `${publicBase(req)}/ics/${token}.ics` });
+  },
+
+  /* подключаем чужой календарь: сразу читаем его, чтобы ошибка была видна */
+  "POST /api/calendar/feed": async (req, res, user) => {
+    if (!user) return send(res, 401, { error: "no_session" });
+    const body = await readBody(req);
+    const raw = String(body.url || "").trim();
+    if (!raw) { q.dropFeed.run(user.id); return send(res, 200, { ok: true, feed: null }); }
+    const url = raw.replace(/^webcal:\/\//i, "https://");
+    /* webcal:// уже превратили в https://; обычный http тоже принимаем —
+       календарные ленты публичны, и не все отдаются по https */
+    if (!/^https?:\/\//i.test(url)) return send(res, 400, { error: "bad_url" });
+    const result = await pullFeed(user.id, url);
+    if (result.error) return send(res, 502, { error: "fetch_failed", detail: result.error });
+    send(res, 200, { ok: true, feed: { url, name: result.name, events: result.events.length } });
   },
 
   /* --- админка сервиса --- */
@@ -819,6 +876,20 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* кабинет ученика: /s/<token> */
+    if (p.startsWith("/ics/")) {
+      const token = p.slice(5).replace(/\.ics$/i, "");
+      const row = q.icsByToken.get(token);
+      if (!row) return send(res, 404, { error: "no_calendar" });
+      const owner = q.userById.get(row.user_id);
+      const { doc } = readDoc(row.user_id);
+      const cal = ics.calendar(doc, { name: "Slate" + (owner && owner.name ? " — " + owner.name : "") });
+      res.writeHead(200, {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": 'inline; filename="slate.ics"',
+        "Cache-Control": "no-cache",
+      });
+      return res.end(cal.text);
+    }
     if (p.startsWith("/s/")) return serveFile(res, path.join(PUBLIC_DIR, "portal.html"));
     /* корень — страница продукта, программа живёт на /app */
     if (p === "/") return serveFile(res, path.join(PUBLIC_DIR, "landing.html"));
@@ -852,11 +923,51 @@ function lanAddress() {
   return null;
 }
 
+const safeJson = (text) => { try { return JSON.parse(text || "[]"); } catch (e) { return []; } };
+
+/* Адрес, по которому нас видно снаружи: за Caddy приходит x-forwarded-*. */
+function publicBase(req) {
+  const proto = (req.headers["x-forwarded-proto"] || "").split(",")[0].trim() ||
+                (secureReq(req) ? "https" : "http");
+  const host = (req.headers["x-forwarded-host"] || req.headers.host || "localhost").split(",")[0].trim();
+  return `${proto}://${host}`;
+}
+
+/* Забираем чужой календарь и складываем разобранные события в базу. */
+async function pullFeed(userId, url) {
+  try {
+    const r = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(20000),
+                                 headers: { "user-agent": "Slate/1.0 calendar" } });
+    if (!r.ok) throw new Error("ответ " + r.status);
+    const text = await r.text();
+    if (!/BEGIN:VCALENDAR/i.test(text)) throw new Error("по ссылке не календарь");
+    const parsed = ics.parse(text);
+    q.setFeed.run(userId, url, parsed.name || "Мой календарь", JSON.stringify(parsed.events), now(), null);
+    return { name: parsed.name, events: parsed.events };
+  } catch (e) {
+    const why = (e.cause && e.cause.code) || e.message;
+    q.setFeed.run(userId, url, null, JSON.stringify([]), now(), String(why).slice(0, 200));
+    return { error: String(why).slice(0, 200), events: [] };
+  }
+}
+
+/* Раз в четверть часа перечитываем подключённые календари. */
+function refreshFeeds() {
+  for (const row of db.prepare("SELECT user_id, url FROM feeds").all()) {
+    pullFeed(row.user_id, row.url).catch(() => {});
+  }
+}
+setInterval(refreshFeeds, 15 * 60000).unref();
+
 /* всё, что нужно боту: свои таблицы, документы преподавателей и лог */
 const botCtx = {
   q: bot.makeQueries(db),
   readDoc,
   allUsers: () => q.allUsers.all(),
+  busyOf: (userId) => {
+    const feed = q.feedOf.get(userId);
+    return feed ? safeJson(feed.events) : [];
+  },
   log: (m) => console.log("[slate/бот]", m),
   botName: "",
 };
