@@ -1,0 +1,13 @@
+{
+  "name": "slate-server",
+  "version": "0.1.0",
+  "description": "Slate — сервер: аккаунты преподавателей, изоляция данных, лимиты тарифов",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node --no-warnings server.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}

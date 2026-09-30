@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ритм — клиенты, занятия, оплаты</title>
+<meta name="description" content="Ритм заменяет таблицы, ежедневник и ручные напоминания об оплате. Абонементы считаются сами, расписание — перетаскиванием, клиент видит остаток по ссылке.">
+<meta name="theme-color" content="#F6F2E7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%235C6B3C'/%3E%3Cpath d='M9 22V10h6.4c2.5 0 4 1.4 4 3.6 0 1.7-.9 2.9-2.4 3.3L20.9 22h-3.4l-2.6-4.6h-2.3V22H9zm3.6-7.1h2.4c1 0 1.6-.5 1.6-1.3s-.6-1.3-1.6-1.3h-2.4v2.6z' fill='%23F6F2E7'/%3E%3C/svg%3E">
+
+<style>
+/* ============================================================
+   ТОКЕНЫ
+   ============================================================ */
+:root{
+  /* Бежевая база */
+  --sand-50:#FBF9F3;
+  --sand-100:#F6F2E7;
+  --sand-200:#EFE9D8;
+  --sand-300:#E4DCC5;
+  --sand-400:#D5CAAC;
+
+  /* Оливковая гамма */
+  --olive-100:#E7EADA;
+  --olive-200:#CBD3B4;
+  --olive-300:#A9B688;
+  --olive-400:#8A9A63;
+  --olive-500:#6E7F49;
+  --olive-600:#5C6B3C;
+  --olive-700:#47522E;
+  --olive-800:#3B4527;
+  --olive-900:#2B3220;
+
+  /* Текст */
+  --ink:#262A1E;
+  --ink-2:#4A5040;
+  --ink-3:#767B67;
+  --line:rgba(38,42,30,.10);
+  --line-2:rgba(38,42,30,.06);
+
+  --white:#FFFDF8;
+
+  /* Акценты для статусов в макетах */
+  --clay:#B08159;
+  --sage:#8FA58B;
+
+  --radius:22px;
+  --radius-sm:14px;
+  --radius-lg:32px;
+
+  --shadow-xs:0 1px 2px rgba(38,42,30,.05);
+  --shadow-sm:0 2px 6px rgba(38,42,30,.05), 0 1px 2px rgba(38,42,30,.04);
+  --shadow-md:0 18px 40px -22px rgba(38,42,30,.35), 0 2px 8px rgba(38,42,30,.05);
+  --shadow-lg:0 40px 80px -40px rgba(43,50,32,.45), 0 8px 24px -12px rgba(38,42,30,.18);
+
+  --font:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI",Arial,sans-serif;
+  --font-display:"SF Pro Display","Inter",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+
+  --container:1180px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  font-family:var(--font);
+  color:var(--ink);
+  background:var(--sand-100);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+/* Мягкое зерно поверх фона — тёплая «бумажная» текстура */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;font-weight:640;letter-spacing:-.025em;line-height:1.1}
+p{margin:0}
+::selection{background:var(--olive-200);color:var(--olive-900)}
+
+.container{width:100%;max-width:var(--container);margin-inline:auto;padding-inline:24px;position:relative;z-index:1}
+
+/* ============================================================
+   ТИПОГРАФИКА / УТИЛИТЫ
+   ============================================================ */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12.5px;font-weight:600;letter-spacing:.10em;text-transform:uppercase;
+  color:var(--olive-600);
+}
+.eyebrow::before{content:"";width:18px;height:1px;background:var(--olive-300)}
+.h1{font-size:clamp(38px,6.2vw,68px);letter-spacing:-.035em}
+.h2{font-size:clamp(30px,4.2vw,46px)}
+.h3{font-size:clamp(20px,2.2vw,24px);letter-spacing:-.02em}
+.lead{font-size:clamp(17px,1.5vw,19.5px);color:var(--ink-2);line-height:1.6}
+.muted{color:var(--ink-3)}
+.serif-accent{font-family:var(--font-serif);font-style:italic;font-weight:400;letter-spacing:-.01em}
+.section{padding:clamp(72px,9vw,128px) 0;position:relative}
+.section-head{max-width:680px;margin-bottom:clamp(36px,5vw,64px)}
+.section-head .h2{margin:14px 0 16px}
+.center{text-align:center;margin-inline:auto}
+
+/* ============================================================
+   КНОПКИ
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  height:48px;padding:0 22px;border-radius:999px;border:1px solid transparent;
+  font-size:15px;font-weight:560;letter-spacing:-.01em;cursor:pointer;
+  transition:transform .18s cubic-bezier(.2,.7,.3,1), background-color .18s ease, box-shadow .22s ease, border-color .18s ease, color .18s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--olive-600);color:var(--sand-50);box-shadow:0 10px 22px -12px rgba(71,82,46,.9)}
+.btn-primary:hover{background:var(--olive-700);box-shadow:0 16px 30px -14px rgba(71,82,46,.95)}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{background:rgba(255,253,248,.75);border-color:rgba(38,42,30,.18)}
+.btn-light{background:var(--sand-100);color:var(--olive-900)}
+.btn-light:hover{background:#fff}
+.btn-lg{height:54px;padding:0 28px;font-size:16px}
+.btn-sm{height:40px;padding:0 16px;font-size:14px}
+.btn .arr{transition:transform .2s ease}
+.btn:hover .arr{transform:translateX(3px)}
+
+/* ============================================================
+   ШАПКА
+   ============================================================ */
+.header{position:sticky;top:0;z-index:60;transition:background-color .3s ease, box-shadow .3s ease, backdrop-filter .3s ease}
+.header.is-stuck{background:rgba(246,242,231,.82);backdrop-filter:saturate(140%) blur(14px);-webkit-backdrop-filter:saturate(140%) blur(14px);box-shadow:0 1px 0 var(--line-2), 0 10px 30px -24px rgba(38,42,30,.5)}
+.nav{display:flex;align-items:center;gap:28px;height:76px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:660;font-size:19px;letter-spacing:-.03em}
+.brand .mark{
+  width:32px;height:32px;border-radius:10px;background:var(--olive-600);color:var(--sand-50);
+  display:grid;place-items:center;font-size:15px;font-weight:700;letter-spacing:0;
+  box-shadow:0 6px 14px -8px rgba(71,82,46,.9);
+}
+.nav-links{display:flex;align-items:center;gap:4px;margin-left:auto}
+.nav-links a{
+  padding:9px 14px;border-radius:999px;font-size:14.5px;font-weight:500;color:var(--ink-2);
+  transition:color .18s ease, background-color .18s ease;
+}
+.nav-links a:hover{color:var(--ink);background:rgba(38,42,30,.05)}
+.nav-cta{display:flex;align-items:center;gap:10px}
+.only-sm{display:none}
+.burger{display:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:transparent;align-items:center;justify-content:center;cursor:pointer}
+.burger span{display:block;width:18px;height:1.5px;background:var(--ink);position:relative;transition:transform .25s ease, opacity .2s ease}
+.burger span::before,.burger span::after{content:"";position:absolute;left:0;width:18px;height:1.5px;background:var(--ink);transition:transform .25s ease}
+.burger span::before{top:-6px}
+.burger span::after{top:6px}
+.mobile-menu{display:none;border-top:1px solid var(--line-2);background:rgba(246,242,231,.96);backdrop-filter:blur(14px)}
+.mobile-menu.open{display:block}
+.mobile-menu .container{display:flex;flex-direction:column;gap:2px;padding-block:14px 22px}
+.mobile-menu a{padding:12px 4px;font-size:17px;font-weight:520;border-bottom:1px solid var(--line-2)}
+.mobile-menu .btn{margin-top:14px}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;padding-top:clamp(40px,6vw,72px);padding-bottom:clamp(60px,7vw,96px);overflow:hidden}
+.hero::after{
+  content:"";position:absolute;z-index:0;left:50%;top:-320px;transform:translateX(-50%);
+  width:1200px;height:900px;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(169,182,136,.34), rgba(169,182,136,0) 72%);
+  pointer-events:none;
+}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,4vw,64px);align-items:center}
+.hero h1{margin:18px 0 20px}
+.hero .lead{max-width:520px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.hero-note{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin-top:20px;font-size:13.5px;color:var(--ink-3)}
+.hero-note span{display:inline-flex;align-items:center;gap:7px}
+.tick{width:16px;height:16px;border-radius:50%;background:var(--olive-200);color:var(--olive-700);display:grid;place-items:center;flex:none}
+.tick svg{width:9px;height:9px}
+
+/* «Пилюля» над заголовком */
+.pill{
+  display:inline-flex;align-items:center;gap:9px;height:34px;padding:0 14px 0 6px;border-radius:999px;
+  background:rgba(255,253,248,.8);border:1px solid var(--line);font-size:13px;color:var(--ink-2);
+  box-shadow:var(--shadow-xs);
+}
+.pill b{
+  display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;
+  background:var(--olive-600);color:var(--sand-50);font-size:11.5px;font-weight:640;letter-spacing:.02em;
+}
+
+/* ============================================================
+   МАКЕТ ПРИЛОЖЕНИЯ (расписание)
+   ============================================================ */
+.mock{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);overflow:hidden;position:relative;
+}
+.mock-bar{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line-2);background:var(--sand-50)}
+.dots{display:flex;gap:6px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--sand-300)}
+.dots i:first-child{background:#D3B9A6}
+.dots i:nth-child(2){background:var(--sand-400)}
+.dots i:nth-child(3){background:var(--olive-200)}
+.mock-url{
+  flex:1;height:26px;border-radius:8px;background:var(--sand-200);
+  display:flex;align-items:center;padding:0 10px;font-size:11.5px;color:var(--ink-3);letter-spacing:.01em;
+}
+.mock-body{padding:18px}
+.mock-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.mock-title{font-family:var(--font-display);font-weight:620;font-size:15px;letter-spacing:-.02em}
+.chips{display:flex;gap:6px}
+.chip{font-size:11px;padding:5px 10px;border-radius:999px;background:var(--sand-200);color:var(--ink-2);white-space:nowrap}
+.chip.on{background:var(--olive-600);color:var(--sand-50)}
+
+.sched{display:grid;grid-template-columns:44px repeat(5,1fr);gap:6px}
+.sched .hd{font-size:11px;color:var(--ink-3);text-align:center;padding-bottom:6px;font-weight:560}
+.sched .tm{font-size:10.5px;color:var(--ink-3);text-align:right;padding-right:6px;line-height:46px}
+.cell{height:46px;border-radius:10px;background:var(--sand-100);border:1px dashed rgba(38,42,30,.07)}
+.ev{
+  height:46px;border-radius:10px;padding:6px 8px;overflow:hidden;
+  font-size:10px;line-height:1.3;color:var(--olive-900);
+  background:var(--olive-100);border:1px solid var(--olive-200);
+  box-shadow:var(--shadow-xs);
+  white-space:nowrap;text-overflow:ellipsis;
+}
+.ev b{display:block;font-weight:620;font-size:10.5px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis}
+.ev.solid{background:var(--olive-500);border-color:var(--olive-600);color:#F4F3E7}
+.ev.solid b{color:#fff}
+.ev.clay{background:#F0E3D6;border-color:#E0C9B3;color:#6E4A2E}
+.ev.tall{height:94px}
+.ev.drag{
+  transform:rotate(-1.4deg) translateY(-2px);
+  box-shadow:0 18px 30px -16px rgba(43,50,32,.6);
+  outline:2px solid var(--olive-400);outline-offset:2px;
+}
+.mock-foot{display:flex;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-2);font-size:11.5px;color:var(--ink-3)}
+.legend{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:3px;display:block}
+
+/* Всплывающая карточка «Абонемент» */
+.float-card{
+  position:absolute;right:-22px;bottom:-42px;width:230px;
+  background:var(--white);border:1px solid var(--line);border-radius:18px;padding:14px;
+  box-shadow:var(--shadow-lg);
+}
+.float-card .fc-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--olive-200);color:var(--olive-700);display:grid;place-items:center;font-size:12px;font-weight:640;flex:none}
+.fc-name{font-size:13px;font-weight:600;letter-spacing:-.01em}
+.fc-sub{font-size:11px;color:var(--ink-3)}
+.bar{height:7px;border-radius:99px;background:var(--sand-200);overflow:hidden;margin:10px 0 8px}
+.bar i{display:block;height:100%;width:62%;border-radius:99px;background:linear-gradient(90deg,var(--olive-400),var(--olive-600))}
+.fc-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2)}
+.fc-row b{font-weight:620}
+
+/* ============================================================
+   ПОЛОСА ДОВЕРИЯ / ЦИФРЫ
+   ============================================================ */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line-2);border:1px solid var(--line-2);border-radius:var(--radius);overflow:hidden}
+.stat{background:var(--sand-50);padding:26px 24px}
+.stat .num{font-family:var(--font-display);font-size:clamp(26px,3vw,34px);font-weight:660;letter-spacing:-.035em;color:var(--olive-700)}
+.stat .lbl{font-size:13.5px;color:var(--ink-3);margin-top:4px}
+
+/* ============================================================
+   БЫЛО / СТАЛО
+   ============================================================ */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(22px,2.6vw,32px);
+  box-shadow:var(--shadow-sm);
+}
+.card.dim{background:rgba(255,253,248,.5);border-style:dashed}
+.card h3{margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:19px}
+.tag{font-size:11px;font-weight:640;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+.tag.was{background:var(--sand-200);color:var(--ink-3)}
+.tag.now{background:var(--olive-600);color:var(--sand-50)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.list li{display:flex;gap:11px;font-size:15px;color:var(--ink-2);line-height:1.5}
+.ic{width:20px;height:20px;flex:none;border-radius:50%;display:grid;place-items:center;margin-top:1px}
+.ic.no{background:var(--sand-200);color:var(--ink-3)}
+.ic.yes{background:var(--olive-200);color:var(--olive-700)}
+.ic svg{width:10px;height:10px}
+
+/* ============================================================
+   ВОЗМОЖНОСТИ
+   ============================================================ */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:28px;
+  box-shadow:var(--shadow-sm);transition:transform .28s cubic-bezier(.2,.7,.3,1), box-shadow .28s ease, border-color .28s ease;
+}
+.feature:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:var(--olive-200)}
+.f-ic{
+  width:46px;height:46px;border-radius:14px;background:var(--olive-100);color:var(--olive-600);
+  display:grid;place-items:center;margin-bottom:18px;border:1px solid var(--olive-200);
+}
+.f-ic svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.feature h3{font-size:18px;margin-bottom:9px}
+.feature p{font-size:14.6px;color:var(--ink-2);line-height:1.6}
+
+/* ============================================================
+   БЛОКИ-РАЗБОРЫ (текст + макет)
+   ============================================================ */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,5vw,72px);align-items:center}
+.split + .split{margin-top:clamp(72px,8vw,120px)}
+.split.rev .split-media{order:-1}
+.split h2{margin:14px 0 16px;font-size:clamp(26px,3.4vw,38px)}
+.split .list{margin-top:24px}
+.split .list li{font-size:15.2px}
+
+/* Макет: карточка клиента / абонемент */
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden}
+.panel-h{padding:16px 20px;border-bottom:1px solid var(--line-2);display:flex;align-items:center;justify-content:space-between;background:var(--sand-50)}
+.panel-h .t{font-family:var(--font-display);font-weight:620;font-size:14.5px;letter-spacing:-.02em}
+.panel-b{padding:18px 20px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line-2)}
+.row:last-child{border-bottom:0}
+.row .grow{flex:1;min-width:0}
+.row .nm{font-size:14px;font-weight:560;letter-spacing:-.01em}
+.row .sb{font-size:12px;color:var(--ink-3);margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.badge.ok{background:var(--olive-100);color:var(--olive-700)}
+.badge.warn{background:#F3E5D6;color:#8A5A32}
+.badge.neutral{background:var(--sand-200);color:var(--ink-3)}
+
+/* Телефон (кабинет клиента) */
+.phone{
+  width:min(300px,100%);margin-inline:auto;border-radius:38px;padding:11px;
+  background:var(--olive-900);box-shadow:var(--shadow-lg);
+}
+.phone-screen{background:var(--sand-50);border-radius:28px;overflow:hidden;padding:20px 16px 22px}
+.ph-top{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-3);margin-bottom:16px}
+.ph-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--shadow-xs)}
+.ph-card + .ph-card{margin-top:10px}
+.ph-big{font-family:var(--font-display);font-size:30px;font-weight:660;letter-spacing:-.03em;color:var(--olive-700);line-height:1}
+.ph-lbl{font-size:11.5px;color:var(--ink-3);margin-top:5px}
+.ph-line{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-bottom:1px solid var(--line-2)}
+.ph-line:last-child{border-bottom:0}
+
+/* ============================================================
+   ДЛЯ КОГО
+   ============================================================ */
+.who{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.who-item{
+  background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px 16px;text-align:center;
+  box-shadow:var(--shadow-xs);transition:transform .25s ease, border-color .25s ease;
+}
+.who-item:hover{transform:translateY(-3px);border-color:var(--olive-200)}
+.who-item .em{font-size:24px;line-height:1;margin-bottom:10px}
+.who-item .nm{font-size:13.5px;font-weight:560;letter-spacing:-.01em}
+
+/* ============================================================
+   ШАГИ
+   ============================================================ */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:s}
+.step{position:relative;padding-top:26px}
+.step::before{
+  counter-increment:s;content:"0" counter(s);
+  font-family:var(--font-display);font-size:13px;font-weight:640;letter-spacing:.06em;color:var(--olive-600);
+}
+.step h3{font-size:19px;margin:12px 0 8px}
+.step p{font-size:14.8px;color:var(--ink-2)}
+.step .ln{position:absolute;top:8px;left:0;right:0;height:1px;background:var(--line)}
+
+/* ============================================================
+   ОТЗЫВ
+   ============================================================ */
+.quote{
+  background:var(--olive-700);color:var(--sand-100);border-radius:var(--radius-lg);
+  padding:clamp(36px,5vw,64px);position:relative;overflow:hidden;
+}
+.quote::after{
+  content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(203,211,180,.28), transparent 70%);
+}
+.quote blockquote{margin:0;font-family:var(--font-display);font-size:clamp(21px,2.7vw,31px);line-height:1.35;letter-spacing:-.025em;max-width:820px;position:relative;z-index:1}
+.quote .who-q{display:flex;align-items:center;gap:12px;margin-top:26px;position:relative;z-index:1}
+.quote .avatar{background:var(--olive-500);color:var(--sand-100)}
+.quote .n{font-size:14.5px;font-weight:600}
+.quote .r{font-size:13px;color:var(--olive-200)}
+
+/* ============================================================
+   ТАРИФЫ
+   ============================================================ */
+.toggle{
+  display:inline-flex;padding:4px;border-radius:999px;background:var(--sand-200);gap:2px;margin-top:22px;
+}
+.toggle button{
+  border:0;background:transparent;padding:9px 18px;border-radius:999px;font-size:14px;font-weight:540;cursor:pointer;
+  color:var(--ink-2);transition:background-color .2s ease,color .2s ease,box-shadow .2s ease;
+}
+.toggle button.on{background:var(--white);color:var(--ink);box-shadow:var(--shadow-xs)}
+.toggle .save{font-size:11px;color:var(--olive-600);font-weight:640;margin-left:6px}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.plan{
+  background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:30px 28px;
+  box-shadow:var(--shadow-sm);display:flex;flex-direction:column;height:100%;
+}
+.plan.best{border-color:var(--olive-400);box-shadow:var(--shadow-md);position:relative}
+.plan.best::before{
+  content:"Популярный";position:absolute;top:-11px;left:28px;
+  background:var(--olive-600);color:var(--sand-50);font-size:11px;font-weight:640;letter-spacing:.04em;
+  padding:4px 11px;border-radius:999px;
+}
+.plan .pname{font-family:var(--font-display);font-size:18px;font-weight:620;letter-spacing:-.02em}
+.plan .pdesc{font-size:13.5px;color:var(--ink-3);margin-top:6px;min-height:38px}
+.price{display:flex;align-items:baseline;gap:6px;margin:18px 0 4px}
+.price .v{font-family:var(--font-display);font-size:40px;font-weight:660;letter-spacing:-.04em;line-height:1}
+.price .p{font-size:13.5px;color:var(--ink-3)}
+.plan .btn{margin:22px 0 22px;width:100%}
+.plan .list li{font-size:14.2px;gap:10px}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq{display:grid;grid-template-columns:1fr;gap:0;max-width:860px;margin-inline:auto;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{
+  list-style:none;cursor:pointer;padding:22px 44px 22px 0;position:relative;
+  font-family:var(--font-display);font-size:clamp(16.5px,1.8vw,19px);font-weight:580;letter-spacing:-.02em;
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"";position:absolute;right:8px;top:50%;width:11px;height:11px;
+  border-right:1.6px solid var(--olive-600);border-bottom:1.6px solid var(--olive-600);
+  transform:translateY(-70%) rotate(45deg);transition:transform .25s ease;
+}
+.faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.faq .a{padding:0 60px 24px 0;font-size:15.4px;color:var(--ink-2);line-height:1.62}
+
+/* ============================================================
+   CTA
+   ============================================================ */
+.cta{
+  background:linear-gradient(160deg,var(--olive-600),var(--olive-800));
+  border-radius:var(--radius-lg);padding:clamp(40px,6vw,76px);text-align:center;color:var(--sand-100);
+  position:relative;overflow:hidden;box-shadow:var(--shadow-lg);
+}
+.cta::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(60% 90% at 50% 0%, rgba(228,220,197,.22), transparent 70%);
+}
+.cta > *{position:relative;z-index:1}
+.cta h2{font-size:clamp(28px,4vw,44px);margin-bottom:14px}
+.cta p{color:var(--olive-200);max-width:560px;margin:0 auto 30px;font-size:17px}
+.cta-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+
+/* ============================================================
+   ПОДВАЛ
+   ============================================================ */
+.footer{padding:clamp(56px,7vw,84px) 0 40px;border-top:1px solid var(--line);margin-top:clamp(24px,4vw,56px)}
+.f-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:40px}
+.f-about{max-width:300px;font-size:14px;color:var(--ink-3);margin-top:14px;line-height:1.6}
+.f-col h4{font-size:12.5px;letter-spacing:.10em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:14px}
+.f-col a{display:block;font-size:14.5px;color:var(--ink-2);padding:6px 0;transition:color .18s ease}
+.f-col a:hover{color:var(--olive-600)}
+.f-bottom{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;margin-top:52px;padding-top:24px;border-top:1px solid var(--line-2);font-size:13px;color:var(--ink-3)}
+
+/* ============================================================
+   АНИМАЦИИ ПОЯВЛЕНИЯ
+   ============================================================ */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  *{animation:none!important}
+}
+
+/* ============================================================
+   АДАПТИВ
+   ============================================================ */
+@media (max-width:1040px){
+  .features{grid-template-columns:repeat(2,1fr)}
+  .who{grid-template-columns:repeat(3,1fr)}
+  .plans{grid-template-columns:1fr;max-width:560px;margin-inline:auto}
+  .f-grid{grid-template-columns:1fr 1fr;gap:32px}
+}
+@media (max-width:900px){
+  .nav-links{display:none}
+  .nav-cta .btn-ghost{display:none}
+  .burger{display:flex}
+  .nav{height:66px}
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .hero .lead{max-width:none}
+  .split,.split.rev{grid-template-columns:1fr}
+  .split.rev .split-media{order:0}
+  .compare{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr;gap:28px}
+  .step .ln{display:none}
+  .stats{grid-template-columns:1fr 1fr}
+  .float-card{right:0;bottom:-18px;width:200px}
+}
+@media (max-width:560px){
+  .container{padding-inline:18px}
+  .features{grid-template-columns:1fr}
+  .who{grid-template-columns:repeat(2,1fr)}
+  .f-grid{grid-template-columns:1fr}
+  .sched{grid-template-columns:34px repeat(3,1fr)}
+  .sched .d4,.sched .d5{display:none}
+  .float-card{position:static;width:auto;margin-top:14px}
+  .hero-actions .btn,.cta-actions .btn,.mobile-menu .btn{width:100%}
+  .hero-actions,.cta-actions{flex-direction:column}
+  .nav-cta .btn-sm{height:38px;padding:0 16px;font-size:13.5px}
+  .hide-sm{display:none}
+  .only-sm{display:inline}
+}
+</style>
+</head>
+<body>
+
+<!-- ========================= ШАПКА ========================= -->
+<header class="header" id="header">
+  <div class="container">
+    <nav class="nav">
+      <a class="brand" href="#top">
+        <span class="mark">Р</span>
+        <span>Ритм</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#features">Возможности</a>
+        <a href="#how">Как это работает</a>
+        <a href="#who">Кому подходит</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="#faq">Вопросы</a>
+      </div>
+
+      <div class="nav-cta">
+        <a class="btn btn-ghost btn-sm" href="#login">Войти</a>
+        <a class="btn btn-primary btn-sm" href="#start"><span class="hide-sm">Попробовать бесплатно</span><span class="only-sm">Начать</span></a>
+        <button class="burger" id="burger" aria-label="Меню" aria-expanded="false"><span></span></button>
+      </div>
+    </nav>
+  </div>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <div class="container">
+      <a href="#features">Возможности</a>
+      <a href="#how">Как это работает</a>
+      <a href="#who">Кому подходит</a>
+      <a href="#pricing">Тарифы</a>
+      <a href="#faq">Вопросы</a>
+      <a class="btn btn-primary" href="#start">Попробовать бесплатно</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ========================= HERO ========================= -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div class="reveal">
+        <span class="pill"><b>14 дней</b> бесплатно, без карты</span>
+        <h1 class="h1">Клиенты, занятия<br>и оплаты — <span class="serif-accent">в одном ритме</span></h1>
+        <p class="lead">Ритм заменяет таблицы, ежедневник и ручные напоминания об оплате. Абонементы считаются сами, расписание собирается перетаскиванием, а клиент видит свой остаток по обычной ссылке.</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="#start">Начать бесплатно <span class="arr">→</span></a>
+          <a class="btn btn-ghost btn-lg" href="#how">Посмотреть, как устроено</a>
+        </div>
+
+        <div class="hero-note">
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i> Настройка за один вечер</span>
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i> Перенос данных из таблиц</span>
+          <span><i class="tick"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></i> Работает с телефона</span>
+        </div>
+      </div>
+
+      <div class="reveal" style="position:relative">
+        <div class="mock">
+          <div class="mock-bar">
+            <div class="dots"><i></i><i></i><i></i></div>
+            <div class="mock-url">ритм · расписание · неделя 12–16 мая</div>
+          </div>
+          <div class="mock-body">
+            <div class="mock-head">
+              <div class="mock-title">Расписание студии</div>
+              <div class="chips">
+                <span class="chip on">Неделя</span>
+                <span class="chip">Месяц</span>
+                <span class="chip">Зал 1</span>
+              </div>
+            </div>
+
+            <div class="sched">
+              <div class="hd"></div>
+              <div class="hd">Пн</div>
+              <div class="hd">Вт</div>
+              <div class="hd">Ср</div>
+              <div class="hd d4">Чт</div>
+              <div class="hd d5">Пт</div>
+
+              <div class="tm">10:00</div>
+              <div class="ev"><b>Растяжка</b>Анна · 6</div>
+              <div class="cell"></div>
+              <div class="ev"><b>Растяжка</b>Анна · 5</div>
+              <div class="cell d4"></div>
+              <div class="ev d5"><b>Растяжка</b>Анна · 7</div>
+
+              <div class="tm">12:00</div>
+              <div class="cell"></div>
+              <div class="ev clay"><b>Инд. занятие</b>Марина К.</div>
+              <div class="cell"></div>
+              <div class="ev clay d4"><b>Инд. занятие</b>Пётр С.</div>
+              <div class="cell d5"></div>
+
+              <div class="tm">18:00</div>
+              <div class="ev solid drag"><b>Хореография</b>Илья · 12</div>
+              <div class="cell"></div>
+              <div class="ev solid"><b>Хореография</b>Илья · 11</div>
+              <div class="cell d4"></div>
+              <div class="ev solid d5"><b>Открытый</b>Илья · 18</div>
+
+              <div class="tm">20:00</div>
+              <div class="cell"></div>
+              <div class="ev"><b>Йога</b>Даша · 9</div>
+              <div class="cell"></div>
+              <div class="ev d4"><b>Йога</b>Даша · 8</div>
+              <div class="cell d5"></div>
+            </div>
+
+            <div class="mock-foot">
+              <span class="legend"><i style="background:var(--olive-500)"></i> Группа</span>
+              <span class="legend"><i style="background:var(--olive-100);border:1px solid var(--olive-200)"></i> Свободные места</span>
+              <span class="legend"><i style="background:#F0E3D6;border:1px solid #E0C9B3"></i> Индивидуальное</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="float-card">
+          <div class="fc-top">
+            <span class="avatar">МК</span>
+            <div>
+              <div class="fc-name">Марина Козлова</div>
+              <div class="fc-sub">Абонемент 8 занятий</div>
+            </div>
+          </div>
+          <div class="bar"><i></i></div>
+          <div class="fc-row"><span>Осталось</span><b>5 из 8</b></div>
+          <div class="fc-row" style="margin-top:5px"><span>Действует до</span><b>30 мая</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ЦИФРЫ ========================= -->
+<section class="section" style="padding-top:clamp(24px,3vw,40px)">
+  <div class="container reveal">
+    <div class="stats">
+      <div class="stat"><div class="num">−4 часа</div><div class="lbl">рутины в неделю на администратора</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">забытых оплат и «сгоревших» абонементов</div></div>
+      <div class="stat"><div class="num">1 экран</div><div class="lbl">вместо таблицы, чата и ежедневника</div></div>
+      <div class="stat"><div class="num">5 минут</div><div class="lbl">чтобы завести первую группу</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= БЫЛО / СТАЛО ========================= -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Зачем</span>
+      <h2 class="h2">Студия растёт — таблица перестаёт справляться</h2>
+      <p class="lead">Занятия переносятся, кто-то приходит по чужому абонементу, оплата теряется в переписке. Ритм собирает всё это в одном месте и считает за вас.</p>
+    </div>
+
+    <div class="compare reveal">
+      <div class="card dim">
+        <h3><span class="tag was">Было</span></h3>
+        <ul class="list">
+          <li><span class="ic no"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Таблица на 40 вкладок, которую понимает только администратор</li>
+          <li><span class="ic no"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Остаток занятий считается вручную, ошибки всплывают через месяц</li>
+          <li><span class="ic no"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Перенос занятия — пять сообщений в трёх чатах</li>
+          <li><span class="ic no"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> «Сколько у меня осталось?» — вопрос, на который отвечают вручную</li>
+          <li><span class="ic no"><svg viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span> Зарплата педагогов пересчитывается в конце месяца по памяти</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3><span class="tag now">Стало</span></h3>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Одно расписание, которое видят и администратор, и педагоги</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Абонемент списывается сам в момент отметки посещения</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Перенос — перетаскиванием, с сохранением истории</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Клиент открывает ссылку и сам видит остаток и ближайшие занятия</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Доход, посещаемость и выплаты — в отчётах на одном экране</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ВОЗМОЖНОСТИ ========================= -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Возможности</span>
+      <h2 class="h2">Всё, из чего состоит день студии</h2>
+      <p class="lead">Никаких модулей, которые нужно докупать: расписание, клиенты, абонементы и деньги работают как одно целое.</p>
+    </div>
+
+    <div class="features reveal">
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div>
+        <h3>Расписание</h3>
+        <p>Сетка недели и месяца, цветовые статусы, повторяющиеся занятия. Переносите пары перетаскиванием — история переносов сохраняется целиком.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 11h18M7 15.5h4"/></svg></div>
+        <h3>Абонементы</h3>
+        <p>Любое число занятий в абонементе, индивидуальные ставки, автоматический расчёт срока действия. Списание происходит само при отметке посещения.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.6-3.4 3.1-5.2 6.2-5.2s5.6 1.8 6.2 5.2M17 8.2a3 3 0 010 5.6M19.4 5.4a6.4 6.4 0 010 11.2"/></svg></div>
+        <h3>Клиенты</h3>
+        <p>Карточка с историей посещений, оплат и переносов. Видно, кто давно не приходил, у кого заканчивается абонемент и кто ушёл в минус.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M16.5 7.2c-.6-1.5-2.2-2.4-4.2-2.4-2.4 0-4 1.2-4 3.1 0 4.4 8.8 2.5 8.8 7 0 2-1.8 3.3-4.4 3.3-2.3 0-4-1-4.6-2.6"/></svg></div>
+        <h3>Оплаты и долги</h3>
+        <p>Оплата, возврат, заморозка, частичная оплата — всё фиксируется. Список должников формируется сам, напоминать вручную больше не нужно.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 5.5h3M12 18.2h.01"/></svg></div>
+        <h3>Кабинет клиента</h3>
+        <p>Клиент открывает ссылку и видит остаток по абонементу, ближайшие занятия и историю оплат. Без регистрации, паролей и установки приложения.</p>
+      </article>
+
+      <article class="feature">
+        <div class="f-ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+        <h3>Отчёты</h3>
+        <p>Доход по месяцам, наполняемость групп, работа педагогов и выплаты. Понятно, какие направления держат студию, а какие только занимают зал.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= РАЗБОРЫ ========================= -->
+<section class="section" id="how" style="padding-top:0">
+  <div class="container">
+
+    <!-- 1. Расписание -->
+    <div class="split">
+      <div class="reveal">
+        <span class="eyebrow">Расписание</span>
+        <h2>Перенести занятие — одно движение</h2>
+        <p class="lead">Возьмите занятие и перетащите на новое время. Ритм пересчитает посещаемость, предупредит о накладках в зале и сохранит, кто и когда сделал перенос.</p>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Цветовые статусы: прошло, отменено, перенесено, пробное</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Повторяющиеся занятия на месяц вперёд в пару кликов</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Фильтры по залу, педагогу и направлению</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Отметка посещаемости прямо из карточки занятия</li>
+        </ul>
+      </div>
+
+      <div class="split-media reveal">
+        <div class="panel">
+          <div class="panel-h">
+            <span class="t">Занятие · Хореография</span>
+            <span class="badge ok">Перенесено</span>
+          </div>
+          <div class="panel-b">
+            <div class="row">
+              <span class="avatar">ИЛ</span>
+              <div class="grow"><div class="nm">Илья Логинов</div><div class="sb">Педагог · зал 1</div></div>
+              <span class="badge neutral">18:00 → 19:30</span>
+            </div>
+            <div class="row">
+              <span class="avatar" style="background:var(--sand-200);color:var(--ink-2)">12</span>
+              <div class="grow"><div class="nm">Отмечено 12 из 14</div><div class="sb">2 пропуска по уважительной причине</div></div>
+              <span class="badge ok">Списано</span>
+            </div>
+            <div class="row">
+              <span class="avatar" style="background:#F0E3D6;color:#8A5A32">!</span>
+              <div class="grow"><div class="nm">История переносов</div><div class="sb">14 мая · перенёс администратор Ольга</div></div>
+              <span class="badge warn">1 перенос</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Абонементы -->
+    <div class="split rev">
+      <div class="reveal">
+        <span class="eyebrow">Абонементы</span>
+        <h2>Считает сам — до последнего занятия</h2>
+        <p class="lead">Задайте число занятий, срок и ставку — дальше Ритм сам списывает посещения, продлевает при заморозке и подсказывает, когда абонемент подходит к концу.</p>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Любое число занятий: 4, 8, 12 или безлимит</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Индивидуальные ставки для отдельных клиентов и направлений</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Автоматический расчёт срока действия и заморозка</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Подсказка «пора продлить» за одно занятие до конца</li>
+        </ul>
+      </div>
+
+      <div class="split-media reveal">
+        <div class="panel">
+          <div class="panel-h">
+            <span class="t">Абонементы · активные</span>
+            <span class="chip on">Май</span>
+          </div>
+          <div class="panel-b">
+            <div class="row">
+              <span class="avatar">АС</span>
+              <div class="grow"><div class="nm">Анна Соколова</div><div class="sb">8 занятий · до 30 мая</div></div>
+              <span class="badge ok">6 из 8</span>
+            </div>
+            <div class="row">
+              <span class="avatar">ДМ</span>
+              <div class="grow"><div class="nm">Дмитрий Мельник</div><div class="sb">4 занятия · до 22 мая</div></div>
+              <span class="badge warn">1 из 4</span>
+            </div>
+            <div class="row">
+              <span class="avatar">КВ</span>
+              <div class="grow"><div class="nm">Ксения Вольская</div><div class="sb">Безлимит · до 31 мая</div></div>
+              <span class="badge ok">Активен</span>
+            </div>
+            <div class="row">
+              <span class="avatar">ПС</span>
+              <div class="grow"><div class="nm">Пётр Савельев</div><div class="sb">Заморожен с 10 мая · +7 дней</div></div>
+              <span class="badge neutral">Пауза</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Кабинет клиента -->
+    <div class="split">
+      <div class="reveal">
+        <span class="eyebrow">Клиенту</span>
+        <h2>Остаток видно по ссылке — без входа в систему</h2>
+        <p class="lead">Клиент получает персональную ссылку и открывает её на телефоне: сколько занятий осталось, когда следующее и что уже оплачено. Вопросов «а сколько у меня?» становится в разы меньше.</p>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Ни регистрации, ни паролей, ни установки приложения</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Ближайшие занятия с адресом зала и педагогом</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> История оплат и посещений всегда под рукой</li>
+        </ul>
+      </div>
+
+      <div class="split-media reveal">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="ph-top"><span>9:41</span><span>Ритм</span></div>
+
+            <div class="ph-card">
+              <div class="ph-big">5 из 8</div>
+              <div class="ph-lbl">занятий осталось · действует до 30 мая</div>
+              <div class="bar" style="margin-bottom:0"><i></i></div>
+            </div>
+
+            <div class="ph-card">
+              <div style="font-size:12px;font-weight:640;letter-spacing:-.01em;margin-bottom:6px">Ближайшие занятия</div>
+              <div class="ph-line"><span>Пн, 18:00 · Хореография</span><span class="muted">зал 1</span></div>
+              <div class="ph-line"><span>Ср, 18:00 · Хореография</span><span class="muted">зал 1</span></div>
+              <div class="ph-line"><span>Пт, 20:00 · Йога</span><span class="muted">зал 2</span></div>
+            </div>
+
+            <div class="ph-card">
+              <div class="ph-line"><span>Оплачено 6 мая</span><b>8 занятий</b></div>
+              <div class="ph-line"><span>Педагог</span><span class="muted">Илья Логинов</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================= ДЛЯ КОГО ========================= -->
+<section class="section" id="who">
+  <div class="container">
+    <div class="section-head center reveal" style="text-align:center">
+      <span class="eyebrow">Кому подходит</span>
+      <h2 class="h2">Там, где есть занятия и абонементы</h2>
+      <p class="lead">Ритм не привязан к одному направлению: он подстраивается под то, как считает деньги именно ваша студия.</p>
+    </div>
+
+    <div class="who reveal">
+      <div class="who-item"><div class="em">🩰</div><div class="nm">Танцы</div></div>
+      <div class="who-item"><div class="em">🧘</div><div class="nm">Йога и пилатес</div></div>
+      <div class="who-item"><div class="em">🎹</div><div class="nm">Музыка</div></div>
+      <div class="who-item"><div class="em">🎨</div><div class="nm">Творчество</div></div>
+      <div class="who-item"><div class="em">📚</div><div class="nm">Репетиторы</div></div>
+      <div class="who-item"><div class="em">🥊</div><div class="nm">Единоборства</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ШАГИ ========================= -->
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Начало</span>
+      <h2 class="h2">Переезд занимает один вечер</h2>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step"><span class="ln"></span>
+        <h3>Заведите направления</h3>
+        <p>Добавьте залы, педагогов и типы абонементов. Достаточно тех, с которыми вы работаете сейчас — остальное можно добавить позже.</p>
+      </div>
+      <div class="step"><span class="ln"></span>
+        <h3>Перенесите клиентов</h3>
+        <p>Загрузите список из таблицы или добавьте вручную. Остатки по действующим абонементам проставляются одним полем.</p>
+      </div>
+      <div class="step"><span class="ln"></span>
+        <h3>Соберите неделю</h3>
+        <p>Расставьте занятия в сетке, включите повторение — и дальше расписание живёт само, а вы только отмечаете посещения.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ОТЗЫВ ========================= -->
+<section class="section" style="padding-top:0">
+  <div class="container reveal">
+    <div class="quote">
+      <blockquote>«Раньше вечер пятницы уходил на сверку таблиц: кто оплатил, у кого сгорел абонемент. Сейчас я открываю один экран и просто вижу студию целиком».</blockquote>
+      <div class="who-q">
+        <span class="avatar">ОГ</span>
+        <div>
+          <div class="n">Ольга Г.</div>
+          <div class="r">администратор студии, 6 педагогов и 180 клиентов</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= ТАРИФЫ ========================= -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-head center reveal" style="text-align:center">
+      <span class="eyebrow">Тарифы</span>
+      <h2 class="h2">Простая цена без скрытых модулей</h2>
+      <p class="lead">Все возможности доступны на любом тарифе — разница только в размере студии.</p>
+      <div class="toggle" id="billingToggle" role="group" aria-label="Период оплаты">
+        <button class="on" data-period="month">Помесячно</button>
+        <button data-period="year">За год <span class="save">−20%</span></button>
+      </div>
+    </div>
+
+    <div class="plans reveal">
+      <article class="plan">
+        <div class="pname">Старт</div>
+        <div class="pdesc">Для частного педагога и небольшой группы клиентов</div>
+        <div class="price"><span class="v" data-month="990" data-year="790">990</span><span class="p">₽ / мес</span></div>
+        <div class="muted" style="font-size:12.5px">до 50 активных клиентов</div>
+        <a class="btn btn-ghost" href="#start">Начать бесплатно</a>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Расписание и абонементы</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Кабинет клиента по ссылке</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Учёт оплат и долгов</li>
+        </ul>
+      </article>
+
+      <article class="plan best">
+        <div class="pname">Студия</div>
+        <div class="pdesc">Для студии с несколькими педагогами и залами</div>
+        <div class="price"><span class="v" data-month="2490" data-year="1990">2 490</span><span class="p">₽ / мес</span></div>
+        <div class="muted" style="font-size:12.5px">до 300 активных клиентов</div>
+        <a class="btn btn-primary" href="#start">Начать бесплатно</a>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Всё из «Старта»</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Педагоги, залы и права доступа</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Отчёты по доходу и посещаемости</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Расчёт выплат педагогам</li>
+        </ul>
+      </article>
+
+      <article class="plan">
+        <div class="pname">Сеть</div>
+        <div class="pdesc">Для нескольких филиалов под одним управлением</div>
+        <div class="price"><span class="v" data-month="4990" data-year="3990">4 990</span><span class="p">₽ / мес</span></div>
+        <div class="muted" style="font-size:12.5px">без ограничения по клиентам</div>
+        <a class="btn btn-ghost" href="#start">Обсудить переезд</a>
+        <ul class="list">
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Всё из «Студии»</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Несколько филиалов и сводный отчёт</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Перенос данных силами команды</li>
+          <li><span class="ic yes"><svg viewBox="0 0 12 12"><path d="M1 6l3.2 3.2L11 2.6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Приоритетная поддержка</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= FAQ ========================= -->
+<section class="section" id="faq" style="padding-top:0">
+  <div class="container">
+    <div class="section-head center reveal" style="text-align:center">
+      <span class="eyebrow">Вопросы</span>
+      <h2 class="h2">Что обычно спрашивают</h2>
+    </div>
+
+    <div class="faq reveal">
+      <details open>
+        <summary>Нужно ли переносить всю историю из таблиц?</summary>
+        <div class="a">Нет. Достаточно завести действующих клиентов и остатки по их абонементам — этого хватает, чтобы начать работать с понедельника. Историю можно догрузить позже или оставить в таблице как архив.</div>
+      </details>
+      <details>
+        <summary>Как клиент видит свой абонемент?</summary>
+        <div class="a">По персональной ссылке. Клиент открывает её на телефоне и видит остаток занятий, срок действия и ближайшие занятия. Регистрация, пароли и установка приложения не нужны.</div>
+      </details>
+      <details>
+        <summary>Что происходит при переносе занятия?</summary>
+        <div class="a">Занятие перетаскивается на новое время прямо в сетке. Ритм проверяет занятость зала и педагога, сохраняет запись о переносе и оставляет посещаемость привязанной к тому же занятию.</div>
+      </details>
+      <details>
+        <summary>Можно ли задать разные цены для разных клиентов?</summary>
+        <div class="a">Да. Ставку можно задать индивидуально — для конкретного клиента, направления или типа абонемента. Расчёт срока действия и списаний при этом остаётся автоматическим.</div>
+      </details>
+      <details>
+        <summary>Работает ли с телефона?</summary>
+        <div class="a">Да, интерфейс рассчитан на телефон: педагог отмечает посещаемость с зала, администратор смотрит расписание и оплаты в дороге. Отдельное приложение устанавливать не нужно.</div>
+      </details>
+      <details>
+        <summary>Что будет с данными, если мы уйдём?</summary>
+        <div class="a">Данные принадлежат студии: выгрузка клиентов, оплат и посещений доступна в любой момент в виде таблицы. Никаких блокировок на выходе.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= CTA ========================= -->
+<section class="section" id="start" style="padding-top:0">
+  <div class="container reveal">
+    <div class="cta">
+      <h2>Попробуйте на своей студии</h2>
+      <p>14 дней бесплатно, без карты и договора. Если не подойдёт — просто не продлевайте.</p>
+      <div class="cta-actions">
+        <a class="btn btn-light btn-lg" href="#">Создать студию <span class="arr">→</span></a>
+        <a class="btn btn-lg" href="#" style="border-color:rgba(246,242,231,.34);color:var(--sand-100)">Показать демо</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ========================= ПОДВАЛ ========================= -->
+<footer class="footer">
+  <div class="container">
+    <div class="f-grid">
+      <div>
+        <a class="brand" href="#top"><span class="mark">Р</span><span>Ритм</span></a>
+        <p class="f-about">Клиенты, занятия и оплаты студии в одном месте. Вместо таблиц, ежедневника и ручных напоминаний.</p>
+      </div>
+
+      <div class="f-col">
+        <h4>Продукт</h4>
+        <a href="#features">Возможности</a>
+        <a href="#how">Как это работает</a>
+        <a href="#pricing">Тарифы</a>
+        <a href="#faq">Вопросы</a>
+      </div>
+
+      <div class="f-col">
+        <h4>Студиям</h4>
+        <a href="#who">Танцевальные студии</a>
+        <a href="#who">Йога и пилатес</a>
+        <a href="#who">Музыкальные школы</a>
+        <a href="#who">Репетиторы</a>
+      </div>
+
+      <div class="f-col">
+        <h4>Поддержка</h4>
+        <a href="#">Помощь</a>
+        <a href="#">Перенос данных</a>
+        <a href="#">Написать нам</a>
+        <a href="#login">Войти</a>
+      </div>
+    </div>
+
+    <div class="f-bottom">
+      <span>© <span id="year">2026</span> Ритм</span>
+      <span style="display:flex;gap:20px;flex-wrap:wrap">
+        <a href="#">Политика конфиденциальности</a>
+        <a href="#">Условия использования</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* Шапка: фон при прокрутке */
+  var header = document.getElementById('header');
+  var onScroll = function () {
+    header.classList.toggle('is-stuck', window.scrollY > 8);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* Мобильное меню */
+  var burger = document.getElementById('burger');
+  var menu = document.getElementById('mobileMenu');
+  burger.addEventListener('click', function () {
+    var open = menu.classList.toggle('open');
+    burger.setAttribute('aria-expanded', String(open));
+  });
+  menu.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') {
+      menu.classList.remove('open');
+      burger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  /* Плавная прокрутка по якорям */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var id = a.getAttribute('href');
+    if (id.length < 2) return;
+    var el = document.querySelector(id);
+    if (!el) return;
+    e.preventDefault();
+    var top = el.getBoundingClientRect().top + window.scrollY - 84;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+  });
+
+  /* Появление блоков при прокрутке */
+  var items = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  /* Переключатель периода оплаты */
+  var toggle = document.getElementById('billingToggle');
+  var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+  toggle.addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    toggle.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b === btn); });
+    var period = btn.dataset.period;
+    document.querySelectorAll('.price .v').forEach(function (v) {
+      v.textContent = fmt(v.dataset[period]);
+    });
+  });
+
+  /* Год в подвале */
+  document.getElementById('year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

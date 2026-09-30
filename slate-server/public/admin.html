@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slate — админка</title>
+<style>
+:root{
+  --paper:#F4EFE3; --paper-2:#FBF8F1; --paper-3:#EAE3D2;
+  --olive-50:#EDF0E2; --olive-100:#DDE3CB; --olive-200:#C3CDA6; --olive-300:#A2B07E;
+  --olive-500:#657646; --olive-600:#4F5D34; --olive-700:#3A4429; --olive-800:#2B331F;
+  --ink:#23261C; --ink-2:#484D3C; --ink-3:#787D68;
+  --line:rgba(35,38,28,.12); --line-2:rgba(35,38,28,.07);
+  --clay-soft:#F1E2D2; --clay-ink:#8A5A32; --red:#A6483C; --red-soft:#F3DED9;
+  --sans:"Inter","SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --sh:0 1px 2px rgba(35,38,28,.05);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+.bar{background:var(--olive-700);color:var(--olive-50);padding:14px 0}
+.bar .in{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.bar .t{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:660;letter-spacing:-.01em}
+.bar .m{width:30px;height:30px;border-radius:9px;background:rgba(233,235,216,.15);display:grid;place-items:center;font-size:14px}
+.bar a{color:rgba(233,235,216,.8);text-decoration:none;font-size:14px}
+.bar a:hover{color:#fff}
+.bar .me{font-size:13px;color:rgba(233,235,216,.65)}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--sh)}
+.kpi .l{font-size:12.5px;color:var(--ink-3)}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.02em;color:var(--olive-600);margin-top:2px;line-height:1.1}
+.kpi .n{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.find{flex:1;min-width:220px;height:38px;padding:0 13px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper-2);font:inherit;font-size:14px;color:var(--ink)}
+.find:focus{outline:0;border-color:var(--olive-400);box-shadow:0 0 0 3px rgba(127,145,89,.16)}
+.chip{font-size:11.5px;font-weight:620;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.chip.ok{background:var(--olive-50);color:var(--olive-600)}
+.chip.warn{background:var(--clay-soft);color:var(--clay-ink)}
+.chip.mut{background:var(--paper-3);color:var(--ink-3)}
+
+.card{background:var(--paper-2);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--sh)}
+.row{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line-2);flex-wrap:wrap}
+.row:last-child{border-bottom:0}
+.row:hover{background:rgba(234,227,210,.35)}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--olive-100);color:var(--olive-600);
+  display:grid;place-items:center;font-size:13px;font-weight:660;flex:none}
+.g{flex:1;min-width:230px}
+.nm{font-weight:620;letter-spacing:-.01em}
+.sb{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.nums{display:flex;gap:14px;font-size:13px;color:var(--ink-2);white-space:nowrap}
+.nums b{font-weight:660;color:var(--ink)}
+.acts{display:flex;align-items:center;gap:6px}
+.plans{display:flex;gap:5px}
+.plans button,.icon{border:1px solid var(--line);background:var(--paper);color:var(--ink-2);cursor:pointer;
+  border-radius:999px;padding:6px 13px;font:inherit;font-size:13px;font-weight:560;transition:.15s}
+.plans button:hover,.icon:hover{border-color:var(--olive-300)}
+.plans button.on{background:var(--olive-600);border-color:var(--olive-600);color:var(--paper-2)}
+.icon{padding:6px 11px;color:var(--red)}
+.icon:hover{background:var(--red-soft);border-color:var(--red-soft)}
+.icon[disabled]{opacity:.4;cursor:not-allowed}
+.empty{padding:44px 18px;text-align:center;color:var(--ink-3)}
+.empty b{display:block;color:var(--ink-2);font-size:16px;margin-bottom:6px}
+
+.overlay{position:fixed;inset:0;background:rgba(35,38,28,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.overlay.on{display:flex}
+.modal{background:var(--paper);border-radius:18px;max-width:440px;width:100%;overflow:hidden;
+  box-shadow:0 40px 80px -40px rgba(43,51,31,.55)}
+.modal h3{margin:0;font-size:18px}
+.mh{padding:16px 20px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+.mb{padding:18px 20px;font-size:14.5px;color:var(--ink-2)}
+.mb input{width:100%;height:40px;margin-top:12px;padding:0 12px;border-radius:10px;border:1px solid var(--line);
+  background:var(--paper-2);font:inherit;color:var(--ink)}
+.mf{padding:14px 20px;border-top:1px solid var(--line);background:var(--paper-2);display:flex;gap:9px;justify-content:flex-end}
+.btn{border:1px solid var(--line);background:var(--paper-2);color:var(--ink);cursor:pointer;border-radius:999px;
+  padding:9px 16px;font:inherit;font-size:14px;font-weight:560}
+.btn-d{background:var(--red);border-color:var(--red);color:#fff}
+.btn-d[disabled]{opacity:.5;cursor:not-allowed}
+.warn-box{background:var(--red-soft);color:#7C3A30;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:var(--olive-700);color:var(--olive-50);
+  padding:11px 18px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.2s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:820px){ .kpis{grid-template-columns:1fr 1fr} .nums{width:100%} }
+</style>
+</head>
+<body>
+<div class="bar"><div class="in">
+  <span class="t"><span class="m">▦</span> Slate — админка</span>
+  <span><span class="me" id="who"></span> &nbsp; <a href="/app">← в программу</a></span>
+</div></div>
+
+<div class="wrap"><div id="view"></div></div>
+
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* Админка владельца сервиса. Права проверяет сервер по адресу из SLATE_ADMIN;
+   здесь только показ и подтверждения. */
+var DATA = null, find = "";
+
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+  return { "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]; }); }
+function when(ms){
+  if (!ms) return "—";
+  var day = 86400000, diff = Date.now() - ms;
+  if (diff < day) return "сегодня";
+  if (diff < 2 * day) return "вчера";
+  if (diff < 30 * day) return Math.round(diff / day) + " дн. назад";
+  return new Date(ms).toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "2-digit" });
+}
+function size(b){
+  if (!b) return "0";
+  if (b < 1024 * 1024) return Math.round(b / 1024) + " КБ";
+  return (b / 1024 / 1024).toFixed(1) + " МБ";
+}
+function initials(name, email){
+  var base = (name || email || "?").trim();
+  return base.split(/[\s@.]+/).filter(Boolean).slice(0, 2).map(function(w){ return w[0]; }).join("").toUpperCase();
+}
+function toast(text){
+  var t = document.getElementById("toast");
+  t.textContent = text; t.classList.add("on");
+  clearTimeout(toast.timer); toast.timer = setTimeout(function(){ t.classList.remove("on"); }, 2600);
+}
+function closeModal(){ document.getElementById("overlay").classList.remove("on"); }
+
+function load(){
+  fetch("/api/admin", { credentials: "same-origin" }).then(function(r){
+    if (r.status === 401) return denied("Сначала войдите в программу — <a href='/app'>/app</a>");
+    if (r.status === 403) return denied("У этого аккаунта нет прав администратора.<br>Адрес задаётся в SLATE_ADMIN на сервере.");
+    return r.json().then(function(d){ DATA = d; render(); });
+  }, function(){ denied("Сервер не отвечает"); });
+}
+function denied(msg){
+  document.getElementById("view").innerHTML =
+    '<div class="card"><div class="empty"><b>Нет доступа</b>' + msg + "</div></div>";
+}
+
+function render(){
+  var d = DATA;
+  document.getElementById("who").textContent = d.you;
+
+  var teachers = 0, students = 0, lessons = 0, files = 0, bytes = 0, active = 0;
+  var week = Date.now() - 7 * 86400000;
+  d.schools.forEach(function(s){
+    teachers += s.people.length; students += s.students; lessons += s.lessons;
+    files += s.files; bytes += s.bytes;
+    if ((s.updated_at || 0) > week) active++;
+  });
+
+  var list = d.schools.filter(function(s){
+    if (!find) return true;
+    var hay = (s.name + " " + s.people.map(function(p){ return p.email + " " + (p.name || ""); }).join(" ")).toLowerCase();
+    return hay.indexOf(find.toLowerCase()) > -1;
+  });
+
+  document.getElementById("view").innerHTML =
+    '<div class="kpis">' +
+      kpi("Школ", d.schools.length, active + " активны за неделю") +
+      kpi("Преподавателей", teachers, "") +
+      kpi("Учеников", students, "") +
+      kpi("Занятий", lessons, "") +
+      kpi("Файлов", files, size(bytes)) +
+    "</div>" +
+    '<div class="tools">' +
+      '<input class="find" id="find" placeholder="Поиск по имени или почте" value="' + esc(find) + '">' +
+      chip(d.mail ? "Почта: " + d.mail : "Почта не настроена", d.mail ? "ok" : "warn") +
+      chip(d.telegram ? "Телеграм работает" : "Телеграм не настроен", d.telegram ? "ok" : "warn") +
+    "</div>" +
+    '<div class="card">' + (list.length ? list.map(school).join("") :
+      '<div class="empty"><b>' + (find ? "Никого не нашлось" : "Пока никто не зарегистрировался") + "</b>" +
+      (find ? "Попробуйте другой запрос" : "Поделитесь ссылкой на регистрацию") + "</div>") + "</div>";
+
+  var f = document.getElementById("find");
+  if (f) {
+    f.addEventListener("input", function(){ find = this.value; render();
+      var el = document.getElementById("find"); el.focus(); el.setSelectionRange(el.value.length, el.value.length); });
+  }
+}
+function kpi(l, v, n){
+  return '<div class="kpi"><div class="l">' + esc(l) + '</div><div class="v">' + v + "</div>" +
+    (n ? '<div class="n">' + esc(n) + "</div>" : "") + "</div>";
+}
+function chip(text, tone){ return '<span class="chip ' + tone + '">' + esc(text) + "</span>"; }
+
+function school(s){
+  var owner = s.people.filter(function(p){ return p.role === "owner"; })[0] || s.people[0] || {};
+  var others = s.people.length - 1;
+  var tg = s.people.some(function(p){ return p.telegram; });
+  return '<div class="row" data-school="' + esc(s.id) + '">' +
+    '<span class="ava">' + esc(initials(owner.name, owner.email)) + "</span>" +
+    '<div class="g"><div class="nm">' + esc(s.name || owner.email || "школа") +
+      (s.mine ? ' <span class="chip mut">это вы</span>' : "") +
+      (tg ? ' <span class="chip ok">telegram</span>' : "") + "</div>" +
+      '<div class="sb">' + esc(owner.email || "—") + (others > 0 ? " · и ещё " + others : "") +
+        " · создана " + when(s.created_at) + " · активность " + when(s.updated_at) +
+        (s.msgs ? " · сообщений " + s.msgs : "") + "</div></div>" +
+    '<div class="nums"><span><b>' + s.students + "</b> учеников</span>" +
+      "<span><b>" + s.lessons + "</b> занятий</span>" +
+      (s.files ? "<span><b>" + s.files + "</b> файлов</span>" : "") + "</div>" +
+    '<div class="acts">' +
+      '<div class="plans">' + ["free","pro","studio"].map(function(p){
+        return '<button data-plan="' + p + '" data-school="' + esc(s.id) + '"' +
+          (s.plan === p ? ' class="on"' : "") + ">" + ({free:"Free",pro:"Pro",studio:"Studio"})[p] + "</button>";
+      }).join("") + "</div>" +
+      '<button class="icon" data-del="' + esc(s.id) + '"' + (s.mine ? " disabled title='Свою школу удалить нельзя'" : "") + ">Удалить</button>" +
+    "</div></div>";
+}
+
+/* --- удаление: подтверждаем почтой владельца --- */
+function askDelete(id){
+  var s = DATA.schools.filter(function(x){ return x.id === id; })[0];
+  if (!s) return;
+  var owner = s.people.filter(function(p){ return p.role === "owner"; })[0] || s.people[0] || {};
+  document.getElementById("modal").innerHTML =
+    '<div class="mh"><h3>Удалить школу «' + esc(s.name || owner.email) + '»?</h3></div>' +
+    '<div class="mb">Исчезнут безвозвратно: учеников — ' + s.students + ", занятий — " + s.lessons +
+      ", файлов — " + s.files + " (" + size(s.bytes) + "), переписка и доступы." +
+      '<div class="warn-box">Восстановить можно будет только из ночной копии базы в /opt/slate/backup.</div>' +
+      '<input id="confirm" placeholder="' + esc(owner.email) + '" autocomplete="off">' +
+      '<div class="sb" style="margin-top:8px">Впишите почту владельца, чтобы подтвердить</div></div>' +
+    '<div class="mf"><button class="btn" data-close>Отмена</button>' +
+      '<button class="btn btn-d" id="go" data-go="' + esc(s.id) + '" disabled>Удалить навсегда</button></div>';
+  document.getElementById("overlay").classList.add("on");
+  var inp = document.getElementById("confirm"), go = document.getElementById("go");
+  inp.focus();
+  inp.addEventListener("input", function(){
+    go.disabled = this.value.trim().toLowerCase() !== String(owner.email).toLowerCase();
+  });
+}
+
+document.addEventListener("click", function(e){
+  if (e.target.id === "overlay" || e.target.closest("[data-close]")) return closeModal();
+
+  var plan = e.target.closest("[data-plan]");
+  if (plan && !plan.classList.contains("on")) {
+    plan.disabled = true;
+    return post("/api/admin/plan", { schoolId: plan.dataset.school, plan: plan.dataset.plan }, function(ok){
+      if (!ok) { plan.disabled = false; return toast("Не получилось сменить тариф"); }
+      toast("Тариф изменён"); load();
+    });
+  }
+
+  var del = e.target.closest("[data-del]");
+  if (del && !del.disabled) return askDelete(del.dataset.del);
+
+  var go = e.target.closest("[data-go]");
+  if (go && !go.disabled) {
+    go.disabled = true;
+    var confirmText = (document.getElementById("confirm") || {}).value || "";
+    return post("/api/admin/delete", { schoolId: go.dataset.go, confirm: confirmText }, function(ok, data){
+      closeModal();
+      if (!ok) return toast(data && data.error === "self" ? "Свою школу удалить нельзя" : "Не удалось удалить");
+      toast("Удалено: людей " + data.people + ", файлов " + data.files);
+      load();
+    });
+  }
+});
+document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeModal(); });
+
+function post(url, body, done){
+  fetch(url, { method: "POST", credentials: "same-origin",
+    headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(d){ done(r.ok, d); }); },
+          function(){ done(false, {}); });
+}
+
+load();
+setInterval(function(){ if (!document.getElementById("overlay").classList.contains("on")) load(); }, 60000);
+</script>
+</body>
+</html>
