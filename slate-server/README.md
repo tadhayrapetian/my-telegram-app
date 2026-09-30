@@ -36,6 +36,7 @@ node --no-warnings server.js
 | `SLATE_DEV_CODES` | `1` — показывать код на экране даже при настроенной почте (отладка) |
 | `SLATE_MAIL` | `smtp`, `resend`, `brevo` или `custom` — чем слать письма |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | почтовый ящик и пароль приложения |
+| `SLATE_TG_API` | адрес переходника к Telegram, если прямой доступ закрыт |
 | `RESEND_API_KEY` / `BREVO_API_KEY` | ключ выбранной службы |
 | `SLATE_MAIL_FROM` | отправитель, например `Slate <hello@getslate.com>` |
 
@@ -91,6 +92,27 @@ SLATE_BOT_TOKEN=123456:AA…
 ```
 
 3. `systemctl restart slate` — в логе появится «бот @имя на связи».
+
+### Если сервер не пускают к Telegram
+
+С российских дата-центров `api.telegram.org` обычно недоступен — в логе будет
+`сеть — ETIMEDOUT`. Проверить прямо на сервере:
+
+```bash
+curl -sS -m 10 -o /dev/null -w '%{http_code}\n' https://api.telegram.org/
+```
+
+Лечится переходником на Cloudflare Workers: бесплатно, карта не нужна.
+Код и пошаговая инструкция — в файле `telegram-proxy.worker.js`. Коротко:
+создаёте воркер, вставляете туда этот файл, получаете адрес
+`https://имя.логин.workers.dev` и добавляете в `/opt/slate/slate.env`:
+
+```
+SLATE_TG_API=https://имя.логин.workers.dev
+```
+
+После `systemctl restart slate` в логе появится «бот @имя на связи».
+Адрес воркера держите при себе: через него ходит токен бота.
 
 Дальше преподаватель нажимает **Настройки → Подключить Telegram**, ученик —
 кнопку в своём кабинете: обе дают ссылку на бота, где надо нажать «Старт».

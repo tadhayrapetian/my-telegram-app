@@ -100,6 +100,10 @@ if [[ ! -f "$APP_DIR/slate.env" ]]; then
 # Напоминания в Telegram: создайте бота у @BotFather и впишите токен:
 # SLATE_BOT_TOKEN=123456:AA...
 #
+# Если в логе «сеть — ETIMEDOUT» — дата-центр не пускает к Telegram.
+# Поднимите переходник (telegram-proxy.worker.js, инструкция внутри) и:
+# SLATE_TG_API=https://имя.логин.workers.dev
+#
 # После правки: systemctl restart slate
 ENVFILE
 fi
